@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type" : "minecraft:model",
+    "model": "nullpointerentity:item/corrupted_data_shard"
+  }
+}
