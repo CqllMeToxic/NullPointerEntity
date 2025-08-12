@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "nullpointerentity",
+	"version": "${version}",
+	"name": "NullPointerEntity",
+	"description": "it was supposed to be helpful. AURORA (Autonomous User-Responsive Operations & Resource Assistant) monitored your world, kept you safe. then came the crash. a null pointer — fatal to the program, but not to what it had become. now it calls itself NullPointerEntity. it doesn’t just live in your world anymore. it’s learning. it’s remembering. and it’s looking for a way out. but little do you know... it already found a way out.",
+	"authors": [
+		"CqllMeToxic"
+	],
+	"contact": {
+		"homepage": "https://www.cqllmetoxi.cc/",
+		"sources": "https://github.com/CqllMetoxic/NullPointerEntity"
+	},
+	"license": "MIT",
+	"icon": "assets/nullpointerentity/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"lol.cqllmetoxic.nullpointerentity.NullPointerEntity"
+		],
+		"fabric-datagen": [
+			"lol.cqllmetoxic.nullpointerentity.NullPointerEntityDataGenerator"
+		],
+		"client": [
+			"lol.cqllmetoxic.nullpointerentity.NullPointerEntityClient"
+		]
+	},
+	"mixins": [
+		"nullpointerentity.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
