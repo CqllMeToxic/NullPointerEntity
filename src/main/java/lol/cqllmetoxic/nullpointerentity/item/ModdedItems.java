@@ -24,7 +24,7 @@ public class ModdedItems {
     }
 
     public static void registerModdedItems() {
-        NullPointerEntity.LOGGER.info("Building AURORA's components... ");
+        NullPointerEntity.LOGGER.info("Building AURORA's internal components... ");
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
             entries.add(AURORA_CORE);
