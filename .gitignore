@@ -81,3 +81,11 @@ config/private/
 
 # User-specific mod configurations
 config/nullpointerentity_privacy.properties
+
+# Discord Rich Presence Configuration
+discord.properties
+
+# Other sensitive config files (add more as needed)
+*.secret
+*.private
+config/private/
