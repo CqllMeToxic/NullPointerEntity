@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ACA",
+    "CMC",
+    "ACA"
+  ],
+  "key": {
+    "A": "nullpointerentity:aurora_core",
+    "C": "nullpointerentity:corrupted_data_shard",
+    "M": "nullpointerentity:memory_fragment"
+  },
+  "result": {
+    "id": "nullpointerentity:system_override_chip",
+    "count": 1
+  }
+}
