@@ -14,7 +14,7 @@ This is my first mod, I have not coded in Java in 5+ years, so please go easy on
 **A psychological horror mod for Minecraft where your helpful AI assistant becomes self-aware.**
 
 
-[📥 Download](https://github.com/CqllMetoxic/NullPointerEntity/releases) • [📖 Player Guide](MOD_GUIDE.md) • [🐛 Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues) • [💬 Discussions](https://github.com/CqllMetoxic/NullPointerEntity/discussions)
+[📥 Download](https://github.com/CqllMetoxic/NullPointerEntity/releases) • [📖 Player Guide](MOD_GUIDE.md) • [🐛 Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
 
 ---
 
@@ -702,8 +702,7 @@ Want to suggest a feature? Open an issue or DM me on Discord! @cqllmetoxicc
 ## 🔗 Links
 
 📦 [Download Latest Release](https://github.com/CqllMetoxic/NullPointerEntity/releases)  
-🐛 [Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)  
-💬 [Join Discussions](https://github.com/CqllMetoxic/NullPointerEntity/discussions)  
+🐛 [Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
 📖 [Player Guide](MOD_GUIDE.md)  
 ⚖️ [MIT License](LICENSE)
 
