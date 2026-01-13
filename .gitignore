@@ -72,8 +72,14 @@ Desktop.ini
 # Minecraft development
 run/
 .minecraft/
+logs/
+crash-reports/
 
-# Discord Rich Presence Configuration (KEEP SENSITIVE DATA OUT!)
+# Launch files (IntelliJ run configurations)
+*.launch
+NullPointerEntity-*.launch
+
+# Discord Rich Presence Configuration
 discord.properties
 config/private/
 *.secret
@@ -82,10 +88,7 @@ config/private/
 # User-specific mod configurations
 config/nullpointerentity_privacy.properties
 
-# Discord Rich Presence Configuration
-discord.properties
-
-# Other sensitive config files (add more as needed)
+# Other sensitive config files
 *.secret
 *.private
 config/private/
