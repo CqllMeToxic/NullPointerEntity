@@ -499,7 +499,7 @@ The mod installs on multiplayer but all features automatically disable on server
 <details>
 <summary><b>Will this actually crash my game?</b></summary>
 
-No. Crash screens and blue screens are visual effects only. If the game actually crashes, that's a bug—please report it.
+Yes. The mod also turns off your computer in one event. Refer to the MOD_GUIDE.md for details on that.
 
 </details>
 
@@ -513,7 +513,7 @@ Delete `nullpointerentity-1.0.0.jar` from your mods folder.
 <details>
 <summary><b>Why does my antivirus flag this?</b></summary>
 
-Some antivirus programs flag file creation and camera access as suspicious. This is a false positive. The mod is open source and contains no malware.
+Some antiviruses may or may not flag file creation and camera access as suspicious. This is a false positive. The mod is open source and contains no malware.
 
 </details>
 
