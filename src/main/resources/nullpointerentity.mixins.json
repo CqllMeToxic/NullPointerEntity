@@ -1,14 +1,22 @@
 {
-	"required": true,
-	"package": "lol.cqllmetoxic.nullpointerentity.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
+  "required": false,
+  "package": "lol.cqllmetoxic.nullpointerentity.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "client": [
+    "client.BlockInteractionMixin",
+    "client.InGameHudMixin",
+    "client.KeyBindingMixin",
+    "client.MouseMixin",
+    "client.MovementMixin",
+    "client.RenderMixin",
+    "client.LivingEntityMovementMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
 	}
 }
