@@ -1,0 +1,51 @@
+{
+  "jumpscare.scream": {
+    "sounds": [
+      "nullpointerentity:jumpscare/scream"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.scream"
+  },
+  "jumpscare.static": {
+    "sounds": [
+      "nullpointerentity:jumpscare/static"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.static"
+  },
+  "jumpscare.whisper": {
+    "sounds": [
+      "nullpointerentity:jumpscare/whisper"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.whisper"
+  },
+  "jumpscare.heartbeat_calm": {
+    "sounds": [
+      "nullpointerentity:jumpscare/heartbeat_calm"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.heartbeat_calm"
+  },
+  "jumpscare.heartbeat_tense": {
+    "sounds": [
+      "nullpointerentity:jumpscare/heartbeat_tense"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.heartbeat_tense"
+  },
+  "jumpscare.glitch": {
+    "sounds": [
+      "nullpointerentity:jumpscare/glitch"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.glitch"
+  },
+  "jumpscare.chase": {
+    "sounds": [
+      "nullpointerentity:jumpscare/chase"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.chase"
+  },
+  "jumpscare.bluescreen_static": {
+    "sounds": [
+      "nullpointerentity:jumpscare/bluescreen_static"
+    ],
+    "subtitle": "subtitles.nullpointerentity.jumpscare.bluescreen_static"
+  }
+}
+
