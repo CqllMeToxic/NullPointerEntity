@@ -60,7 +60,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 ### Installation Steps
 
-#### Official Minecraft Launcher (Recommended)
+#### Official Minecraft Launcher
 
 1. **Install Fabric Loader**
    - Download the [Fabric Installer](https://fabricmc.net/use/installer/)
