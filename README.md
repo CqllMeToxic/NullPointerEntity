@@ -42,7 +42,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <div align="center">
 
 ### ⚠️ Content Warning ⚠️
-**Psychological horror • Jumpscares • Loud audio • Flashing lights • Simulated system access**
+**Psychological horror • Jumpscares • Loud audio • Flashing lights • System access**
 
 </div>
 
@@ -367,13 +367,13 @@ Fake crashes. Blue screens. Entity encounters. Nothing is safe. AURORA has full 
 
 **Audio Design**
 Custom sounds create immersive horror:
-- `scream.ogg` — Jumpscare moments
-- `static.ogg` — Unsettling ambiance
-- `whisper.ogg` — Background whispers
-- `heartbeat_calm.ogg` & `heartbeat_tense.ogg` — Adaptive tension
-- `glitch.ogg` — Digital corruption
-- `chase.ogg` — Pursuit sequences
-- `bluescreen_static.ogg` — Fake system crashes
+- `scream.ogg`
+- `static.ogg`
+- `whisper.ogg`
+- `heartbeat_calm.ogg` & `heartbeat_tense.ogg`
+- `glitch.ogg`
+- `chase.ogg`
+- `bluescreen_static.ogg`
 
 **Visual Horror**
 - Fake death screens with non-functional respawn buttons
