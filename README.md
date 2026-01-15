@@ -60,7 +60,8 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 ### Installation Steps
 
-#### Official Minecraft Launcher
+<details>
+<summary><b>Official Minecraft Launcher</b></summary>
 
 1. **Install Fabric Loader**
    - Download the [Fabric Installer](https://fabricmc.net/use/installer/)
@@ -83,9 +84,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click **Play**
    - Create or join a singleplayer world
 
----
+</details>
 
-#### CurseForge Launcher
+<details>
+<summary><b>CurseForge Launcher</b></summary>
 
 1. **Create a Custom Profile**
    - Open CurseForge launcher
@@ -110,9 +112,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click **Play** on your profile
    - Create a new singleplayer world
 
----
+</details>
 
-#### Modrinth App
+<details>
+<summary><b>Modrinth App</b></summary>
 
 1. **Create a New Profile**
    - Open Modrinth App
@@ -136,9 +139,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click **Play** on your profile
    - Start a singleplayer world
 
----
+</details>
 
-#### Prism Launcher
+<details>
+<summary><b>Prism Launcher</b></summary>
 
 1. **Create a New Instance**
    - Open Prism Launcher
@@ -163,9 +167,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Double-click your instance to launch
    - Create a singleplayer world
 
----
+</details>
 
-#### MultiMC
+<details>
+<summary><b>MultiMC</b></summary>
 
 1. **Create Instance**
    - Open MultiMC
@@ -190,9 +195,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Double-click your instance
    - Create a singleplayer world
 
----
+</details>
 
-#### Lunar Client
+<details>
+<summary><b>Lunar Client</b></summary>
 
 1. **Note:** Lunar Client has built-in Fabric support on recent versions
    - Open Lunar Client
@@ -212,9 +218,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Start Lunar Client with the 1.21.4 profile
    - Create a singleplayer world
 
----
+</details>
 
-#### Feather Client
+<details>
+<summary><b>Feather Client</b></summary>
 
 1. **Setup Mods Folder**
    - Open Feather Client
@@ -229,9 +236,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Start Feather Client
    - Create a singleplayer world
 
----
+</details>
 
-#### ATLauncher
+<details>
+<summary><b>ATLauncher</b></summary>
 
 1. **Create Instance**
    - Open ATLauncher
@@ -251,9 +259,10 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click **Play** on your instance
    - Create a singleplayer world
 
----
+</details>
 
-#### GDLauncher
+<details>
+<summary><b>GDLauncher</b></summary>
 
 1. **Create Instance**
    - Open GDLauncher
@@ -276,6 +285,8 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 4. **Launch**
    - Click **Play** on your instance
    - Create a singleplayer world
+
+</details>
 
 ---
 
