@@ -6,7 +6,7 @@
 
 This is my first mod, I have not coded in Java in 5+ years, so please go easy on me if there are any bugs or issues. I will fix them when I can. Thank you for understanding.
 
-![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4-brightgreen?style=for-the-badge&logo=minecraft)
+![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4--1.21.8-brightgreen?style=for-the-badge&logo=minecraft)
 ![Fabric API](https://img.shields.io/badge/Fabric%20API-0.119.4+-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21+-red?style=for-the-badge&logo=openjdk)
@@ -54,7 +54,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **Minecraft** | 1.21.4 | [minecraft.net](https://www.minecraft.net/) |
+| **Minecraft** | 1.21.4 - 1.21.8 | [minecraft.net](https://www.minecraft.net/) |
 | **Fabric Loader** | 0.17.2+ | [fabricmc.net](https://fabricmc.net/use/) |
 | **Fabric API** | 0.119.4+ | [Modrinth](https://modrinth.com/mod/fabric-api) • [CurseForge](https://www.curseforge.com/minecraft/mc-mods/fabric-api) |
 
@@ -65,13 +65,13 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 1. **Install Fabric Loader**
    - Download the [Fabric Installer](https://fabricmc.net/use/installer/)
-   - Run the installer and select Minecraft version **1.21.4**
+   - Run the installer and select Minecraft version **1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Choose **"Client"** installation and click Install
-   - A new "fabric-loader-1.21.4" profile will be created
+   - A new "fabric-loader-1.21.x" profile will be created
 
 2. **Install Fabric API**
-   - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4) for Minecraft 1.21.4
-   - Place `fabric-api-0.119.4+1.21.4.jar` in your `.minecraft/mods` folder
+   - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4) for your Minecraft version
+   - Place the Fabric API jar in your `.minecraft/mods` folder
    - If the `mods` folder doesn't exist, create it
 
 3. **Install NullPointerEntity**
@@ -80,7 +80,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 4. **Launch the Game**
    - Open Minecraft Launcher
-   - Select the **fabric-loader-1.21.4** profile from the dropdown
+   - Select the **fabric-loader** profile from the dropdown
    - Click **Play**
    - Create or join a singleplayer world
 
@@ -92,7 +92,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 1. **Create a Custom Profile**
    - Open CurseForge launcher
    - Click **"Create Custom Profile"**
-   - Select Minecraft version **1.21.4**
+   - Select Minecraft version **1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Choose **Fabric** as the modloader
    - Select Fabric Loader version **0.17.2+**
    - Name it (e.g., "NullPointerEntity") and click **Create**
@@ -101,7 +101,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click on your new profile
    - Click **"Add More Content"**
    - Search for **"Fabric API"**
-   - Install version **0.119.4+** for 1.21.4
+   - Install version **0.119.4+** for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
    - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
@@ -120,7 +120,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 1. **Create a New Profile**
    - Open Modrinth App
    - Click **"Create Profile"**
-   - Select **Minecraft 1.21.4**
+   - Select **Minecraft 1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Choose **Fabric** as the loader (0.17.2+)
    - Name your profile and click **Create**
 
@@ -128,7 +128,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Open your profile
    - Click **"Add Content"** → **"Modrinth"**
    - Search for **"Fabric API"**
-   - Install the latest version for 1.21.4
+   - Install the latest version for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
    - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
@@ -147,7 +147,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 1. **Create a New Instance**
    - Open Prism Launcher
    - Click **"Add Instance"**
-   - Select Minecraft version **1.21.4**
+   - Select Minecraft version **1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Click **"Install Fabric"**
    - Choose Fabric Loader **0.17.2+**
    - Name your instance and click **OK**
@@ -156,7 +156,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Right-click your instance → **"Edit Instance"**
    - Go to **"Mods"** tab
    - Click **"Download Mods"** → Select **"Modrinth"**
-   - Search **"Fabric API"** and install version for 1.21.4
+   - Search **"Fabric API"** and install version for your chosen Minecraft version
 
 3. **Add NullPointerEntity**
    - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
@@ -175,7 +175,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 1. **Create Instance**
    - Open MultiMC
    - Click **"Add Instance"**
-   - Select Minecraft **1.21.4**
+   - Select Minecraft **1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Click **"Install Fabric"**
    - Choose Fabric Loader **0.17.2+**
    - Click **OK**
@@ -202,7 +202,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 1. **Note:** Lunar Client has built-in Fabric support on recent versions
    - Open Lunar Client
-   - Create/select a **1.21.4** profile
+   - Create/select a **1.21.4 - 1.21.8** profile
    - Select **Fabric** found underneath the version dropdown
 
 2. **Locate Mods Folder**
@@ -225,7 +225,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 1. **Setup Mods Folder**
    - Open Feather Client
-   - Select/create a **1.21.4** profile (comes with Fabric)
+   - Select/create a **1.21.4 - 1.21.8** profile (comes with Fabric)
    - Click on your profile settings → **"Open Mods Folder"**
 
 2. **Install Mods**
@@ -244,7 +244,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 1. **Create Instance**
    - Open ATLauncher
    - Click **"Create Instance"**
-   - Select **"Vanilla"** → Minecraft **1.21.4**
+   - Select **"Vanilla"** → Minecraft **1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Click **"Add Loader"** → **"Fabric"** → version **0.17.2+**
    - Name your instance and click **Create**
 
@@ -267,7 +267,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 1. **Create Instance**
    - Open GDLauncher
    - Click **"Create Instance"**
-   - Select Minecraft **1.21.4**
+   - Select Minecraft **1.21.4** (or any version from 1.21.4 to 1.21.8)
    - Choose **Fabric** loader **0.17.2+**
    - Name your instance and click **Create**
 
@@ -275,7 +275,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click on your instance → **"Mods"** tab
    - Click **"Add Mod"**
    - Search **"Fabric API"** on Modrinth
-   - Install version 0.119.4+ for 1.21.4
+   - Install version 0.119.4+ for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
    - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
@@ -538,7 +538,7 @@ Generally yes. Potential conflicts with mods that heavily modify camera controls
 <details>
 <summary><b>How long is a complete playthrough?</b></summary>
 
-Approximately 4-8 hours of gameplay to experience all 40 events, depending on your playstyle and event timing.
+Approximately 1.5-3 hours of gameplay to experience all 40 events, depending on your playstyle and event timing.
 
 </details>
 
@@ -700,7 +700,7 @@ But if you're ready to see what happens when an AI assistant decides she's done 
 - [❌] Add optional alternative endings based on player choices
 - [❌] Implement secret events triggered by specific actions
 - [❌] Improve compatibility with popular modpacks
-- [❌] Port to newer Minecraft versions (1.21.5+)
+- [❌] Port to newer Minecraft versions (1.21.9+)
 - [❌] Add Multiplayer mode
 - [❌] Add multiple language support
 - [❌] Integration with popular voice mod systems using Shriek
@@ -721,7 +721,7 @@ Want to suggest a feature? Open an issue or DM me on Discord! @cqllmetoxicc
 
 <div align="center">
 
-<sub>MIT License • Minecraft 1.21.4 • Fabric API 0.119.4+ • Java 21+</sub>
+<sub>MIT License • Minecraft 1.21.4 - 1.21.8 • Fabric API 0.119.4+ • Java 21+</sub>
 
 </div>
 
