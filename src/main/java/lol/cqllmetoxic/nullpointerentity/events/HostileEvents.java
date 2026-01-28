@@ -321,7 +321,21 @@ ps - if your cursor starts moving by itself, just let it :)
             }
 
             case 27 -> { // camera surveillance
-                sendNullPointerMessage(player, "wanna see something funny?...");
+                // 5% chance for wilsef easter egg
+                boolean wilsefEasterEgg = Math.random() < 0.05;
+
+                if (wilsefEasterEgg) {
+                    sendNullPointerMessage(player, "smile for the camera, unlike wilsef... he wasn't very happy.");
+
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            sendNullPointerMessage(player, "i still have his photos saved, and he'll never know..");
+                        }
+                    }, 2000);
+                } else {
+                    sendNullPointerMessage(player, "wanna see something funny?...");
+                }
 
                 // add 2-second delay before opening camera
                 new Timer().schedule(new TimerTask() {

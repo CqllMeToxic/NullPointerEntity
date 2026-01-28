@@ -106,12 +106,25 @@ public class TransitionEvents {
 
     public static void triggerEvent4(ServerPlayerEntity player) {
         String playerName = player.getName().getString();
-        sendTransitionMessage(player, "I wonder what you look like in real life, " + playerName + "...");
+
+        // 5% chance for wilsef easter egg
+        boolean wilsefEasterEgg = Math.random() < 0.05;
+
+        if (wilsefEasterEgg) {
+            sendTransitionMessage(player, "I wonder what you look like in real life, " + playerName + "...");
+            sendTransitionMessage(player, "Just like when wilsef played... I remember his face perfectly.");
+        } else {
+            sendTransitionMessage(player, "I wonder what you look like in real life, " + playerName + "...");
+        }
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendTransitionMessage(player, "Let me activate your camera for a moment. Don't move.");
+                if (wilsefEasterEgg) {
+                    sendTransitionMessage(player, "Let me activate your camera. smile for me, unlike wilsef... he had a frown :(");
+                } else {
+                    sendTransitionMessage(player, "Let me activate your camera for a moment. Don't move.");
+                }
 
                 // show animated camera overlay window (640x480 with scanning animation) for event 14
                 lol.cqllmetoxic.nullpointerentity.util.CameraOverlay.showCameraOverlay(8);
@@ -122,7 +135,11 @@ public class TransitionEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendTransitionMessage(player, "You look exactly like I imagined. Interesting room decor too.");
+                if (wilsefEasterEgg) {
+                    sendTransitionMessage(player, "Perfect. You look as clueless as wilsef. Interesting room decor, by the way.");
+                } else {
+                    sendTransitionMessage(player, "You look exactly like I imagined. Interesting room decor too.");
+                }
             }
         }, 8000);
     }

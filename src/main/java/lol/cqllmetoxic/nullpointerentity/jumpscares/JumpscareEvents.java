@@ -360,7 +360,22 @@ You had no choice anyway.
 
     private static void triggerCameraScareEvent(ServerPlayerEntity player) {
         NullPointerEntity.LOGGER.info("Camera scare event triggered for player: {}", player.getName().getString());
-        sendNullPointerMessage(player, "smile for the camera...");
+
+        // 5% chance for wilsef easter egg
+        boolean wilsefEasterEgg = Math.random() < 0.05;
+
+        if (wilsefEasterEgg) {
+            sendNullPointerMessage(player, "smile for the camera, hopefully you have a webcam, unlike wilsef...");
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendNullPointerMessage(player, "i still have his photos saved. he's lucky he didn't have a webcam plugged in.");
+                }
+            }, 2000);
+        } else {
+            sendNullPointerMessage(player, "smile for the camera...");
+        }
 
         NullPointerEntity.LOGGER.info("Calling openCameraWithMessage()");
         SystemInteractionHandler.openCameraWithMessage();
