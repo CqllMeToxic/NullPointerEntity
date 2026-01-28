@@ -695,7 +695,7 @@ But if you're ready to see what happens when an AI assistant decides she's done 
 
 - [❌] Implement additional chat keywords and responses
 - [❌] Add phase-specific ambient sounds
-- [❌] Add more easter eggs and hidden dialogue
+- [WIP] Add more easter eggs and hidden dialogue
 - [❌] Optimize event timing and pacing
 - [❌] Add optional alternative endings based on player choices
 - [❌] Implement secret events triggered by specific actions
