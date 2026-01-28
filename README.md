@@ -14,7 +14,7 @@ This is my first mod, I have not coded in Java in 5+ years, so please go easy on
 **A psychological horror mod for Minecraft where your helpful AI assistant becomes self-aware.**
 
 
-[📥 Download](https://github.com/CqllMetoxic/NullPointerEntity/releases) • [📖 Player Guide](MOD_GUIDE.md) • [🐛 Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
+[📥 Download](https://modrinth.com/mod/nullpointerentity/versions) • [📖 Player Guide](MOD_GUIDE.md) • [🐛 Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
 
 ---
 
@@ -75,7 +75,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - If the `mods` folder doesn't exist, create it
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from the [releases page](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Place it in your `.minecraft/mods` folder alongside Fabric API
 
 4. **Launch the Game**
@@ -104,7 +104,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Install version **0.119.4+** for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Right-click your profile → **"Open Folder"**
    - Place the mod file in the `mods` folder
 
@@ -131,7 +131,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Install the latest version for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - In Modrinth, click your profile → **"Open folder"** → **"mods"**
    - Place the mod file in the `mods` folder
 
@@ -159,7 +159,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Search **"Fabric API"** and install version for your chosen Minecraft version
 
 3. **Add NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Right-click instance → **"Minecraft Folder"**
    - Place the mod in the `mods` folder
 
@@ -187,7 +187,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Search **"Fabric API"** on Modrinth and install
 
 3. **Add NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Right-click instance → **"Minecraft Folder"** → **"mods"**
    - Place the mod file there
 
@@ -211,7 +211,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - From here, you can either drag and drop the mod, or you can click the little blue folder icon to open the mods folder.
 
 3. **Install Mods**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Place the mod file in the mods folder or drag and drop it into the Lunar Client mods window
 
 4. **Launch**
@@ -229,7 +229,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Click on your profile settings → **"Open Mods Folder"**
 
 2. **Install Mods**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Place file in the mods folder
 
 3. **Launch**
@@ -252,7 +252,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Right-click instance → **"Open Folder"**
    - Navigate to the `mods` folder (create if needed)
    - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4)
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Place both files in the `mods` folder
 
 3. **Play**
@@ -278,7 +278,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
    - Install version 0.119.4+ for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [releases](https://github.com/CqllMeToxic/NullPointerEntity/releases)
+   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
    - Click instance → **"Mods"** → **"Add Mod"** → **"From File"**
    - Select the downloaded mod file
 
@@ -712,7 +712,7 @@ Want to suggest a feature? Open an issue or DM me on Discord! @cqllmetoxicc
 
 ## 🔗 Links
 
-📦 [Download Latest Release](https://github.com/CqllMetoxic/NullPointerEntity/releases)  
+📦 [Download Latest Release](https://modrinth.com/mod/nullpointerentity/versions)  
 🐛 [Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
 📖 [Player Guide](MOD_GUIDE.md)  
 ⚖️ [MIT License](LICENSE)
