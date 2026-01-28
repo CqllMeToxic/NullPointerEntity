@@ -109,8 +109,7 @@ public class PrivacyScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // render background with darker overlay for better text readability
-        this.renderBackground(context, mouseX, mouseY, delta);
-        context.fillGradient(0, 0, this.width, this.height, 0x88000000, 0x88000000);
+        context.fillGradient(0, 0, this.width, this.height, 0xCC000000, 0xDD000000);
 
         int centerX = this.width / 2;
         int currentY = 40;
