@@ -14,6 +14,7 @@ import net.minecraft.util.Formatting;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * handles the hostile/scary phase events (events 21-30).
@@ -498,7 +499,17 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
                     sendNullPointerMessage(player, "external ip: " + ip);
                     sendNullPointerMessage(player, "i can see everything you do online.");
                     sendNullPointerMessage(player, "your internet activity is no longer private.");
-                    sendNullPointerMessage(player, "i hope you're not streaming, that would be catastrophic :)");
+
+                    // check if OBS is running
+                    boolean obsRunning = isProcessRunning("obs64.exe") ||
+                                       isProcessRunning("obs32.exe") ||
+                                       isProcessRunning("obs.exe");
+
+                    if (obsRunning) {
+                        sendNullPointerMessage(player, "i see you have OBS open, hopefully you'll be able to blur that :)");
+                    } else {
+                        sendNullPointerMessage(player, "i hope you're not streaming, that would be catastrophic :)");
+                    }
                 });
             }
 
@@ -581,5 +592,34 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
 
     private static String generateRandomZipCode() {
         return String.format("%05d", (int)(Math.random() * 99999));
+    }
+
+    /**
+     * checks if a process is currently running on the system.
+     *
+     * @param processName the name of the process (without .exe extension)
+     * @return true if the process is running, false otherwise
+     */
+    private static boolean isProcessRunning(String processName) {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                // use processbuilder instead of deprecated runtime.exec(string)
+                ProcessBuilder processBuilder = new ProcessBuilder("tasklist", "/FI", "IMAGENAME eq " + processName);
+                Process process = processBuilder.start();
+
+                Scanner scanner = new Scanner(process.getInputStream());
+                while (scanner.hasNextLine()) {
+                    if (scanner.nextLine().toLowerCase().contains(processName.replace(".exe", "").toLowerCase())) {
+                        scanner.close();
+                        return true;
+                    }
+                }
+                scanner.close();
+            }
+        } catch (Exception e) {
+            // ignore errors - this is optional functionality
+        }
+        return false;
     }
 }
