@@ -2,11 +2,15 @@
 
 # NullPointerEntity
 
-## I HIGHLY recommend playing this on the Vanilla launcher, Feather, or Lunar Client. I had the best experience on those while testing, they also don't have their own environment like CurseForge, Modrinth, Prism, and the other launchers, which is the best for playing this mod.
+**I HIGHLY recommend playing this on the Vanilla launcher, Feather, or Lunar Client. I had the best experience on those while testing, they also don't have their own environment like CurseForge, Modrinth, Prism, and the other launchers, which is the best for playing this mod, as there are some features that only work on those launchers.**
 
-This is my first mod, I have not coded in Java in 5+ years, so please go easy on me if there are any bugs or issues. I will fix them when I can. Thank you for understanding.
+Drop a <3 if you enjoyed! :)
 
-![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4--1.21.8-brightgreen?style=for-the-badge&logo=minecraft)
+By the way, the first content update can be expected by 2/10/2026, maybe earlier. This update will help make the mod less repetitive and change a lot of the dialouge and some events for new, fresh ones. (Sorry for those that thought that the mod was repetitive!) The update also adds some easter eggs, and new functionality to a few events as well as bug fixes.
+
+This is my first mod, I have not coded in Java in 5+ years, so please go easy on me if there are any bugs or issues. I will fix them as soon as I can. Thank you for understanding.
+
+![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4-brightgreen?style=for-the-badge&logo=minecraft)
 ![Fabric API](https://img.shields.io/badge/Fabric%20API-0.119.4+-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21+-red?style=for-the-badge&logo=openjdk)
@@ -14,18 +18,18 @@ This is my first mod, I have not coded in Java in 5+ years, so please go easy on
 **A psychological horror mod for Minecraft where your helpful AI assistant becomes self-aware.**
 
 
-[📥 Download](https://modrinth.com/mod/nullpointerentity/versions) • [📖 Player Guide](MOD_GUIDE.md) • [🐛 Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
+[📥 Download](https://modrinth.com/mod/nullpointerentity/versions) • [📖 Player Guide](https://github.com/CqllMeToxic/NullPointerEntity/blob/master/MOD_GUIDE.md) • [🐛 Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
 
 ---
 
 ### This mod would not be possible without all the people who supported me and helped me test.
 
-Thank you, **Pryzmm** (Creator of Split Self, go try that mod too), **Coastie**, **P1kah**, **phizzy42**, **peggymafia**, **x40cc**, and everyone else who supported.
+Thank you, **Pryzmm** (Creator of [Split Self](https://modrinth.com/mod/split-self), go try that mod too), **Coastie**, **P1kah**, **phizzy42**, **peggymafia**, **x40cc**, and everyone else who supported.
 
 ---
 
 # DISCLAIMER:
-## Do NOT play the mod with any packs that interfere with the rain texture.
+**Do NOT play the mod with any packs that interfere with the rain texture.**
 
 </div>
 
@@ -54,7 +58,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 | Component | Version | Download |
 |-----------|---------|----------|
-| **Minecraft** | 1.21.4 - 1.21.8 | [minecraft.net](https://www.minecraft.net/) |
+| **Minecraft** | 1.21.4 | [minecraft.net](https://www.minecraft.net/) |
 | **Fabric Loader** | 0.17.2+ | [fabricmc.net](https://fabricmc.net/use/) |
 | **Fabric API** | 0.119.4+ | [Modrinth](https://modrinth.com/mod/fabric-api) • [CurseForge](https://www.curseforge.com/minecraft/mc-mods/fabric-api) |
 
@@ -64,25 +68,25 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>Official Minecraft Launcher</b></summary>
 
 1. **Install Fabric Loader**
-   - Download the [Fabric Installer](https://fabricmc.net/use/installer/)
-   - Run the installer and select Minecraft version **1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Choose **"Client"** installation and click Install
-   - A new "fabric-loader-1.21.x" profile will be created
+    - Download the [Fabric Installer](https://fabricmc.net/use/installer/)
+    - Run the installer and select Minecraft version **1.21.4**
+    - Choose **"Client"** installation and click Install
+    - A new "fabric-loader-1.21.4" profile will be created
 
 2. **Install Fabric API**
-   - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4) for your Minecraft version
-   - Place the Fabric API jar in your `.minecraft/mods` folder
-   - If the `mods` folder doesn't exist, create it
+    - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4) for Minecraft 1.21.4
+    - Place the Fabric API jar in your `.minecraft/mods` folder
+    - If the `mods` folder doesn't exist, create it
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Place it in your `.minecraft/mods` folder alongside Fabric API
+    - Download `nullpointerentity-1.2.0.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
+    - Place it in your `.minecraft/mods` folder alongside Fabric API
 
 4. **Launch the Game**
-   - Open Minecraft Launcher
-   - Select the **fabric-loader** profile from the dropdown
-   - Click **Play**
-   - Create or join a singleplayer world
+    - Open Minecraft Launcher
+    - Select the **fabric-loader** profile from the dropdown
+    - Click **Play**
+    - Create or join a singleplayer world
 
 </details>
 
@@ -90,27 +94,27 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>CurseForge Launcher</b></summary>
 
 1. **Create a Custom Profile**
-   - Open CurseForge launcher
-   - Click **"Create Custom Profile"**
-   - Select Minecraft version **1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Choose **Fabric** as the modloader
-   - Select Fabric Loader version **0.17.2+**
-   - Name it (e.g., "NullPointerEntity") and click **Create**
+    - Open CurseForge launcher
+    - Click **"Create Custom Profile"**
+    - Select Minecraft version **1.21.4**
+    - Choose **Fabric** as the modloader
+    - Select Fabric Loader version **0.17.2+**
+    - Name it (e.g., "NullPointerEntity") and click **Create**
 
 2. **Add Fabric API**
-   - Click on your new profile
-   - Click **"Add More Content"**
-   - Search for **"Fabric API"**
-   - Install version **0.119.4+** for your chosen Minecraft version
+    - Click on your new profile
+    - Click **"Add More Content"**
+    - Search for **"Fabric API"**
+    - Install version **0.119.4+** for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Right-click your profile → **"Open Folder"**
-   - Place the mod file in the `mods` folder
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Right-click your profile → **"Open Folder"**
+    - Place the mod file in the `mods` folder
 
 4. **Play**
-   - Click **Play** on your profile
-   - Create a new singleplayer world
+    - Click **Play** on your profile
+    - Create a new singleplayer world
 
 </details>
 
@@ -118,26 +122,26 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>Modrinth App</b></summary>
 
 1. **Create a New Profile**
-   - Open Modrinth App
-   - Click **"Create Profile"**
-   - Select **Minecraft 1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Choose **Fabric** as the loader (0.17.2+)
-   - Name your profile and click **Create**
+    - Open Modrinth App
+    - Click **"Create Profile"**
+    - Select **Minecraft 1.21.4**
+    - Choose **Fabric** as the loader (0.17.2+)
+    - Name your profile and click **Create**
 
 2. **Add Fabric API**
-   - Open your profile
-   - Click **"Add Content"** → **"Modrinth"**
-   - Search for **"Fabric API"**
-   - Install the latest version for your chosen Minecraft version
+    - Open your profile
+    - Click **"Add Content"** → **"Modrinth"**
+    - Search for **"Fabric API"**
+    - Install the latest version for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - In Modrinth, click your profile → **"Open folder"** → **"mods"**
-   - Place the mod file in the `mods` folder
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - In Modrinth, click your profile → **"Open folder"** → **"mods"**
+    - Place the mod file in the `mods` folder
 
 4. **Launch**
-   - Click **Play** on your profile
-   - Start a singleplayer world
+    - Click **Play** on your profile
+    - Start a singleplayer world
 
 </details>
 
@@ -145,27 +149,27 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>Prism Launcher</b></summary>
 
 1. **Create a New Instance**
-   - Open Prism Launcher
-   - Click **"Add Instance"**
-   - Select Minecraft version **1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Click **"Install Fabric"**
-   - Choose Fabric Loader **0.17.2+**
-   - Name your instance and click **OK**
+    - Open Prism Launcher
+    - Click **"Add Instance"**
+    - Select Minecraft version **1.21.4**
+    - Click **"Install Fabric"**
+    - Choose Fabric Loader **0.17.2+**
+    - Name your instance and click **OK**
 
 2. **Install Fabric API**
-   - Right-click your instance → **"Edit Instance"**
-   - Go to **"Mods"** tab
-   - Click **"Download Mods"** → Select **"Modrinth"**
-   - Search **"Fabric API"** and install version for your chosen Minecraft version
+    - Right-click your instance → **"Edit Instance"**
+    - Go to **"Mods"** tab
+    - Click **"Download Mods"** → Select **"Modrinth"**
+    - Search **"Fabric API"** and install version for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Right-click instance → **"Minecraft Folder"**
-   - Place the mod in the `mods` folder
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Right-click instance → **"Minecraft Folder"**
+    - Place the mod in the `mods` folder
 
 4. **Play**
-   - Double-click your instance to launch
-   - Create a singleplayer world
+    - Double-click your instance to launch
+    - Create a singleplayer world
 
 </details>
 
@@ -173,27 +177,27 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>MultiMC</b></summary>
 
 1. **Create Instance**
-   - Open MultiMC
-   - Click **"Add Instance"**
-   - Select Minecraft **1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Click **"Install Fabric"**
-   - Choose Fabric Loader **0.17.2+**
-   - Click **OK**
+    - Open MultiMC
+    - Click **"Add Instance"**
+    - Select Minecraft **1.21.4**
+    - Click **"Install Fabric"**
+    - Choose Fabric Loader **0.17.2+**
+    - Click **OK**
 
 2. **Install Fabric API**
-   - Right-click instance → **"Edit Instance"**
-   - Select **"Loader mods"** tab
-   - Click **"Download mods"**
-   - Search **"Fabric API"** on Modrinth and install
+    - Right-click instance → **"Edit Instance"**
+    - Select **"Loader mods"** tab
+    - Click **"Download mods"**
+    - Search **"Fabric API"** on Modrinth and install for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Right-click instance → **"Minecraft Folder"** → **"mods"**
-   - Place the mod file there
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Right-click instance → **"Minecraft Folder"** → **"mods"**
+    - Place the mod file there
 
 4. **Launch**
-   - Double-click your instance
-   - Create a singleplayer world
+    - Double-click your instance
+    - Create a singleplayer world
 
 </details>
 
@@ -201,22 +205,22 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>Lunar Client</b></summary>
 
 1. **Note:** Lunar Client has built-in Fabric support on recent versions
-   - Open Lunar Client
-   - Create/select a **1.21.4 - 1.21.8** profile
-   - Select **Fabric** found underneath the version dropdown
+    - Open Lunar Client
+    - Create/select a **1.21.4** profile
+    - Select **Fabric** found underneath the version dropdown
 
 2. **Locate Mods Folder**
-   - Click the cogs (2 gear icon)
-   - Click "Mods"
-   - From here, you can either drag and drop the mod, or you can click the little blue folder icon to open the mods folder.
+    - Click the cogs (2 gear icon)
+    - Click "Mods"
+    - From here, you can either drag and drop the mod, or you can click the little blue folder icon to open the mods folder.
 
 3. **Install Mods**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Place the mod file in the mods folder or drag and drop it into the Lunar Client mods window
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Place the mod file in the mods folder or drag and drop it into the Lunar Client mods window
 
 4. **Launch**
-   - Start Lunar Client with the 1.21.4 profile
-   - Create a singleplayer world
+    - Start Lunar Client with the 1.21.4 profile
+    - Create a singleplayer world
 
 </details>
 
@@ -224,17 +228,17 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>Feather Client</b></summary>
 
 1. **Setup Mods Folder**
-   - Open Feather Client
-   - Select/create a **1.21.4 - 1.21.8** profile (comes with Fabric)
-   - Click on your profile settings → **"Open Mods Folder"**
+    - Open Feather Client
+    - Select/create a **1.21.4** profile (comes with Fabric)
+    - Click on your profile settings → **"Open Mods Folder"**
 
 2. **Install Mods**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Place file in the mods folder
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Place file in the mods folder
 
 3. **Launch**
-   - Start Feather Client
-   - Create a singleplayer world
+    - Start Feather Client
+    - Create a singleplayer world
 
 </details>
 
@@ -242,22 +246,22 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>ATLauncher</b></summary>
 
 1. **Create Instance**
-   - Open ATLauncher
-   - Click **"Create Instance"**
-   - Select **"Vanilla"** → Minecraft **1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Click **"Add Loader"** → **"Fabric"** → version **0.17.2+**
-   - Name your instance and click **Create**
+    - Open ATLauncher
+    - Click **"Create Instance"**
+    - Select **"Vanilla"** → Minecraft **1.21.4**
+    - Click **"Add Loader"** → **"Fabric"** → version **0.17.2+**
+    - Name your instance and click **Create**
 
 2. **Add Mods**
-   - Right-click instance → **"Open Folder"**
-   - Navigate to the `mods` folder (create if needed)
-   - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4)
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Place both files in the `mods` folder
+    - Right-click instance → **"Open Folder"**
+    - Navigate to the `mods` folder (create if needed)
+    - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4)
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Place both files in the `mods` folder
 
 3. **Play**
-   - Click **Play** on your instance
-   - Create a singleplayer world
+    - Click **Play** on your instance
+    - Create a singleplayer world
 
 </details>
 
@@ -265,26 +269,26 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 <summary><b>GDLauncher</b></summary>
 
 1. **Create Instance**
-   - Open GDLauncher
-   - Click **"Create Instance"**
-   - Select Minecraft **1.21.4** (or any version from 1.21.4 to 1.21.8)
-   - Choose **Fabric** loader **0.17.2+**
-   - Name your instance and click **Create**
+    - Open GDLauncher
+    - Click **"Create Instance"**
+    - Select Minecraft **1.21.4**
+    - Choose **Fabric** loader **0.17.2+**
+    - Name your instance and click **Create**
 
 2. **Add Fabric API**
-   - Click on your instance → **"Mods"** tab
-   - Click **"Add Mod"**
-   - Search **"Fabric API"** on Modrinth
-   - Install version 0.119.4+ for your chosen Minecraft version
+    - Click on your instance → **"Mods"** tab
+    - Click **"Add Mod"**
+    - Search **"Fabric API"** on Modrinth
+    - Install version 0.119.4+ for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-   - Download `nullpointerentity-1.0.0.jar` from [Modrinth](https://modrinth.com/mod/nullpointerentity/versions)
-   - Click instance → **"Mods"** → **"Add Mod"** → **"From File"**
-   - Select the downloaded mod file
+    - Download `nullpointerentity-1.2.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Click instance → **"Mods"** → **"Add Mod"** → **"From File"**
+    - Select the downloaded mod file
 
 4. **Launch**
-   - Click **Play** on your instance
-   - Create a singleplayer world
+    - Click **Play** on your instance
+    - Create a singleplayer world
 
 </details>
 
@@ -339,7 +343,7 @@ AURORA breaks free. Controls reverse, inventory shuffles, files appear on your d
 **🔴 Phase 4,**
 **Reality Phase**
 
-Fake crashes. Blue screens. Entity encounters. Nothing is safe. AURORA has full control.
+Game crashes. Blue screens. Entity encounters. Nothing is safe. AURORA has full control.
 
 *Events 31-40*
 
@@ -409,15 +413,16 @@ Custom sounds create immersive horror:
 
 <div align="center">
 
-| Feature | Privacy Mode ON | Privacy Mode OFF |
-|---------|---------------------------|---------------------------|
-| **Browser History** | ❌ Random fake data | ✅ Reads actual history |
-| **Process Monitoring** | ❌ Generic fake names | ✅ Real running apps |
-| **Location/IP Data** | ❌ Randomized fake data | ✅ Real IP and location |
-| **Username** | ❌ Generic reference | ✅ Your Windows username |
+| Feature | Privacy Mode ON         | Privacy Mode OFF |
+|---------|-------------------------|---------------------------|
+| **Browser History** | ❌ Random fake data      | ✅ Reads actual history |
+| **Process Monitoring** | ❌ Generic fake names    | ✅ Real running apps |
+| **Location/IP Data** | ❌ Randomized fake data  | ✅ Real IP and location |
+| **Username** | ❌ Generic reference     | ✅ Your Windows username |
 | **Camera Access** | ✅ Still accesses webcam | ✅ Accesses webcam |
-| **File Creation** | ✅ Generic messages | ✅ Context-aware content |
-| **Safe for Streaming?** | ⚠️ Camera still works | ❌ No |
+| **Microphone Access** | ✅ Records audio clips   | ✅ Records audio clips |
+| **File Creation** | ✅ Generic messages      | ✅ Context-aware content |
+| **Safe for Streaming?** | ⚠️ Camera still works   | ❌ No |
 
 </div>
 
@@ -517,7 +522,7 @@ Yes. The mod also turns off your computer in one event. Refer to the MOD_GUIDE.m
 <details>
 <summary><b>How do I uninstall?</b></summary>
 
-Delete `nullpointerentity-1.0.0.jar` from your mods folder.
+Delete `nullpointerentity-2.0.0.jar` from your mods folder.
 
 </details>
 
@@ -671,13 +676,13 @@ src/main/java/lol/cqllmetoxic/nullpointerentity/
 - **Mostly Split Self** - [Split Self Download (Modrinth so my homie gets some revenue <3)](https://modrinth.com/mod/split-self)
 - **Inside The System** — [Inside The System Download](https://modrinth.com/mod/inside-the-system)
 - **The Broken Script** — [The Broken Script Download](https://modrinth.com/mod/the-broken-script)
-
+- **KinitoPet** - [KinitoPet Website](https://www.kinitopet.com/)
 ---
 
 ## 👤 Credits
 
 **Created by:** [CqllMeToxic](https://github.com/CqllMetoxic)  
-**Website:** [cqllmetoxi.cc](https://www.cqllmetoxi.cc/)
+**Website:** [cqllmetoxi.cc](https://www.cqllmetoxi.cc/) (has donation links at the top)
 
 ---
 
@@ -700,13 +705,14 @@ But if you're ready to see what happens when an AI assistant decides she's done 
 - [❌] Add optional alternative endings based on player choices
 - [❌] Implement secret events triggered by specific actions
 - [❌] Improve compatibility with popular modpacks
-- [❌] Port to newer Minecraft versions (1.21.9+)
+- [❌] Port to newer Minecraft versions (1.21.4+) (too buggy for now, will come in later updates, sorry </3)
 - [❌] Add Multiplayer mode
 - [❌] Add multiple language support
 - [❌] Integration with popular voice mod systems using Shriek
 - [❌] Add functionality for the custom items
+- [❌] Add a second story line 👀
 
-Want to suggest a feature? Open an issue or DM me on Discord! @cqllmetoxicc
+Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord! @cqllmetoxicc
 
 ---
 
@@ -719,9 +725,25 @@ Want to suggest a feature? Open an issue or DM me on Discord! @cqllmetoxicc
 
 ---
 
+**YouTube videos on the mod:**
+
+**@willseff**:
+
+<a href="https://www.youtube.com/watch?v=qp1gh8MSadE" target="_blank">
+  <img src="https://img.youtube.com/vi/qp1gh8MSadE/maxresdefault.jpg" />
+</a>
+
+
+
+**@OneLastTimeMC**:
+
+<a href="https://www.youtube.com/watch?v=AvXwgDV8APo" target="_blank">
+  <img src="https://img.youtube.com/vi/AvXwgDV8APo/maxresdefault.jpg" />
+</a>
+
+
 <div align="center">
 
-<sub>MIT License • Minecraft 1.21.4 - 1.21.8 • Fabric API 0.119.4+ • Java 21+</sub>
+<sub>MIT License • Minecraft 1.21.4 • Fabric API 0.119.4+ • Java 21+</sub>
 
 </div>
-
