@@ -21,6 +21,8 @@ public class PrivacyManager {
     private static final Random random = new Random();
     private static boolean configLoaded = false;
     private static Set<String> processedWorlds = new HashSet<>();
+    /** stores the user's selected microphone name for audio recording */
+    private static String selectedMicrophoneName = null;
 
     /**
      * reads the config file from disk and loads all privacy settings.
@@ -40,6 +42,7 @@ public class PrivacyManager {
                     props.load(fis);
                     privacyEnabled = Boolean.parseBoolean(props.getProperty("privacy_enabled", "true"));
                     firstTimeUser = Boolean.parseBoolean(props.getProperty("first_time_user", "true"));
+                    selectedMicrophoneName = props.getProperty("selected_microphone", null);
 
                     /** grab the comma-separated list of world names */
                     String worldsString = props.getProperty("processed_worlds", "");
@@ -73,7 +76,10 @@ public class PrivacyManager {
             Properties props = new Properties();
             props.setProperty("privacy_enabled", String.valueOf(privacyEnabled));
             props.setProperty("first_time_user", String.valueOf(firstTimeUser));
-            
+            if (selectedMicrophoneName != null) {
+                props.setProperty("selected_microphone", selectedMicrophoneName);
+            }
+
             /** build comma-separated string of all processed world names */
             StringBuilder worldsBuilder = new StringBuilder();
             for (String world : processedWorlds) {
@@ -342,5 +348,49 @@ public class PrivacyManager {
 
         /** returning user - only show for worlds they haven't configured yet */
         return !hasWorldBeenProcessed(worldName);
+    }
+
+    /**
+     * gets the user's selected microphone name.
+     *
+     * @return microphone name or null if not set
+     */
+    public static String getSelectedMicrophoneName() {
+        loadConfig();
+        return selectedMicrophoneName;
+    }
+
+    /**
+     * sets the user's selected microphone and saves to config.
+     *
+     * @param microphoneName the name of the selected microphone
+     */
+    public static void setSelectedMicrophone(String microphoneName) {
+        selectedMicrophoneName = microphoneName;
+        saveConfig();
+    }
+
+    /**
+     * gets the selected microphone's Mixer.Info object for recording.
+     *
+     * @return Mixer.Info or null if not found/set
+     */
+    public static javax.sound.sampled.Mixer.Info getSelectedMicrophoneInfo() {
+        if (selectedMicrophoneName == null) {
+            return null;
+        }
+
+        try {
+            javax.sound.sampled.Mixer.Info[] available = lol.cqllmetoxic.nullpointerentity.audio.AudioRecorder.getAvailableMicrophones();
+            for (javax.sound.sampled.Mixer.Info info : available) {
+                if (info.getName().equals(selectedMicrophoneName)) {
+                    return info;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to get selected microphone: " + e.getMessage());
+        }
+
+        return null;
     }
 }
