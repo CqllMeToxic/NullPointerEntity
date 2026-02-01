@@ -80,10 +80,11 @@ public class ChatKeywords {
         "location", "where", "address", "ip", "city", "country", "position", "coordinates"
     );
 
-    // creator (me) keywords for mod author (me) references
+    // creator (me) keywords for mod author (me) as well as Pryzmm and One Last Time (much love for the video btw <3) references
     public static final List<String> CREATOR_KEYWORDS = Arrays.asList(
         "creator", "author", "developer", "dev", "maker", "cqllmetoxic", "toxic",
-        "who made", "who created", "who built", "who coded", "who programmed", "who designed"
+        "who made", "who created", "who built", "who coded", "who programmed", "who designed",
+        "pryzmm", "one last time"
     );
 
     /**
