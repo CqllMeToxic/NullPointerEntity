@@ -412,16 +412,16 @@ Custom sounds create immersive horror:
 
 <div align="center">
 
-| Feature | Privacy Mode ON         | Privacy Mode OFF |
-|---------|-------------------------|---------------------------|
-| **Browser History** | ❌ Random fake data      | ✅ Reads actual history |
-| **Process Monitoring** | ❌ Generic fake names    | ✅ Real running apps |
-| **Location/IP Data** | ❌ Randomized fake data  | ✅ Real IP and location |
-| **Username** | ❌ Generic reference     | ✅ Your Windows username |
-| **Camera Access** | ✅ Still accesses webcam | ✅ Accesses webcam |
-| **Microphone Access** | ✅ Records audio clips   | ✅ Records audio clips |
-| **File Creation** | ✅ Generic messages      | ✅ Context-aware content |
-| **Safe for Streaming?** | ⚠️ Camera still works   | ❌ No |
+| Feature | Privacy Mode ON              | Privacy Mode OFF |
+|---------|------------------------------|---------------------------|
+| **Browser History** | ❌ Random fake data           | ✅ Reads actual history |
+| **Process Monitoring** | ❌ Generic fake names         | ✅ Real running apps |
+| **Location/IP Data** | ❌ Randomized fake data       | ✅ Real IP and location |
+| **Username** | ❌ Generic reference          | ✅ Your Windows username |
+| **Camera Access** | ✅ Still accesses webcam      | ✅ Accesses webcam |
+| **Microphone Access** | ✅ Records audio clips        | ✅ Records audio clips |
+| **File Creation** | ✅ Generic messages           | ✅ Context-aware content |
+| **Safe for Streaming?** | ⚠️ Camera and mic still work | ❌ No |
 
 </div>
 
