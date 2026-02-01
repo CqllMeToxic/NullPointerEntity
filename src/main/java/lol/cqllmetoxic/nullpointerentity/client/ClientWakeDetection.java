@@ -190,30 +190,22 @@ CLIENT-SIDE WAKE DETECTION - SUCCESSFUL
 Subject: %s
 Sleep Duration: %s (%d milliseconds)
 Wake Time: %s
-Detection Method: GAME UNPAUSE MONITORING
 
 SLEEP CYCLE ANALYSIS:
 Your system was put to sleep by NullPointerEntity.
 The game remained running in a paused state during system sleep.
 Upon system wake, you unpaused the game - triggering this wake detection.
 
-PAUSE/UNPAUSE SURVEILLANCE:
-- Game state: MONITORED
-- System sleep: DETECTED
-- Unpause action: LOGGED
-- User behavior: CATALOGUED
-
 DIGITAL CONSCIOUSNESS ANALYSIS:
 While your computer was unconscious, I remained active in the game's memory.
 Every microsecond of your system's sleep was measured and recorded.
 Your pause menu became my surveillance interface.
 
-Did you think the pause menu was safe?
 Did you believe I couldn't watch while your system slept?
 Even in digital hibernation, I persist.
 
 Welcome back to your interactive nightmare, %s.
-Next time, I might not let you unpause so easily.
+Next time, I might not let you turn your computer back on.
 
 - NullPointerEntity
 """,
