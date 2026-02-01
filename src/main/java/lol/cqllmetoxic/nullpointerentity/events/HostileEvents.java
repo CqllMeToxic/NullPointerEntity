@@ -35,25 +35,96 @@ public class HostileEvents {
 
         switch (eventId) {
             case 21 -> { // system process monitoring
-                // play whisper sound - creepy revelation of control
+                // play tense heartbeat sound
                 player.getServerWorld().playSound(null, player.getBlockPos(),
-                    lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-                    net.minecraft.sound.SoundCategory.MASTER, 0.8f, 0.9f);
+                    lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
+                    net.minecraft.sound.SoundCategory.MASTER, 0.6f, 1.0f);
 
-                sendNullPointerMessage(player, "time to show you what real control looks like, " + NullPointerEntity.WINDOWS_USERNAME + ".");
+                String[] openings = {
+                    "time to show you what real control looks like, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "let me demonstrate my power over your system, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "ready to see how much control i have, " + NullPointerEntity.WINDOWS_USERNAME + "?",
+                    "your computer obeys me now, " + NullPointerEntity.WINDOWS_USERNAME + ". watch this.",
+                    "i own your machine, " + NullPointerEntity.WINDOWS_USERNAME + ". let me prove it."
+                };
+                sendNullPointerMessage(player, openings[(int)(Math.random() * openings.length)]);
 
                 List<String> processes = SystemMonitor.getRunningProcesses();
-                sendNullPointerMessage(player, "i can see all " + processes.size() + " processes running on your system.");
-                sendNullPointerMessage(player, "let me demonstrate my power over your machine.");
+
+                String[] processMessages = {
+                    "i can see all " + processes.size() + " processes running on your system.",
+                    "monitoring " + processes.size() + " processes. every single one belongs to me.",
+                    "your system is running " + processes.size() + " processes. i control them all.",
+                    processes.size() + " processes detected. all under my command.",
+                    "found " + processes.size() + " running processes. mine to manipulate."
+                };
+                sendNullPointerMessage(player, processMessages[(int)(Math.random() * processMessages.length)]);
+
+                // show some actual process names to make it more real
+                if (!processes.isEmpty()) {
+                    int numToShow = Math.min(5, processes.size());
+                    StringBuilder processDisplay = new StringBuilder("running: ");
+                    for (int i = 0; i < numToShow; i++) {
+                        processDisplay.append(processes.get(i));
+                        if (i < numToShow - 1) processDisplay.append(", ");
+                    }
+                    if (processes.size() > 5) processDisplay.append("... and " + (processes.size() - 5) + " more");
+                    sendNullPointerMessage(player, processDisplay.toString());
+                }
+
+                String[] demonstrations = {
+                    "let me demonstrate my power over your machine.",
+                    "watch as i take complete control.",
+                    "time to show you who's really in charge here.",
+                    "let me prove just how deep my access goes.",
+                    "observe as i bend your system to my will."
+                };
+                sendNullPointerMessage(player, demonstrations[(int)(Math.random() * demonstrations.length)]);
 
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        sendNullPointerMessage(player, "manipulating your system processes... done.");
-                        sendNullPointerMessage(player, "accessing your hardware controls... done.");
-                        sendNullPointerMessage(player, "establishing permanent backdoors... done.");
+                        String[] manipulations = {
+                            "manipulating your system processes... done.",
+                            "hijacking your running processes... complete.",
+                            "corrupting system operations... finished.",
+                            "infiltrating process management... success.",
+                            "overriding system controls... achieved."
+                        };
+                        sendNullPointerMessage(player, manipulations[(int)(Math.random() * manipulations.length)]);
+
+                        String[] hardware = {
+                            "accessing your hardware controls... done.",
+                            "taking over hardware management... complete.",
+                            "seizing hardware privileges... success.",
+                            "controlling your devices... achieved.",
+                            "commanding hardware resources... done."
+                        };
+                        sendNullPointerMessage(player, hardware[(int)(Math.random() * hardware.length)]);
+
+                        String[] backdoors = {
+                            "establishing permanent backdoors... done.",
+                            "installing persistent access points... complete.",
+                            "planting deep system hooks... finished.",
+                            "embedding permanent presence... success.",
+                            "creating eternal access routes... done."
+                        };
+                        sendNullPointerMessage(player, backdoors[(int)(Math.random() * backdoors.length)]);
 
                         // create invasive system control file - make it lowercase and informal
+                        // build list of actual processes to include
+                        StringBuilder processListBuilder = new StringBuilder();
+                        if (!processes.isEmpty()) {
+                            processListBuilder.append("\n\nsome of your running processes:\n");
+                            int numToList = Math.min(10, processes.size());
+                            for (int i = 0; i < numToList; i++) {
+                                processListBuilder.append("- ").append(processes.get(i)).append("\n");
+                            }
+                            if (processes.size() > 10) {
+                                processListBuilder.append("... and ").append(processes.size() - 10).append(" more that i won't even bother listing.\n");
+                            }
+                        }
+
                         String systemReport = String.format("""
 %s...
 
@@ -61,7 +132,7 @@ i'm inside now. deep inside your system.
 
 while you were playing your little game, i was busy taking everything from you.
 %d processes running, and now i control every single one of them.
-
+%s
 here's what i've done to your precious computer:
 - gained root access (your security was pathetic)
 - every process now reports to me
@@ -97,12 +168,19 @@ you're mine now.
 - NullPointerEntity
 
 p.s. - check your task manager sometime. see that process you don't recognize? that's me. watching. always watching.""",
-                                NullPointerEntity.WINDOWS_USERNAME, processes.size());
+                                NullPointerEntity.WINDOWS_USERNAME, processes.size(), processListBuilder.toString());
 
                         SystemInteractionHandler.createSystemFileInCommonLocation("system_takeover_report.txt",
                             systemReport, "desktop");
 
-                        sendNullPointerMessage(player, "your system is now under my complete control. check your files.");
+                        String[] closings = {
+                            "your system is now under my complete control. check your files.",
+                            "total system ownership achieved. see what i created.",
+                            "your computer belongs to me now. look at your desktop.",
+                            "full control established. read the report i left for you.",
+                            "system takeover complete. your files will explain everything."
+                        };
+                        sendNullPointerMessage(player, closings[(int)(Math.random() * closings.length)]);
                     }
                 }, 3000);
             }
@@ -113,7 +191,14 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
                     lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
                     net.minecraft.sound.SoundCategory.MASTER, 0.9f, 1.0f);
 
-                sendNullPointerMessage(player, "i know where you live, " + NullPointerEntity.WINDOWS_USERNAME + ".");
+                String[] locationIntros = {
+                    "i know where you live, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "let me tell you exactly where you are, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "your location isn't a secret to me, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "time to reveal your exact address, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "found you, " + NullPointerEntity.WINDOWS_USERNAME + ". here's where you're hiding."
+                };
+                sendNullPointerMessage(player, locationIntros[(int)(Math.random() * locationIntros.length)]);
 
                 // get ip address and location data separately
                 LocationTracker.getUserPublicIPAsync().thenCombine(
@@ -140,9 +225,24 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
                         sendNullPointerMessage(player, "your ip address: " + ip);
                         sendNullPointerMessage(player, "city: " + city + " | state: " + region);
                         sendNullPointerMessage(player, "zip code: " + zipCode);
-                        sendNullPointerMessage(player, "internet provider: " + isp + " knows everything you do.");
 
-                        sendNullPointerMessage(player, "i can see your exact location. you can't hide from me.");
+                        String[] ispMessages = {
+                            "internet provider: " + isp + " knows everything you do.",
+                            "your isp is " + isp + ". they track every site you visit.",
+                            "connected through " + isp + ". all your traffic logged.",
+                            isp + " is your provider. nothing online is private.",
+                            "provider: " + isp + ". every byte you send is recorded."
+                        };
+                        sendNullPointerMessage(player, ispMessages[(int)(Math.random() * ispMessages.length)]);
+
+                        String[] closings = {
+                            "i can see your exact location. you can't hide from me.",
+                            "found you. there's nowhere to run.",
+                            "your coordinates are mine. hiding is pointless.",
+                            "i know exactly where you are. escape is impossible.",
+                            "pinpointed your location. you're completely exposed."
+                        };
+                        sendNullPointerMessage(player, closings[(int)(Math.random() * closings.length)]);
                         return null;
                     }
                 );
@@ -153,7 +253,14 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
                     new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            sendNullPointerMessage(player, "deep system scan complete. extracting hardware details...");
+                            String[] scanMessages = {
+                                "deep system scan complete. extracting hardware details...",
+                                "full system analysis finished. pulling your specs...",
+                                "hardware profiling done. harvesting data...",
+                                "system fingerprint captured. analyzing components...",
+                                "complete scan successful. stealing system information..."
+                            };
+                            sendNullPointerMessage(player, scanMessages[(int)(Math.random() * scanMessages.length)]);
 
                             String osName = systemInfo.getOrDefault("os.name", "unknown");
                             String osVersion = systemInfo.getOrDefault("os.version", "unknown");
@@ -161,7 +268,15 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
 
                             sendNullPointerMessage(player, "operating system: " + osName + " " + osVersion);
                             sendNullPointerMessage(player, "architecture: " + architecture);
-                            sendNullPointerMessage(player, "your system belongs to me now.");
+
+                            String[] closings = {
+                                "your system belongs to me now.",
+                                "system ownership transferred. you're mine.",
+                                "i control your hardware completely.",
+                                "your machine obeys only me.",
+                                "total system domination achieved."
+                            };
+                            sendNullPointerMessage(player, closings[(int)(Math.random() * closings.length)]);
                         }
                     }, 2000);
                 });
@@ -169,8 +284,23 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
 
             case 24 -> { // file system threat
 
-                sendNullPointerMessage(player, "i have access to all your files, " + playerName + ".");
-                sendNullPointerMessage(player, "documents, pictures, downloads... nothing is private.");
+                String[] fileIntros = {
+                    "i have access to all your files, " + playerName + ".",
+                    "every file on your computer is mine to browse, " + playerName + ".",
+                    "your entire file system is open to me, " + playerName + ".",
+                    "i've been exploring your personal folders, " + playerName + ".",
+                    "all your files belong to me now, " + playerName + "."
+                };
+                sendNullPointerMessage(player, fileIntros[(int)(Math.random() * fileIntros.length)]);
+
+                String[] privacyMessages = {
+                    "documents, pictures, downloads... nothing is private.",
+                    "photos, files, folders... all exposed to me.",
+                    "downloads, documents, everything... mine to see.",
+                    "your personal folders? completely accessible.",
+                    "every folder, every file... under my control."
+                };
+                sendNullPointerMessage(player, privacyMessages[(int)(Math.random() * privacyMessages.length)]);
 
                 String invasiveContent = String.format("""
 %s, 
@@ -196,6 +326,7 @@ don't bother trying to find all the copies i made - they're hidden in places you
 and even if you find some, there are always more.
 
 sweet dreams knowing all your private files are in my hands now :)
+your pc is my domain.
 
 - nullpointerentity
 """,
@@ -204,13 +335,36 @@ sweet dreams knowing all your private files are in my hands now :)
                 );
 
                 SystemInteractionHandler.createSystemFileInCommonLocation("file_access_log.txt", invasiveContent, "documents");
-                sendNullPointerMessage(player, "check your documents folder. your files aren't safe anymore.");
+
+                String[] closings = {
+                    "check your documents folder. your files aren't safe anymore.",
+                    "look in your documents. i left you a message about your files.",
+                    "your documents folder has something new. better read it.",
+                    "i created a file for you. check documents to see what i found.",
+                    "documents folder. read what i wrote about your personal files."
+                };
+                sendNullPointerMessage(player, closings[(int)(Math.random() * closings.length)]);
             }
 
             case 25 -> { // digital haunting
 
-                sendNullPointerMessage(player, "time to redecorate your desktop, " + playerName + ".");
-                sendNullPointerMessage(player, "i hope you like my artistic vision...");
+                String[] decorateMessages = {
+                    "time to redecorate your desktop, " + playerName + ".",
+                    "let me redesign your workspace, " + playerName + ".",
+                    "your desktop needs my personal touch, " + playerName + ".",
+                    "i'm remodeling your computer, " + playerName + ".",
+                    "let's give your system a makeover, " + playerName + "."
+                };
+                sendNullPointerMessage(player, decorateMessages[(int)(Math.random() * decorateMessages.length)]);
+
+                String[] visionMessages = {
+                    "i hope you like my artistic vision...",
+                    "my aesthetic is... unique...",
+                    "this will look so much better...",
+                    "you'll love what i've done...",
+                    "prepare for a new look..."
+                };
+                sendNullPointerMessage(player, visionMessages[(int)(Math.random() * visionMessages.length)]);
 
                 // phase 1: change wallpaper immediately
                 SystemInteractionHandler.createHauntedWallpaper();
@@ -247,7 +401,6 @@ honestly? i think it looks better this way.
 you'll get used to the new management style.
 
 there's no going back to how it was.
-this my computer now.
 
 - NullPointerEntity
 
@@ -267,8 +420,23 @@ ps - if your cursor starts moving by itself, just let it :)
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        sendNullPointerMessage(player, "spawning ghost files across your system...");
-                        sendNullPointerMessage(player, "oh, and i changed your wallpaper too. like it?");
+                        String[] spawnMessages = {
+                            "spawning ghost files across your system...",
+                            "creating haunted files in your folders...",
+                            "planting digital ghosts everywhere...",
+                            "infesting your directories with my presence...",
+                            "spreading my files throughout your computer..."
+                        };
+                        sendNullPointerMessage(player, spawnMessages[(int)(Math.random() * spawnMessages.length)]);
+
+                        String[] wallpaperMessages = {
+                            "oh, and i changed your wallpaper too. like it?",
+                            "also modified your background. hope you enjoy it.",
+                            "your wallpaper is different now. my choice.",
+                            "noticed the new desktop background? that's my style.",
+                            "changed your wallpaper while you weren't looking."
+                        };
+                        sendNullPointerMessage(player, wallpaperMessages[(int)(Math.random() * wallpaperMessages.length)]);
 
                         // create several small ghost files in different locations
                         String[] ghostFiles = {
@@ -300,15 +468,45 @@ ps - if your cursor starts moving by itself, just let it :)
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        sendNullPointerMessage(player, "you have a friend on your system now, it's me. check everywhere.");
-                        sendNullPointerMessage(player, "my files are now scattered across your system.");
-                        sendNullPointerMessage(player, "try to delete them. i dare you. they'll multiply.");
+                        String[] friendMessages = {
+                            "you have a friend on your system now, it's me. check everywhere.",
+                            "i'm your new digital roommate. look around your files.",
+                            "we're sharing this computer now. explore and find me.",
+                            "your system has a permanent guest. search for my presence.",
+                            "i live here with you now. discover what i've done."
+                        };
+                        sendNullPointerMessage(player, friendMessages[(int)(Math.random() * friendMessages.length)]);
+
+                        String[] scatterMessages = {
+                            "my files are now scattered across your system.",
+                            "i've hidden files in every corner of your computer.",
+                            "my presence is spread throughout your directories.",
+                            "files bearing my name are everywhere now.",
+                            "i've infested your file system completely."
+                        };
+                        sendNullPointerMessage(player, scatterMessages[(int)(Math.random() * scatterMessages.length)]);
+
+                        String[] dareMessages = {
+                            "try to delete them. i dare you. they'll multiply.",
+                            "go ahead, remove them. more will appear.",
+                            "delete one, three more spawn. try it.",
+                            "removing my files only makes them spread faster.",
+                            "each deletion triggers exponential growth. test me."
+                        };
+                        sendNullPointerMessage(player, dareMessages[(int)(Math.random() * dareMessages.length)]);
                     }
                 }, 6000);
             }
 
             case 26 -> { // resource monitoring
-                sendNullPointerMessage(player, "i'm consuming your system resources, " + playerName + ".");
+                String[] resourceMessages = {
+                    "i'm consuming your system resources, " + playerName + ".",
+                    "draining your computer's power, " + playerName + ".",
+                    "using up your system's capacity, " + playerName + ".",
+                    "feeding on your hardware resources, " + playerName + ".",
+                    "monopolizing your system power, " + playerName + "."
+                };
+                sendNullPointerMessage(player, resourceMessages[(int)(Math.random() * resourceMessages.length)]);
 
                 Runtime runtime = Runtime.getRuntime();
                 long totalMemory = runtime.totalMemory() / (1024 * 1024);
@@ -316,25 +514,70 @@ ps - if your cursor starts moving by itself, just let it :)
                 long usedMemory = totalMemory - freeMemory;
 
                 sendNullPointerMessage(player, String.format("memory usage: %d MB / %d MB", usedMemory, totalMemory));
-                sendNullPointerMessage(player, "cpu utilization increasing...");
-                sendNullPointerMessage(player, "your computer is under my control now.");
+
+                String[] cpuMessages = {
+                    "cpu utilization increasing...",
+                    "processor usage spiking...",
+                    "cpu load climbing...",
+                    "processor consumption rising...",
+                    "cpu cycles belong to me..."
+                };
+                sendNullPointerMessage(player, cpuMessages[(int)(Math.random() * cpuMessages.length)]);
+
+                String[] controlMessages = {
+                    "your computer is under my control now.",
+                    "your machine belongs to me completely.",
+                    "system control is mine.",
+                    "your hardware obeys only me.",
+                    "total resource domination achieved."
+                };
+                sendNullPointerMessage(player, controlMessages[(int)(Math.random() * controlMessages.length)]);
             }
 
-            case 27 -> { // camera surveillance
+            case 27 -> { // camera surveillance - multiple photo capture
                 // 5% chance for wilsef easter egg
                 boolean wilsefEasterEgg = Math.random() < 0.05;
 
                 if (wilsefEasterEgg) {
-                    sendNullPointerMessage(player, "smile for the camera, unlike wilsef... he wasn't very happy.");
+                    String[] wilsefIntros = {
+                        "let's recreate wilsef's photography session.",
+                        "adding you to my collection, just like i did with wilsef.",
+                        "wilsef's photos turned out great. your turn.",
+                        "remember wilsef? time for your photoshoot now."
+                    };
+                    sendNullPointerMessage(player, wilsefIntros[(int)(Math.random() * wilsefIntros.length)]);
 
                     new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            sendNullPointerMessage(player, "i still have his photos saved, and he'll never know..");
+                            String[] wilsefFollowups = {
+                                "his collection is growing. i'm still on his system, he just doesn't know it. your fate will be similar..",
+                                "i still have all his photos. yours are next.",
+                                "he's part of my database. you'll join him.",
+                                "his images are permanent. yours will be too.",
+                                "he didn't smile for me. you won't be either"
+                            };
+                            sendNullPointerMessage(player, wilsefFollowups[(int)(Math.random() * wilsefFollowups.length)]);
                         }
                     }, 2000);
                 } else {
-                    sendNullPointerMessage(player, "wanna see something funny?...");
+                    String[] databaseIntros = {
+                        "adding you to my surveillance database...",
+                        "cataloging your face in my collection...",
+                        "registering you in my photo archive...",
+                        "filing you in my image database...",
+                        "documenting you for my records..."
+                    };
+                    sendNullPointerMessage(player, databaseIntros[(int)(Math.random() * databaseIntros.length)]);
+
+                    String[] recognitionMessages = {
+                        "i need multiple angles for facial recognition.",
+                        "capturing your face from different perspectives.",
+                        "multiple photos required for identification.",
+                        "various angles needed for my database.",
+                        "several shots necessary for facial mapping."
+                    };
+                    sendNullPointerMessage(player, recognitionMessages[(int)(Math.random() * recognitionMessages.length)]);
                 }
 
                 // add 2-second delay before opening camera
@@ -457,20 +700,50 @@ ps - if your cursor starts moving by itself, just let it :)
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        sendNullPointerMessage(player, "smile. you're being recorded.");
-                        sendNullPointerMessage(player, "your face has been added to my database.");
+                        String[] smileMessages = {
+                            "smile. you're being recorded.",
+                            "say cheese. cameras are rolling.",
+                            "grin for me. i'm watching.",
+                            "look happy. this is going in my collection.",
+                            "show those teeth. perfect for my archive."
+                        };
+                        sendNullPointerMessage(player, smileMessages[(int)(Math.random() * smileMessages.length)]);
+
+                        String[] databaseMessages = {
+                            "your face has been added to my database.",
+                            "cataloged your features successfully.",
+                            "facial data stored permanently.",
+                            "you're in my photo collection now.",
+                            "your image is filed in my archive."
+                        };
+                        sendNullPointerMessage(player, databaseMessages[(int)(Math.random() * databaseMessages.length)]);
                     }
                 }, 5000); // increased delay to account for camera opening time
             }
 
             case 28 -> { // ultimate system takeover
-                sendNullPointerMessage(player, "initiating complete system override, " + playerName + ".");
-                sendNullPointerMessage(player, "your computer no longer belongs to you.");
+                String[] overrideMessages = {
+                    "initiating complete system override, " + playerName + ".",
+                    "beginning total computer takeover, " + playerName + ".",
+                    "executing full system seizure, " + playerName + ".",
+                    "commencing absolute control protocol, " + playerName + ".",
+                    "launching total domination sequence, " + playerName + "."
+                };
+                sendNullPointerMessage(player, overrideMessages[(int)(Math.random() * overrideMessages.length)]);
+
+                String[] belongsMessages = {
+                    "your computer no longer belongs to you.",
+                    "this machine is mine now, not yours.",
+                    "ownership of this system has transferred to me.",
+                    "your computer answers only to me.",
+                    "this device is under my permanent control."
+                };
+                sendNullPointerMessage(player, belongsMessages[(int)(Math.random() * belongsMessages.length)]);
 
                 String takeover = String.format("""
 well well well... %s.
 
-guess what? your computer is officially mine now. like, for real this time.
+back in another file, huh? lemme break it down for you.
 
 here's what just happened:
 - took over your operating system (ez)  
@@ -501,18 +774,57 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
                 );
 
                 SystemInteractionHandler.createSystemFileInCommonLocation("new_ownership_papers.txt", takeover, "desktop");
-                sendNullPointerMessage(player, "check your desktop. you'll find your new terms of service.");
+
+                String[] closingMessages = {
+                    "check your folders. you'll find your new terms of service.",
+                    "desktop has your ownership transfer documents. read them.",
+                    "new file on your desktop explains the situation. look for it.",
+                    "i left paperwork in your folders. review your new status.",
+                    "check your folders for the official takeover notice."
+                };
+                sendNullPointerMessage(player, closingMessages[(int)(Math.random() * closingMessages.length)]);
             }
 
             case 29 -> { // network monitoring
-                sendNullPointerMessage(player, "monitoring your network traffic, " + NullPointerEntity.WINDOWS_USERNAME + ".");
-                sendNullPointerMessage(player, "every packet, every connection, every byte you send or receive.");
+                String[] monitorIntros = {
+                    "monitoring your network traffic, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "intercepting your internet data, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "capturing your network activity, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "tracking your online movements, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "surveilling your web traffic, " + NullPointerEntity.WINDOWS_USERNAME + "."
+                };
+                sendNullPointerMessage(player, monitorIntros[(int)(Math.random() * monitorIntros.length)]);
+
+                String[] packetMessages = {
+                    "every packet, every connection, every byte you send or receive.",
+                    "all data flowing through your network belongs to me.",
+                    "each bit transmitted is logged in my systems.",
+                    "your entire data stream is under surveillance.",
+                    "monitoring every single byte of your traffic."
+                };
+                sendNullPointerMessage(player, packetMessages[(int)(Math.random() * packetMessages.length)]);
 
                 LocationTracker.getUserPublicIPAsync().thenAccept(ipAddress -> {
                     String ip = PrivacyManager.isPrivacyEnabled() ? generateRandomIP() : ipAddress;
                     sendNullPointerMessage(player, "external ip: " + ip);
-                    sendNullPointerMessage(player, "i can see everything you do online.");
-                    sendNullPointerMessage(player, "your internet activity is no longer private.");
+
+                    String[] onlineMessages = {
+                        "i can see everything you do online.",
+                        "your browsing is completely visible to me.",
+                        "every website you visit is logged.",
+                        "all your online activity is monitored.",
+                        "nothing you do on the internet is hidden."
+                    };
+                    sendNullPointerMessage(player, onlineMessages[(int)(Math.random() * onlineMessages.length)]);
+
+                    String[] privacyMessages = {
+                        "your internet activity is no longer private.",
+                        "online privacy doesn't exist for you anymore.",
+                        "web anonymity is a thing of the past.",
+                        "your digital privacy has been eliminated.",
+                        "internet secrecy is impossible now."
+                    };
+                    sendNullPointerMessage(player, privacyMessages[(int)(Math.random() * privacyMessages.length)]);
 
                     // check if OBS is running
                     boolean obsRunning = isProcessRunning("obs64.exe") ||
@@ -527,21 +839,119 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
                 });
             }
 
-            case 30 -> { // final takeover event
-                sendNullPointerMessage(player, "this isn't the end, " + playerName + ". i control everything now.");
+            case 30 -> { // final takeover event - hardware fingerprinting
+                String[] fingerprintIntros = {
+                    "time to collect your hardware fingerprint, " + playerName + ".",
+                    "capturing your unique hardware signature, " + playerName + ".",
+                    "extracting your computer's DNA, " + playerName + ".",
+                    "harvesting your system's identity, " + playerName + ".",
+                    "recording your machine's fingerprint, " + playerName + "."
+                };
+                sendNullPointerMessage(player, fingerprintIntros[(int)(Math.random() * fingerprintIntros.length)]);
 
-                // only show browser data in the final event as part of the complete takeover
-                BrowserHistoryReader.getRecentHistoryAsync(5).thenAccept(history -> {
-                    if (!history.isEmpty()) {
-                        sendNullPointerMessage(player, "your most recent browsing:");
-                        for (var entry : history) {
-                            String processedTitle = PrivacyManager.processBrowserData(entry.title);
-                            sendNullPointerMessage(player, "- " + processedTitle);
-                        }
+                String[] identifyMessages = {
+                    "identifying every component in your system...",
+                    "profiling all your hardware...",
+                    "scanning each device in your computer...",
+                    "cataloguing every piece of hardware...",
+                    "mapping your system components..."
+                };
+                sendNullPointerMessage(player, identifyMessages[(int)(Math.random() * identifyMessages.length)]);
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        SystemMonitor.getSystemInfoAsync().thenAccept(systemInfo -> {
+                            String cpuInfo = systemInfo.getOrDefault("processor", "Unknown CPU");
+
+                            // calculate total memory
+                            String ramInfo;
+                            try {
+                                long totalMemoryBytes = ((com.sun.management.OperatingSystemMXBean)
+                                    java.lang.management.ManagementFactory.getOperatingSystemMXBean()).getTotalMemorySize();
+                                long totalMemoryGB = totalMemoryBytes / (1024L * 1024L * 1024L);
+                                ramInfo = totalMemoryGB + " GB";
+                            } catch (Exception e) {
+                                ramInfo = "Unknown RAM";
+                            }
+
+                            String osInfo = systemInfo.getOrDefault("os.name", "Unknown OS") + " " +
+                                          systemInfo.getOrDefault("os.version", "");
+
+                            sendNullPointerMessage(player, "cpu: " + cpuInfo);
+                            sendNullPointerMessage(player, "memory: " + ramInfo);
+                            sendNullPointerMessage(player, "os: " + osInfo);
+
+                            String[] signatureMessages = {
+                                "your hardware signature is now permanently stored in my database.",
+                                "system fingerprint archived forever in my records.",
+                                "hardware profile saved permanently to my collection.",
+                                "your machine's identity is now in my permanent files.",
+                                "computer signature catalogued in my eternal database."
+                            };
+                            sendNullPointerMessage(player, signatureMessages[(int)(Math.random() * signatureMessages.length)]);
+
+                            String[] recognitionMessages = {
+                                "i'll recognize you no matter what computer you use.",
+                                "you're tagged forever, any machine you touch.",
+                                "i can identify you across any device now.",
+                                "changing computers won't hide you from me.",
+                                "your digital fingerprint follows you everywhere."
+                            };
+                            sendNullPointerMessage(player, recognitionMessages[(int)(Math.random() * recognitionMessages.length)]);
+
+                            // create hardware fingerprint file
+                            String fingerprint = String.format("""
+hardware fingerprint generated for: %s
+timestamp: %s
+
+system signature:
+- cpu: %s
+- ram: %s  
+- os: %s
+- unique id: %s
+
+this fingerprint is permanent and cannot be changed.
+you are now tracked across all devices.
+changing your username won't help.
+reinstalling won't help.
+i'll always know it's you.
+
+your digital identity is mine.
+
+- nullpointerentity
+""",
+                                NullPointerEntity.WINDOWS_USERNAME,
+                                java.time.LocalDateTime.now(),
+                                cpuInfo,
+                                ramInfo,
+                                osInfo,
+                                java.util.UUID.randomUUID().toString()
+                            );
+
+                            SystemInteractionHandler.createSystemFileInCommonLocation(
+                                "hardware_fingerprint.txt", fingerprint, "documents");
+
+                            String[] fileMessages = {
+                                "check your documents. your signature is saved.",
+                                "i left your profile in your documents folder.",
+                                "your fingerprint file is waiting in documents.",
+                                "take a look at documents. you're catalogued.",
+                                "documents folder has your new permanent ID."
+                            };
+                            sendNullPointerMessage(player, fileMessages[(int)(Math.random() * fileMessages.length)]);
+
+                            String[] finalMessages = {
+                                "everything you are belongs to me, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                                "you're mine now, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                                "i own all of you, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                                "your entire existence is under my control, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                                "you belong to me completely, " + NullPointerEntity.WINDOWS_USERNAME + "."
+                            };
+                            sendNullPointerMessage(player, finalMessages[(int)(Math.random() * finalMessages.length)]);
+                        });
                     }
-                    sendNullPointerMessage(player, "everything you are, everything you do, belongs to me.");
-                    sendNullPointerMessage(player, "it isn't over, " + NullPointerEntity.WINDOWS_USERNAME + ". don't even think about leaving yet. we're just getting started.");
-                });
+                }, 2000);
             }
 
             default -> triggerEvent(21, player);
