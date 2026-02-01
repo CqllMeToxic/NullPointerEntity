@@ -27,13 +27,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PassiveEvents {
     private static final Map<UUID, Long> lastEventTimes = new ConcurrentHashMap<>();
     private static final Map<UUID, Map<String, Long>> eventCooldowns = new ConcurrentHashMap<>();
+    private static final Map<UUID, LinkedList<String>> eventHistory = new ConcurrentHashMap<>(); // track last 5 events
     private static final Random random = new Random();
 
-    private static final long MIN_EVENT_INTERVAL = 60000; // 1 minute minimum between any passive events
-    private static final long EARLY_PHASE_COOLDOWN = 60000; // 1 minute for nice phase (events 1-10)
-    private static final long MIDDLE_PHASE_COOLDOWN = 60000; // 1 minute for transition phase (events 11-20)
-    private static final long LATE_PHASE_COOLDOWN = 60000; // 1 minute for hostile phase (events 21-30)
-    private static final long FINAL_PHASE_COOLDOWN = 60000; // 1 minute for jumpscare phase (events 31-40)
+    private static final long MIN_EVENT_INTERVAL = 180000; // 3 minutes minimum between any passive events
+    private static final long EARLY_PHASE_COOLDOWN = 180000; // 3 minutes for nice phase (events 1-10)
+    private static final long MIDDLE_PHASE_COOLDOWN = 180000; // 3 minutes for transition phase (events 11-20)
+    private static final long LATE_PHASE_COOLDOWN = 180000; // 3 minutes for hostile phase (events 21-30)
+    private static final long FINAL_PHASE_COOLDOWN = 180000; // 3 minutes for jumpscare phase (events 31-40)
+    private static final int EVENT_HISTORY_SIZE = 5; // remember last 5 events
 
     private static final Map<UUID, PassiveEffectState> clientEffects = new ConcurrentHashMap<>();
 
@@ -115,11 +117,11 @@ public class PassiveEvents {
      */
     private static double getPhaseEventChance(int phase) {
         return switch (phase) {
-            case 1 -> 0.01; // nice phase (events 1-10): avg ~1.5 mins between passive events (1% per second)
-            case 2 -> 0.012; // transition phase (events 11-20): avg ~1.4 mins between passive events
-            case 3 -> 0.015; // hostile phase (events 21-30): avg ~1.1 mins between passive events
-            case 4 -> 0.02; // jumpscare phase (events 31-40): avg ~50 seconds between passive events (2% per second)
-            default -> 0.01;
+            case 1 -> 0.012; // nice phase (events 1-10)
+            case 2 -> 0.015; // transition phase (events 11-20)
+            case 3 -> 0.018; // hostile phase (events 21-30)
+            case 4 -> 0.025; // jumpscare phase (events 31-40)
+            default -> 0.012;
         };
     }
 
@@ -141,8 +143,16 @@ public class PassiveEvents {
         if (!canTriggerEvent(player, "early_phase", currentTime, EARLY_PHASE_COOLDOWN)) return;
 
         String[] events = {"block_delay", "shadow_stalker", "chest_sound", "footstep_echo", "reality_glitch", "phantom_breath", "whisper_echo", "eye_flicker"};
-        String selectedEvent = events[random.nextInt(events.length)];
 
+        // get event that wasn't in last 5
+        String selectedEvent = selectEventWithHistory(player.getUuid(), events);
+        if (selectedEvent == null) {
+            NullPointerEntity.LOGGER.warn("All early phase events were in recent history for player {}, selecting random", player.getName().getString());
+            selectedEvent = events[random.nextInt(events.length)];
+        }
+
+        // add to history
+        addEventToHistory(player.getUuid(), selectedEvent);
 
         switch (selectedEvent) {
             case "block_delay" -> triggerBlockBreakDelay(player);
@@ -165,18 +175,16 @@ public class PassiveEvents {
 
         ServerWorld world = (ServerWorld) player.getWorld();
 
-        // play heartbeat sound to make it feel like something is interfering
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_CALM,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_CALM,
             SoundCategory.HOSTILE, 0.4f, 0.8f);
 
-        // play static sound for interference effect
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
             SoundCategory.HOSTILE, 0.3f, 0.9f);
 
         player.sendMessage(Text.literal("§8§oSomething is interfering..."), true);
 
-        // apply hidden mining fatigue effect to delay block breaking
-        // this is the only reliable server-side way to delay block breaking
         player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
             net.minecraft.entity.effect.StatusEffects.MINING_FATIGUE, 160, 2, false, false, false)); // 8 seconds, hidden
 
@@ -215,7 +223,8 @@ public class PassiveEvents {
         }
 
         // play custom whisper and chase sounds
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
             SoundCategory.HOSTILE, 0.6f, 0.7f);
 
         for (int i = 0; i < 3; i++) {
@@ -225,10 +234,12 @@ public class PassiveEvents {
                 public void run() {
                     if (soundStep == 2) {
                         // final sound is chase music
-                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_CHASE,
+                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_CHASE,
                             SoundCategory.HOSTILE, 0.4f, 0.9f);
                     } else {
-                        world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_PHANTOM_AMBIENT,
+                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.ENTITY_PHANTOM_AMBIENT,
                             SoundCategory.HOSTILE, 0.4f, 0.5f);
                     }
                 }
@@ -241,14 +252,16 @@ public class PassiveEvents {
 
     private static void triggerChestSound(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getWorld();
-        world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.BLOCKS, 0.5f, 1.0f);
+        world.playSoundFromEntity(null, player,
+            SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.BLOCKS, 0.5f, 1.0f);
 
         // schedule close sound
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_CHEST_CLOSE, SoundCategory.BLOCKS, 0.3f, 1.0f);
+                world.playSoundFromEntity(null, player,
+                    SoundEvents.BLOCK_CHEST_CLOSE, SoundCategory.BLOCKS, 0.3f, 1.0f);
             }
         }, 1000 + random.nextInt(3000));
 
@@ -265,7 +278,7 @@ public class PassiveEvents {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_STONE_STEP, SoundCategory.PLAYERS,
+                    player.playSound(SoundEvents.BLOCK_STONE_STEP,
                         0.3f + random.nextFloat() * 0.2f, 0.8f + random.nextFloat() * 0.4f);
                 }
             }, i * (200 + random.nextInt(100)));
@@ -308,15 +321,18 @@ public class PassiveEvents {
             }
         }
 
-        // play custom glitch and static sounds
-        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
-            SoundCategory.HOSTILE, 0.7f, 0.8f);
-        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
-            SoundCategory.HOSTILE, 0.5f, 1.0f);
-        world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-            SoundCategory.BLOCKS, 0.6f, 0.3f);
+        world.playSound(playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
+            SoundCategory.HOSTILE, 0.7f, 0.8f, true);
+        world.playSound(playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+            SoundCategory.HOSTILE, 0.5f, 1.0f, true);
+        world.playSound(playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+            SoundEvents.ENTITY_ENDERMAN_TELEPORT,
+            SoundCategory.BLOCKS, 0.6f, 0.3f, true);
 
-        player.sendMessage(Text.literal("§4§k||§r §8[System] Reality integrity: §487%§r §4§k||"), true);
+        int integrityPercent = 90 + random.nextInt(11); // random from 90 to 100
+        player.sendMessage(Text.literal("§4§k||§r §8[System] Reality integrity: §4" + integrityPercent + "%§r §4§k||"), true);
         NullPointerEntity.LOGGER.info("Reality glitch triggered for player {} ({} blocks affected)",
             player.getName().getString(), targetBlocks.size());
     }
@@ -347,8 +363,9 @@ public class PassiveEvents {
                     int offsetZ = (int)(Math.sin(angle) * distance);
                     BlockPos soundPos = playerPos.add(offsetX, 0, offsetZ);
 
-                    world.playSound(null, soundPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-                        SoundCategory.HOSTILE, 0.3f + random.nextFloat() * 0.2f, 0.8f + random.nextFloat() * 0.4f);
+                    world.playSound(soundPos.getX() + 0.5, soundPos.getY(), soundPos.getZ() + 0.5,
+                        lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
+                        SoundCategory.HOSTILE, 0.3f + random.nextFloat() * 0.2f, 0.8f + random.nextFloat() * 0.4f, true);
 
                     // show message only on first whisper
                     if (step == 0) {
@@ -375,7 +392,8 @@ public class PassiveEvents {
                         net.minecraft.entity.effect.StatusEffects.BLINDNESS, 10, 0, false, false, false));
 
                     // play subtle sound
-                    world.playSound(null, playerPos, SoundEvents.BLOCK_REDSTONE_TORCH_BURNOUT,
+                    world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+                        SoundEvents.BLOCK_REDSTONE_TORCH_BURNOUT,
                         SoundCategory.BLOCKS, 0.4f, 1.2f);
 
                     // spawn smoke particles to show light "going out"
@@ -394,9 +412,38 @@ public class PassiveEvents {
     private static void triggerMiddlePhaseEvent(ServerPlayerEntity player, long currentTime) {
         if (!canTriggerEvent(player, "middle_phase", currentTime, MIDDLE_PHASE_COOLDOWN)) return;
 
-        String[] events = {"void_whispers", "weather_control", "inventory_sort", "reality_shatter", "void_breach", "entity_mimic", "dimension_bleed", "false_death", "shadow_clone"};
-        String selectedEvent = events[random.nextInt(events.length)];
+        // check if splitself was already triggered using persistent storage
+        PersistentDataManager.PersistentPlayerData playerData =
+            PersistentDataManager.getPlayerData(player.getUuid().toString());
 
+        boolean splitSelfAlreadyTriggered = playerData.triggeredEvents.getOrDefault("splitself", false);
+
+        // prioritize splitself event if it hasn't been triggered yet (100% chance in transition phase)
+        if (!splitSelfAlreadyTriggered) {
+            NullPointerEntity.LOGGER.info("Triggering Split Self event (one-time transition phase event) for player {}", player.getName().getString());
+            addEventToHistory(player.getUuid(), "splitself");
+
+            // mark as triggered in persistent storage
+            playerData.triggeredEvents.put("splitself", true);
+            PersistentDataManager.updatePlayerData(player.getUuid(), playerData);
+            PersistentDataManager.saveData();
+
+            triggerSplitSelf(player);
+            setEventCooldown(player, "middle_phase", currentTime);
+            return;
+        }
+
+        String[] events = {"void_whispers", "weather_control", "inventory_sort", "reality_shatter", "void_breach", "entity_mimic", "dimension_bleed", "false_death", "shadow_clone"};
+
+        // get event that wasn't in last 5
+        String selectedEvent = selectEventWithHistory(player.getUuid(), events);
+        if (selectedEvent == null) {
+            NullPointerEntity.LOGGER.warn("All middle phase events were in recent history for player {}, selecting random", player.getName().getString());
+            selectedEvent = events[random.nextInt(events.length)];
+        }
+
+        // add to history
+        addEventToHistory(player.getUuid(), selectedEvent);
 
         switch (selectedEvent) {
             case "void_whispers" -> triggerVoidWhispers(player);
@@ -436,7 +483,8 @@ public class PassiveEvents {
         }
 
         // play layered eerie sounds including custom whispers
-        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
+        world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
             SoundCategory.HOSTILE, 0.7f, 0.6f);
 
         for (int i = 0; i < 3; i++) {
@@ -444,12 +492,14 @@ public class PassiveEvents {
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    world.playSound(null, playerPos, SoundEvents.ENTITY_WARDEN_AMBIENT,
+                    world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+                        SoundEvents.ENTITY_WARDEN_AMBIENT,
                         SoundCategory.AMBIENT, 0.3f, 0.5f + random.nextFloat() * 0.3f);
 
                     // add whisper on second iteration
                     if (soundIndex == 1) {
-                        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
+                        world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
                             SoundCategory.HOSTILE, 0.5f, 0.8f);
                     }
                 }
@@ -499,9 +549,11 @@ public class PassiveEvents {
         }
 
         // play ominous dimensional sounds
-        world.playSound(null, playerPos, SoundEvents.BLOCK_PORTAL_TRAVEL,
+        world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+            SoundEvents.BLOCK_PORTAL_TRAVEL,
             SoundCategory.AMBIENT, 0.4f, 0.5f);
-        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+        world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
             SoundCategory.HOSTILE, 0.6f, 0.7f);
 
         player.sendMessage(Text.literal("§5§k||§r §dReality is thinning...§r §5§k||"), false);
@@ -512,7 +564,8 @@ public class PassiveEvents {
         ServerWorld world = (ServerWorld) player.getWorld();
 
         // play death sound
-        world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_PLAYER_DEATH,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            SoundEvents.ENTITY_PLAYER_DEATH,
             SoundCategory.PLAYERS, 1.0f, 1.0f);
 
         // trigger fake death screen on client (5 seconds duration)
@@ -591,15 +644,15 @@ public class PassiveEvents {
             net.minecraft.entity.effect.StatusEffects.BLINDNESS, 40, 0, false, false, false));
 
         // play glass shattering sound
-        world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_GLASS_BREAK,
-            SoundCategory.BLOCKS, 0.8f, 0.5f);
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 0.8f, 0.5f);
 
         // play additional ominous sound
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_ENDERMAN_SCREAM,
-                    SoundCategory.HOSTILE, 0.5f, 0.7f);
+                world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundEvents.ENTITY_ENDERMAN_SCREAM, SoundCategory.HOSTILE, 0.5f, 0.7f);
             }
         }, 500);
 
@@ -714,8 +767,8 @@ public class PassiveEvents {
                         3, 0.1, 0.1, 0.1, 0.01);
 
                     if (step % 3 == 0) {
-                        world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_WARDEN_HEARTBEAT,
-                            SoundCategory.AMBIENT, 0.2f, 1.5f);
+                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.ENTITY_WARDEN_HEARTBEAT, SoundCategory.AMBIENT, 0.2f, 1.5f);
                     }
                 }
             }, step * 400L);
@@ -759,9 +812,10 @@ public class PassiveEvents {
             }
 
             // visual and audio feedback
-            world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_ITEM_PICKUP,
-                SoundCategory.PLAYERS, 1.0f, 0.5f);
-            world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1.0f, 0.5f);
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
                 SoundCategory.HOSTILE, 0.5f, 1.2f);
 
             player.sendMessage(Text.literal("§4§k||§r §cYour inventory scrambles§r §4§k||"), false);
@@ -770,13 +824,85 @@ public class PassiveEvents {
         }
     }
 
+    private static void triggerSplitSelf(ServerPlayerEntity player) {
+        // check persistent storage to see if this event has already been triggered
+        PersistentDataManager.PersistentPlayerData playerData =
+            PersistentDataManager.getPlayerData(player.getUuid().toString());
+
+        if (playerData.triggeredEvents.getOrDefault("splitself", false)) {
+            NullPointerEntity.LOGGER.debug("Split Self event already triggered for player {} (from persistent data), skipping", player.getName().getString());
+            return;
+        }
+
+        // mark as triggered in persistent storage
+        playerData.triggeredEvents.put("splitself", true);
+        PersistentDataManager.updatePlayerData(player.getUuid(), playerData);
+        PersistentDataManager.saveData();
+
+        String playerName = player.getName().getString();
+        ServerWorld world = (ServerWorld) player.getWorld();
+
+        // play subtle join sound
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 0.3f, 1.5f);
+
+        // phase 1: fake join message (yellow text like real join messages)
+        player.sendMessage(Text.literal("§e" + playerName + " joined the game"), false);
+
+        // phase 2: first message - realization
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.sendMessage(Text.literal("§f<" + playerName + "> §fOh... wait... this isn't Split Self..."), false);
+            }
+        }, 1500);
+
+        // phase 3: second message - apology
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.sendMessage(Text.literal("§f<" + playerName + "> §fSorry to bother..."), false);
+            }
+        }, 3000);
+
+        // phase 4: third message - leaving
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.sendMessage(Text.literal("§f<" + playerName + "> §fWelp, later!"), false);
+            }
+        }, 4500);
+
+        // phase 5: fake leave message
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.sendMessage(Text.literal("§e" + playerName + " left the game"), false);
+
+                // play subtle leave sound
+                world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 0.2f, 0.8f);
+            }
+        }, 6000);
+
+        NullPointerEntity.LOGGER.info("Triggered one-time Split Self event for player {}", playerName);
+    }
+
     // ===== late phase events =====
     private static void triggerLatePhaseEvent(ServerPlayerEntity player, long currentTime) {
         if (!canTriggerEvent(player, "late_phase", currentTime, LATE_PHASE_COOLDOWN)) return;
 
         String[] events = {"movement_lag", "durability_drain", "chat_injection", "camera_shake", "fake_damage", "control_reversal", "entity_possession"};
-        String selectedEvent = events[random.nextInt(events.length)];
 
+        // get event that wasn't in last 5
+        String selectedEvent = selectEventWithHistory(player.getUuid(), events);
+        if (selectedEvent == null) {
+            NullPointerEntity.LOGGER.warn("All late phase events were in recent history for player {}, selecting random", player.getName().getString());
+            selectedEvent = events[random.nextInt(events.length)];
+        }
+
+        // add to history
+        addEventToHistory(player.getUuid(), selectedEvent);
 
         switch (selectedEvent) {
             case "movement_lag" -> triggerMovementLag(player);
@@ -839,11 +965,12 @@ public class PassiveEvents {
             }
 
             // play metal breaking sounds and custom glitch sound
-            world.playSound(null, player.getBlockPos(), SoundEvents.ITEM_SHIELD_BREAK,
-                SoundCategory.PLAYERS, 0.8f, 0.5f);
-            world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_ITEM_BREAK,
-                SoundCategory.PLAYERS, 1.0f, 0.3f);
-            world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.ITEM_SHIELD_BREAK, SoundCategory.PLAYERS, 0.8f, 0.5f);
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1.0f, 0.3f);
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
                 SoundCategory.HOSTILE, 0.7f, 0.8f);
 
             player.sendMessage(Text.literal("§4§k|||§r §4YOUR ITEMS DISINTEGRATE§r §4§k|||"), false);
@@ -873,7 +1000,8 @@ public class PassiveEvents {
         player.sendMessage(Text.literal(message), false);
 
         // play custom whisper sound
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
             SoundCategory.HOSTILE, 0.5f, 0.9f);
 
         NullPointerEntity.LOGGER.info("Injected psychological chat message for player {}: {}",
@@ -888,7 +1016,8 @@ public class PassiveEvents {
         ServerWorld world = (ServerWorld) player.getWorld();
 
         // play tense heartbeat sound
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
             SoundCategory.HOSTILE, 0.8f, 1.0f);
 
         player.sendMessage(Text.literal("§c§oEverything shakes..."), true);
@@ -947,8 +1076,8 @@ public class PassiveEvents {
         ServerWorld world = (ServerWorld) player.getWorld();
 
         // play hurt sound without actually damaging
-        world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_PLAYER_HURT,
-            SoundCategory.PLAYERS, 1.0f, 1.0f);
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.PLAYERS, 1.0f, 1.0f);
 
         // create damage particles
         for (int i = 0; i < 20; i++) {
@@ -973,7 +1102,8 @@ public class PassiveEvents {
         ServerWorld world = (ServerWorld) player.getWorld();
 
         // play glitch sound
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
             SoundCategory.HOSTILE, 0.6f, 0.9f);
 
         player.sendMessage(Text.literal("§4§k||§r §cControls corrupted§r §4§k||"), true);
@@ -998,8 +1128,8 @@ public class PassiveEvents {
         player.sendMessage(Text.literal("§4§oSomething is taking control..."), true);
 
         // play possession sound
-        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-            SoundCategory.HOSTILE, 0.7f, 0.5f);
+        world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
+            SoundCategory.AMBIENT, 0.5f, 0.5f);
         world.playSound(null, playerPos, SoundEvents.ENTITY_WARDEN_HEARTBEAT,
             SoundCategory.HOSTILE, 0.6f, 0.8f);
 
@@ -1049,8 +1179,8 @@ public class PassiveEvents {
 
                     // play heartbeat on forced movement
                     if (random.nextBoolean()) {
-                        world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_WARDEN_HEARTBEAT,
-                            SoundCategory.HOSTILE, 0.3f, 1.2f);
+                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.ENTITY_WARDEN_HEARTBEAT, SoundCategory.HOSTILE, 0.3f, 1.2f);
                     }
                 }
 
@@ -1072,11 +1202,17 @@ public class PassiveEvents {
         if (random.nextDouble() < chunkDeletionChance) {
             selectedEvent = "chunk_deletion";
         } else {
-            // select from other events (excluding chunk deletion)
+            // select from other events (excluding chunk deletion) that wasn't in last 5
             String[] normalEvents = {"mouse_sensitivity", "key_delay", "fake_lag", "bsod_threat", "reality_corruption", "full_control"};
-            selectedEvent = normalEvents[random.nextInt(normalEvents.length)];
+            selectedEvent = selectEventWithHistory(player.getUuid(), normalEvents);
+            if (selectedEvent == null) {
+                NullPointerEntity.LOGGER.warn("All final phase events were in recent history for player {}, selecting random", player.getName().getString());
+                selectedEvent = normalEvents[random.nextInt(normalEvents.length)];
+            }
         }
 
+        // add to history
+        addEventToHistory(player.getUuid(), selectedEvent);
 
         switch (selectedEvent) {
             case "mouse_sensitivity" -> triggerMouseSensitivityShift(player);
@@ -1100,7 +1236,8 @@ public class PassiveEvents {
         state.mouseSensitivityMultiplier = newSensitivity;
         state.effectStartTime = System.currentTimeMillis();
 
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
             SoundCategory.HOSTILE, 0.5f, 1.0f);
 
         player.sendMessage(Text.literal("§c[ERROR] Mouse input corrupted"), true);
@@ -1126,7 +1263,8 @@ public class PassiveEvents {
 
         ServerWorld world = (ServerWorld) player.getWorld();
 
-        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+        world.playSound(null, player.getX(), player.getY(), player.getZ(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
             SoundCategory.HOSTILE, 0.6f, 0.7f);
 
         player.sendMessage(Text.literal("§4§k||§r §cInput lag detected§r §4§k||"), true);
@@ -1406,9 +1544,9 @@ public class PassiveEvents {
                         world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
                             SoundCategory.HOSTILE, 0.7f, 0.7f);
                     } else if (index == 2) {
-                        // third message: whisper
-                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-                            SoundCategory.HOSTILE, 0.8f, 0.6f);
+                        // third message: static interference
+                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+                            SoundCategory.AMBIENT, 0.6f, 1.2f);
                     } else {
                         // final message: chase music for intensity
                         world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_CHASE,
@@ -1461,6 +1599,7 @@ public class PassiveEvents {
             case "dimension_bleed" -> triggerDimensionBleed(player);
             case "false_death" -> triggerFalseDeath(player);
             case "shadow_clone" -> triggerShadowClone(player);
+            case "splitself" -> triggerSplitSelf(player);
 
             // late phase events
             case "movement_lag" -> triggerMovementLag(player);
@@ -1548,6 +1687,48 @@ public class PassiveEvents {
         return clientEffects.computeIfAbsent(playerId, k -> new PassiveEffectState());
     }
 
+    /**
+     * selects an event that wasn't in the player's last 5 events.
+     * returns null if all events were recent.
+     */
+    private static String selectEventWithHistory(UUID playerId, String[] availableEvents) {
+        LinkedList<String> history = eventHistory.computeIfAbsent(playerId, k -> new LinkedList<>());
+
+        // create list of events not in recent history
+        List<String> validEvents = new ArrayList<>();
+        for (String event : availableEvents) {
+            if (!history.contains(event)) {
+                validEvents.add(event);
+            }
+        }
+
+        // if no valid events (all were recent), return null
+        if (validEvents.isEmpty()) {
+            return null;
+        }
+
+        // select random from valid events
+        return validEvents.get(random.nextInt(validEvents.size()));
+    }
+
+    /**
+     * adds event to player's history, maintaining only last 5 events.
+     */
+    private static void addEventToHistory(UUID playerId, String eventName) {
+        LinkedList<String> history = eventHistory.computeIfAbsent(playerId, k -> new LinkedList<>());
+
+        // add to front of list
+        history.addFirst(eventName);
+
+        // keep only last 5 events
+        while (history.size() > EVENT_HISTORY_SIZE) {
+            history.removeLast();
+        }
+
+        NullPointerEntity.LOGGER.debug("Added '{}' to event history for player {}. History: {}",
+            eventName, playerId, history);
+    }
+
     // methods to check if effects are active (for use in mixins)
     public static boolean hasBlockBreakDelay(UUID playerId) {
         PassiveEffectState state = clientEffects.get(playerId);
@@ -1605,5 +1786,7 @@ public class PassiveEvents {
         lastEventTimes.remove(playerId);
         eventCooldowns.remove(playerId);
         clientEffects.remove(playerId);
+        eventHistory.remove(playerId); // clean up event history
+        // note: splitself event status is now stored in persistent storage, not in-memory
     }
 }
