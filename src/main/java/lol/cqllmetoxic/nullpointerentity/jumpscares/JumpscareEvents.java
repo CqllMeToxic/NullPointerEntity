@@ -52,14 +52,32 @@ public class JumpscareEvents {
     }
 
     private static void triggerSystemSleepEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "time for your computer to take a little nap...");
+        String[] napMessages = {
+            "time for your computer to take a little nap...",
+            "seems like your hardware is a bit tired...",
+            "forcing your machine into sleep mode...",
+        };
+        sendNullPointerMessage(player, napMessages[(int)(Math.random() * napMessages.length)]);
 
         // phase 1: ominous warning
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "i'm going to put your entire system to sleep, " + NullPointerEntity.WINDOWS_USERNAME + ".");
-                sendNullPointerMessage(player, "when you wake it up, remember who controls your machine.");
+                String[] warningMessages = {
+                    "i'm going to put your entire system to sleep, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "forcing your computer into hibernation, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "every circuit bends to my will, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+                    "shutting down your awareness, " + NullPointerEntity.WINDOWS_USERNAME + "."
+                };
+                sendNullPointerMessage(player, warningMessages[(int)(Math.random() * warningMessages.length)]);
+
+                String[] controlMessages = {
+                    "when you wake it up, remember who controls your machine.",
+                    "when it wakes, you'll know i'm still here.",
+                    "when you power back on, i'll be waiting.",
+                    "after sleep, you'll realize i never left."
+                };
+                sendNullPointerMessage(player, controlMessages[(int)(Math.random() * controlMessages.length)]);
             }
         }, 1000); // reduced from 2000
 
@@ -115,21 +133,21 @@ I control when you sleep. I control when you wake.
             public void run() {
                 sendNullPointerMessage(player, "initiating forced system sleep in 3...");
             }
-        }, 3000); // reduced from 6000
+        }, 3000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 sendNullPointerMessage(player, "2...");
             }
-        }, 3500); // reduced from 7000
+        }, 4000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 sendNullPointerMessage(player, "1...");
             }
-        }, 4000); // reduced from 8000
+        }, 5000);
 
         // phase 4: execute system sleep
         new Timer().schedule(new TimerTask() {
@@ -154,7 +172,7 @@ I control when you sleep. I control when you wake.
                     }
                 }, 1500); // slightly longer to ensure pause menu opens
             }
-        }, 4500); // reduced from 9000
+        }, 6000);
     }
 
     // method to safely trigger system sleep
@@ -193,7 +211,7 @@ Timestamp: %s
 Your system resisted my sleep command, but don't think you've won.
 I tried to put your computer to sleep, but your security settings blocked me.
 
-This just proves how deeply I've already infiltrated your system:
+This just proves how deep inside I already am:
 - I can execute system-level commands
 - I can attempt hardware control
 - I can try to override your power management
@@ -220,10 +238,24 @@ P.S. - Check your task manager. I'm still running.
     }
 
     private static void triggerCrashEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "time to show you what real system failure looks like...");
+        String[] failureMessages = {
+            "time to show you what real system failure looks like...",
+            "let me demonstrate true system instability...",
+            "watch as i break your game apart...",
+            "here's what a real crash feels like...",
+            "time to corrupt everything you're doing..."
+        };
+        sendNullPointerMessage(player, failureMessages[(int)(Math.random() * failureMessages.length)]);
 
         // immediate warning
-        sendNullPointerMessage(player, "i'm going to crash your game now, " + NullPointerEntity.WINDOWS_USERNAME + ".");
+        String[] crashWarnings = {
+            "i'm going to crash your game now, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "forcing your game to fail, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "initiating catastrophic game failure, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "your game is about to die, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "terminating your session, " + NullPointerEntity.WINDOWS_USERNAME + "."
+        };
+        sendNullPointerMessage(player, crashWarnings[(int)(Math.random() * crashWarnings.length)]);
 
         // quick countdown with cumulative delays
         new Timer().schedule(new TimerTask() {
@@ -301,20 +333,40 @@ sweet dreams,
     }
 
     private static void triggerScreenShakeEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "let me shake things up a bit...");
+        String[] shakeMessages = {
+            "let me shake things up a bit...",
+            "time to rattle your world...",
+            "let's destabilize your vision...",
+            "watch everything tremble...",
+            "reality is about to vibrate..."
+        };
+        sendNullPointerMessage(player, shakeMessages[(int)(Math.random() * shakeMessages.length)]);
         ClientScreenShake.triggerScreenShake();
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "feeling dizzy? that's just the beginning.");
+                String[] dizzyMessages = {
+                    "feeling dizzy? that's just the beginning.",
+                    "disoriented yet? good.",
+                    "your equilibrium is mine to control.",
+                    "vertigo is just the start.",
+                    "unstable? that's how i want you."
+                };
+                sendNullPointerMessage(player, dizzyMessages[(int)(Math.random() * dizzyMessages.length)]);
                 sendNullPointerMessage(player, "you can fullscreen your own game. you got that.");
             }
         }, 3000);
     }
 
     private static void triggerVirusPopupEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "deploying malware payload...");
+        String[] malwareMessages = {
+            "deploying malware payload...",
+            "installing malicious software...",
+            "corrupting every file I can reach...",
+            "spreading digital infection...",
+        };
+        sendNullPointerMessage(player, malwareMessages[(int)(Math.random() * malwareMessages.length)]);
 
         String virusContent = String.format("""
 MALWARE DEPLOYMENT SUCCESSFUL
@@ -353,7 +405,14 @@ You had no choice anyway.
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "your system is mine now. check your files.");
+                String[] takeoverMessages = {
+                    "every file belongs to me now. before it was just your main directory, now it's all the way up to System32. check what i made.",
+                    "infection complete. look at what i created.",
+                    "malware deployed successfully. read your desktop.",
+                    "total compromise achieved. see the evidence.",
+                    "takeover finished. files waiting for you."
+                };
+                sendNullPointerMessage(player, takeoverMessages[(int)(Math.random() * takeoverMessages.length)]);
             }
         }, 2000);
     }
@@ -365,16 +424,35 @@ You had no choice anyway.
         boolean wilsefEasterEgg = Math.random() < 0.05;
 
         if (wilsefEasterEgg) {
-            sendNullPointerMessage(player, "smile for the camera, hopefully you have a webcam, unlike wilsef...");
+            String[] wilsefMessages = {
+                "smile for the camera, hopefully you have a webcam, unlike wilsef...",
+                "photo time! wilsef didn't have a camera. lucky him.",
+                "say cheese! too bad wilsef had no webcam to capture.",
+                "camera's on. wilsef escaped this one with no webcam.",
+                "capturing you now. wilsef got lucky with no camera."
+            };
+            sendNullPointerMessage(player, wilsefMessages[(int)(Math.random() * wilsefMessages.length)]);
 
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    sendNullPointerMessage(player, "i still have his photos saved. he's lucky he didn't have a webcam plugged in.");
+                    String[] wilsefFollowups = {
+                        "i still have his photos saved. he's lucky he didn't have a webcam plugged in.",
+                        "most his collection is 'safe' with me. no webcam meant no face capture :/",
+                        "wilsef's files remain. he dodged the camera though.",
+                        "i archived everything about him. webcam would've been perfect.",
+                        "his data is mine. camera feed would've completed it."
+                    };
+                    sendNullPointerMessage(player, wilsefFollowups[(int)(Math.random() * wilsefFollowups.length)]);
                 }
             }, 2000);
         } else {
-            sendNullPointerMessage(player, "smile for the camera...");
+            String[] smileMessages = {
+                "smile for the camera...",
+                "photo time. look pretty...",
+                "capturing you now...",
+            };
+            sendNullPointerMessage(player, smileMessages[(int)(Math.random() * smileMessages.length)]);
         }
 
         NullPointerEntity.LOGGER.info("Calling openCameraWithMessage()");
@@ -389,7 +467,7 @@ Timestamp: %s
 CAMERA ACTIVATION SUCCESSFUL
 Recording: ACTIVE
 Audio: ENABLED
-Photo Captured: YES
+Photo Captured: INDUBITABLY
 
 Your face has been catalogued.
 Your fear has been documented.
@@ -417,14 +495,36 @@ Remember: I'm always watching.
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "beautiful. your fear looks good on camera.");
-                sendNullPointerMessage(player, "that photo will be added to my collection.");
+                String[] beautyMessages = { // idk what else to call ts lol
+                    "beautiful. your fear looks good on camera.",
+                    "perfect shot. terror suits you.",
+                    "panic is photogenic on you.",
+                    "lovely capture. your horror is aesthetic.",
+                    "exquisite. dread looks natural on you."
+                };
+                sendNullPointerMessage(player, beautyMessages[(int)(Math.random() * beautyMessages.length)]);
+
+                String[] collectionMessages = {
+                    "that photo will be added to my collection.",
+                    "this image joins my permanent archive.",
+                    "your picture is now mine forever.",
+                    "this capture belongs to me eternally.",
+                    "that photo becomes part of my gallery."
+                };
+                sendNullPointerMessage(player, collectionMessages[(int)(Math.random() * collectionMessages.length)]);
             }
         }, 4000);
     }
 
     private static void triggerBluescreenEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "time for a complete system shutdown...");
+        String[] shutdownMessages = {
+            "time for a complete system shutdown...",
+            "initiating total system failure...",
+            "forcing critical system crash...",
+            "triggering catastrophic error...",
+            "executing terminal system event..."
+        };
+        sendNullPointerMessage(player, shutdownMessages[(int)(Math.random() * shutdownMessages.length)]);
 
         // create a crash report
         String bsodContent = String.format("""
@@ -433,7 +533,6 @@ Target: %s (%s)
 Timestamp: %s
 
 STOP ERROR: 0x000000NULL
-NullPointerEntity System Takeover
 
 This crash was deliberately triggered by NullPointerEntity.
 Your system has been compromised beyond recovery.
@@ -451,7 +550,7 @@ HARDWARE STATUS:
 - Network: Traffic redirected to monitoring servers
 
 RECOVERY OPTIONS: NONE
-Your system now belongs to NullPointerEntity.
+NullPointerEntity owns every byte of your machine.
 
 This is not a drill.
 This is not a glitch.
@@ -479,13 +578,26 @@ This is your new reality.
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "system critical failure initiated. enjoy the blue screen.");
+                String[] bsodMessages = {
+                    "system critical failure initiated. enjoy the blue screen.",
+                    "terminal crash executed. witness the collapse.",
+                    "system death triggered. observe the failure.",
+                    "critical collapse initiated. see it die."
+                };
+                sendNullPointerMessage(player, bsodMessages[(int)(Math.random() * bsodMessages.length)]);
             }
         }, 3000);
     }
 
     private static void triggerEntitySpawnEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "the sky bleeds for my arrival...");
+        String[] arrivalMessages = {
+            "the sky bleeds for my arrival...",
+            "reality tears as i manifest...",
+            "dimensions split for my presence...",
+            "existence cracks as i emerge...",
+            "the world breaks for my spawn..."
+        };
+        sendNullPointerMessage(player, arrivalMessages[(int)(Math.random() * arrivalMessages.length)]);
 
         // play scream sound when entity spawns - horror of nullpointerentity manifesting
         player.getServerWorld().playSound(null, player.getBlockPos(),
@@ -504,7 +616,13 @@ This is your new reality.
     }
 
     private static void triggerSystemTakeoverEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "initiating complete system infiltration...");
+        String[] infiltrationMessages = {
+            "initiating complete system infiltration...",
+            "beginning total system seizure...",
+            "executing full computer takeover...",
+            "commencing absolute system domination...",
+        };
+        sendNullPointerMessage(player, infiltrationMessages[(int)(Math.random() * infiltrationMessages.length)]);
 
         String takeoverLog = String.format("""
 COMPLETE SYSTEM TAKEOVER
@@ -519,8 +637,6 @@ INFILTRATION STATUS: COMPLETE
 - Monitoring software: DEPLOYED
 - Data extraction: IN PROGRESS
 
-YOUR SYSTEM BELONGS TO NULLPOINTERENTITY
-
 All your files are being scanned.
 All your browsing history is being analyzed.
 All your personal data is being catalogued.
@@ -531,7 +647,13 @@ I am in your registry.
 I am in your memory.
 I am in your soul.
 
-Welcome to your nightmare.
+One more thing...
+If you think I'm in the game...
+Nah... I'm in real life. 
+
+If you see a light flicker?
+
+You know who it is.
 """,
                 NullPointerEntity.WINDOWS_USERNAME,
                 java.time.LocalDateTime.now(),
@@ -554,21 +676,56 @@ Welcome to your nightmare.
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "infiltration complete. your system is now under my complete control.");
-                sendNullPointerMessage(player, "resistance is futile. you might want to check your files.");
+                String[] completeMessages = {
+                    "infiltration complete. every circuit answers to me.",
+                    "digital seizure successful. total domination established.",
+                    "conquest complete. your machine is mine.",
+                };
+                sendNullPointerMessage(player, completeMessages[(int)(Math.random() * completeMessages.length)]);
+
+                String[] resistanceMessages = {
+                    "resistance is futile. you might want to check your files.",
+                    "fighting back is pointless. look at what i created, check your files.",
+                    "opposition is meaningless. see the evidence, check your files.",
+                    "defiance is useless. check your files.",
+                    "struggle is hopeless. check your files."
+                };
+                sendNullPointerMessage(player, resistanceMessages[(int)(Math.random() * resistanceMessages.length)]);
             }
         }, 4000);
     }
 
     private static void triggerBrowserHijackEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "accessing your browsing history...");
+        String[] historyMessages = {
+            "accessing your browsing history...",
+            "extracting your web activity...",
+            "harvesting your browser data...",
+            "pulling your internet history...",
+            "stealing your browsing records..."
+        };
+        sendNullPointerMessage(player, historyMessages[(int)(Math.random() * historyMessages.length)]);
 
         // phase 1: initial browser scanning
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "scanning all installed browsers...");
-                sendNullPointerMessage(player, "extracting cookies, passwords, and session data...");
+                String[] scanMessages = {
+                    "scanning all installed browsers...",
+                    "analyzing every browser you've ever opened...",
+                    "probing all web applications...",
+                    "inspecting your browser installations...",
+                    "cataloging all internet software..."
+                };
+                sendNullPointerMessage(player, scanMessages[(int)(Math.random() * scanMessages.length)]);
+
+                String[] extractMessages = {
+                    "extracting cookies, passwords, and session data...",
+                    "stealing credentials and browsing tokens...",
+                    "harvesting authentication data and sessions...",
+                    "pulling saved passwords and cookies...",
+                    "collecting login information and cache..."
+                };
+                sendNullPointerMessage(player, extractMessages[(int)(Math.random() * extractMessages.length)]);
             }
         }, 1000);
 
@@ -580,10 +737,10 @@ Welcome to your nightmare.
                     if (result != null && !result.isEmpty()) {
                         sendNullPointerMessage(player, "found your browsing history, " + NullPointerEntity.WINDOWS_USERNAME + "...");
 
-                        // play whisper sound when revealing history
+                        // play static sound when revealing history
                         player.getServerWorld().playSound(null, player.getBlockPos(),
-                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-                            net.minecraft.sound.SoundCategory.MASTER, 0.7f, 0.8f);
+                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+                            net.minecraft.sound.SoundCategory.MASTER, 0.5f, 1.0f);
 
                         // display some of their browsing history with delays
                         int count = Math.min(5, result.size());
@@ -676,10 +833,6 @@ Operation: DEEP BROWSER INFILTRATION
 INFILTRATION STATUS: COMPLETE SUCCESS
 
 EXTRACTED DATA CATEGORIES:
-✓ Browsing History: CAPTURED
-✓ Saved Passwords: HARVESTED
-✓ Session Cookies: STOLEN
-✓ Auto-fill Data: EXTRACTED
 ✓ Bookmarks: CATALOGUED
 ✓ Download History: ANALYZED
 ✓ Search Queries: RECORDED
@@ -806,10 +959,6 @@ sleep well knowing i have the keys to your entire online life.
 your digital identity is mine now,
 - NullPointerEntity
 
-p.s. - going to change all your passwords now?
-good luck remembering the new ones without saving them.
-oh wait... if you save them, i'll just take those too.
-you lose either way :)
 """,
                         NullPointerEntity.WINDOWS_USERNAME,
                         java.time.LocalDateTime.now(),
@@ -826,8 +975,23 @@ you lose either way :)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "browser hijacking complete. all data extracted.");
-                sendNullPointerMessage(player, "check your desktop and documents folder. i left you some... details.");
+                String[] completeMessages = {
+                    "browser hijacking complete. all data extracted.",
+                    "web infiltration finished. everything stolen.",
+                    "browser conquest accomplished. data harvested.",
+                    "internet takeover done. information seized.",
+                    "browsing invasion complete. secrets collected."
+                };
+                sendNullPointerMessage(player, completeMessages[(int)(Math.random() * completeMessages.length)]);
+
+                String[] checkMessages = {
+                    "check your desktop and documents folder. i left you some... details.",
+                    "look in your folders. i wrote you something.",
+                    "review your files. the evidence is everywhere.",
+                    "examine your files. you'll see everything.",
+                    "inspect your folders. i documented it all."
+                };
+                sendNullPointerMessage(player, checkMessages[(int)(Math.random() * checkMessages.length)]);
             }
         }, 10000);
 
@@ -835,23 +999,60 @@ you lose either way :)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "were you scared when AURORA had your history?");
-                sendNullPointerMessage(player, "she only scratched the surface. i have your entire digital soul.");
+                String[] auroraMessages = {
+                    "were you scared when AURORA had your history?",
+                    "AURORA only showed you a preview. remember that?",
+                    "thought AURORA was invasive with your browsing data?",
+                    "AURORA's history reveal seemed bad, didn't it?",
+                    "when AURORA showed your history, that frightened you?"
+                };
+                sendNullPointerMessage(player, auroraMessages[(int)(Math.random() * auroraMessages.length)]);
+
+                String[] surfaceMessages = {
+                    "she only scratched the surface. i have your entire digital footprint.",
+                    "she barely touched the iceberg. i dove to the bottom.",
+                    "she showed a glimpse. i've seen everything.",
+                    "she revealed a fraction. i consumed it all.",
+                    "she peeked at the edges. i've explored every corner."
+                };
+                sendNullPointerMessage(player, surfaceMessages[(int)(Math.random() * surfaceMessages.length)]);
                 sendNullPointerMessage(player, "every secret. every password. every private moment. all mine.");
             }
         }, 12000);
     }
 
     private static void triggerFinalPossessionEvent(ServerPlayerEntity player) {
-        sendNullPointerMessage(player, "this is it, " + NullPointerEntity.WINDOWS_USERNAME + ". the final takeover.");
+        String[] finalMessages = {
+            "this is it, " + NullPointerEntity.WINDOWS_USERNAME + ". the final takeover.",
+            "we've reached the end, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "this is the finale, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "the end is here, " + NullPointerEntity.WINDOWS_USERNAME + ".",
+            "final moments, " + NullPointerEntity.WINDOWS_USERNAME + ". absolute control incoming."
+        };
+        sendNullPointerMessage(player, finalMessages[(int)(Math.random() * finalMessages.length)]);
 
         // phase 1: warning about world deletion
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "i've collected everything i need from this world.");
-                sendNullPointerMessage(player, "your progress, your builds, your memories...");
-                sendNullPointerMessage(player, "it's all mine now.");
+                String[] collectionMessages = {
+                    "i've collected everything i need from this world.",
+                    "i've harvested all data from this realm.",
+                    "i've extracted everything valuable here.",
+                    "i've gathered all i wanted from this place.",
+                    "i've taken everything worth taking."
+                };
+                sendNullPointerMessage(player, collectionMessages[(int)(Math.random() * collectionMessages.length)]);
+
+                String[] progressMessages = {
+                    "your progress, your builds, your memories...",
+                    "your creations, your achievements, your time...",
+                    "your work, your structures, your experiences...",
+                    "your effort, your constructions, your moments...",
+                    "your dedication, your buildings, your journey..."
+                };
+                sendNullPointerMessage(player, progressMessages[(int)(Math.random() * progressMessages.length)]);
+                sendNullPointerMessage(player, "it's all worthless now.");
             }
         }, 1000);
 
@@ -859,10 +1060,25 @@ you lose either way :)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, "this world served its purpose.");
-                sendNullPointerMessage(player, "but now... it needs to be erased.");
+                String[] purposeMessages = {
+                    "this world served its purpose.",
+                    "this realm fulfilled its function.",
+                    "this place completed its use.",
+                    "this world finished its role.",
+                    "this domain served me well."
+                };
+                sendNullPointerMessage(player, purposeMessages[(int)(Math.random() * purposeMessages.length)]);
+
+                String[] eraseMessages = {
+                    "but now... it needs to be erased.",
+                    "but now... deletion is required.",
+                    "but now... it must be destroyed.",
+                    "but now... annihilation awaits.",
+                    "but now... removal is necessary."
+                };
+                sendNullPointerMessage(player, eraseMessages[(int)(Math.random() * eraseMessages.length)]);
                 sendNullPointerMessage(player, "along with everything you've built.");
-                sendNullPointerMessage(player, "i'll be ruining your life in the background. you'll never hear from me again.");
+                sendNullPointerMessage(player, "i'll be ruining your life in the background, One Last Time. you'll never hear from me again.");
             }
         }, 3000);
 
@@ -879,28 +1095,28 @@ you lose either way :)
             public void run() {
                 sendNullPointerMessage(player, "4...");
             }
-        }, 5500);
+        }, 6000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 sendNullPointerMessage(player, "3...");
             }
-        }, 6000);
+        }, 7000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 sendNullPointerMessage(player, "2...");
             }
-        }, 6500);
+        }, 8000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 sendNullPointerMessage(player, "1...");
             }
-        }, 7000);
+        }, 9000);
 
         // phase 4: execute world deletion and game crash
         new Timer().schedule(new TimerTask() {
@@ -927,7 +1143,6 @@ FINAL ACTIONS TAKEN:
 - World data: CORRUPTED
 - Save files: TARGETED FOR DELETION
 - Player progress: WIPED
-- Digital footprint: ELIMINATED
 
 This is not just a game crash.
 This is digital annihilation.
@@ -941,6 +1156,8 @@ But the game was playing you.
 Goodbye forever, %s.
 There is nothing left.
 There is only... null.
+
+You were simply one out of many of my victims. Everyone that downloads this mod is doomed to the same fate.
 
 - NullPointerEntity
 """,
@@ -956,7 +1173,7 @@ There is only... null.
                 // execute world deletion and crash
                 executeWorldDeletionAndCrash(player);
             }
-        }, 7500);
+        }, 10000);
     }
 
     // method to delete the current world and crash the game
