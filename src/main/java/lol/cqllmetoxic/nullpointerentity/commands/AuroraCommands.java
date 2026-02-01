@@ -98,6 +98,7 @@ public class AuroraCommands {
         PASSIVE_EVENTS.put("dimension_bleed", "Middle Phase - Reality thinning with nether/end particles");
         PASSIVE_EVENTS.put("false_death", "Middle Phase - Fake death screen without dying");
         PASSIVE_EVENTS.put("shadow_clone", "Middle Phase - Ghost-like player silhouette behind you");
+        PASSIVE_EVENTS.put("splitself", "Middle Phase - Fake player joins thinking it's Split Self (ONE-TIME ONLY)");
 
         PASSIVE_EVENTS.put("movement_lag", "Late Phase - Temporary movement slowdown");
         PASSIVE_EVENTS.put("durability_drain", "Late Phase - Drains 100 durability from all items");
