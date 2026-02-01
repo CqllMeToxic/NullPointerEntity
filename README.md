@@ -12,7 +12,7 @@ This is my first mod, I have not coded in Java in 5+ years, so please go easy on
 
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4-brightgreen?style=for-the-badge&logo=minecraft)
 ![Fabric API](https://img.shields.io/badge/Fabric%20API-0.119.4+-orange?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-ARR-red?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21+-red?style=for-the-badge&logo=openjdk)
 
 **A psychological horror mod for Minecraft where your helpful AI assistant becomes self-aware.**
@@ -376,6 +376,7 @@ Game crashes. Blue screens. Entity encounters. Nothing is safe. AURORA has full 
 - **File creation** — Creates text files on Desktop, Documents, Music, Pictures with unsettling messages
 - **Browser history** — Reads history from Chrome, Firefox, Edge, Safari, Brave (or uses fake data)
 - **Camera access** — Activates webcam with warnings, takes photos during events
+- **Microphone access** — Records short audio clips (8-9 seconds) during surveillance events, saved to Music folder
 - **Process monitoring** — Detects running applications and comments on them
 - **Wake detection** — Triggers events when PC wakes from sleep
 - **Cross-platform** — Works on Windows, macOS, and Linux
@@ -442,8 +443,14 @@ Disable with `/nullpointer privacy false` to enable real system access:
 - Reads actual browser history (Chrome, Firefox, Edge, Safari, Brave)
 - Detects running applications (Discord, Spotify, browsers, etc.)
 - Accesses webcam with popup warnings before activation
+- Records audio clips using selected microphone during specific events
 - Creates personalized files using your username
 - Monitors system wake/sleep events
+
+**Microphone Access:**
+- Select your microphone on the Privacy Screen before playing
+- Audio clips saved to Music folder during events
+- Privacy mode does NOT disable microphone recording
 
 ### What This Mod Will NEVER Do
 
@@ -571,7 +578,7 @@ Depends on you. The mod uses psychological horror (fourth wall breaks, loss of c
 <details>
 <summary><b>Can I use this in a modpack?</b></summary>
 
-Yes! MIT license allows use in public modpacks, modification, and redistribution. Just provide credit and link back to this repository.
+**No, not without explicit permission.** This mod is licensed under All Rights Reserved (ARR). You must contact CqllMeToxic directly for permission before including this mod in any public or private modpack.
 
 </details>
 
@@ -618,25 +625,9 @@ Note: Only the Official Launcher, CurseForge, Modrinth, Lunar, and Feather Clien
 
 ## 🤝 Contributing
 
-This project is open source under the MIT License. Contributions welcome!
+This project is licensed under All Rights Reserved (ARR). While the source code is publicly viewable, modifications and redistribution require explicit permission.
 
-### Development Setup
-
-```bash
-git clone https://github.com/CqllMetoxic/NullPointerEntity.git
-cd NullPointerEntity-1.21.4
-./gradlew genSources
-./gradlew runClient
-```
-
-### How to Contribute
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes and test thoroughly
-4. Commit (`git commit -m "Add amazing feature"`)
-5. Push (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+**Interested in contributing?** Contact CqllMeToxic before making any changes or forks.
 
 ### Reporting Issues
 
@@ -721,7 +712,7 @@ Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord!
 📦 [Download Latest Release](https://modrinth.com/mod/nullpointerentity/versions)  
 🐛 [Report Issues](https://github.com/CqllMetoxic/NullPointerEntity/issues)
 📖 [Player Guide](MOD_GUIDE.md)  
-⚖️ [MIT License](LICENSE)
+⚖️ [License](LICENSE)
 
 ---
 
@@ -744,6 +735,6 @@ Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord!
 
 <div align="center">
 
-<sub>MIT License • Minecraft 1.21.4 • Fabric API 0.119.4+ • Java 21+</sub>
+<sub>All Rights Reserved • Minecraft 1.21.4 • Fabric API 0.119.4+ • Java 21+</sub>
 
 </div>
