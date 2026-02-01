@@ -4,9 +4,7 @@
 
 **I HIGHLY recommend playing this on the Vanilla launcher, Feather, or Lunar Client. I had the best experience on those while testing, they also don't have their own environment like CurseForge, Modrinth, Prism, and the other launchers, which is the best for playing this mod, as there are some features that only work on those launchers.**
 
-Drop a <3 if you enjoyed! :)
-
-By the way, the first content update can be expected by 2/10/2026, maybe earlier. This update will help make the mod less repetitive and change a lot of the dialouge and some events for new, fresh ones. (Sorry for those that thought that the mod was repetitive!) The update also adds some easter eggs, and new functionality to a few events as well as bug fixes.
+Drop a ⭐️ if you enjoyed! :)
 
 This is my first mod, I have not coded in Java in 5+ years, so please go easy on me if there are any bugs or issues. I will fix them as soon as I can. Thank you for understanding.
 
