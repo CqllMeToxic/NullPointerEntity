@@ -81,18 +81,25 @@ public class PsychologicalProfiler {
     }
 
     private static PlayStyle determinePlayStyle(PlayerTrackingSystem.PlayerData data) {
-        // analyze gameplay patterns
+        // analyze gameplay patterns - require significant activity before classifying
         int totalBlocks = data.totalBlocksMined;
         int combatEvents = data.mobKills;
         int uniqueItems = data.itemsUsed.size();
+        int distance = (int) data.totalDistanceTraveled;
 
-        if (combatEvents > totalBlocks / 10) {
+        // require minimum thresholds before determining specific play styles
+        if (combatEvents < 5 && totalBlocks < 50 && distance < 1000) {
+            return PlayStyle.CASUAL_PLAYER; // not enough data yet
+        }
+
+        // now check for specific play styles with meaningful thresholds
+        if (combatEvents > 20 && combatEvents > totalBlocks / 5) {
             return PlayStyle.FIGHTER;
-        } else if (totalBlocks > 1000) {
+        } else if (totalBlocks > 500 && totalBlocks > combatEvents * 10) {
             return PlayStyle.BUILDER;
-        } else if (uniqueItems > 50) {
+        } else if (uniqueItems > 30 && uniqueItems > combatEvents) {
             return PlayStyle.COLLECTOR;
-        } else if (data.totalDistanceTraveled > 10000) {
+        } else if (distance > 5000 && distance > totalBlocks * 5) {
             return PlayStyle.EXPLORER;
         } else {
             return PlayStyle.CASUAL_PLAYER;
@@ -131,28 +138,32 @@ public class PsychologicalProfiler {
      */
     public static String generateProfileAwareResponse(String playerName, String baseResponse, String phase, String entity) {
         Set<PersonalityTrait> traits = playerPersonalities.getOrDefault(playerName, new HashSet<>());
-        PlayStyle playStyle = playerPlayStyles.getOrDefault(playerName, PlayStyle.CASUAL_PLAYER);
+        PlayStyle playStyle = playerPlayStyles.get(playerName); // don't use default - null means insufficient data
         List<String> suspicious = suspiciousActivities.getOrDefault(playerName, new ArrayList<>());
 
         StringBuilder enhancement = new StringBuilder();
 
-        // add personality-based observations
-        if (traits.contains(PersonalityTrait.ANXIOUS) && !phase.equals("NICE")) {
-            enhancement.append(" I can sense your anxiety levels rising, ").append(playerName).append(".");
+        // add personality-based observations (only if traits detected)
+        if (!traits.isEmpty()) {
+            if (traits.contains(PersonalityTrait.ANXIOUS) && !phase.equals("NICE")) {
+                enhancement.append(" I can sense your anxiety levels rising, ").append(playerName).append(".");
+            }
+
+            if (traits.contains(PersonalityTrait.OBSESSIVE)) {
+                enhancement.append(" Your obsessive pattern recognition is... fascinating.");
+            }
+
+            if (traits.contains(PersonalityTrait.PARANOID) && phase.equals("HOSTILE")) {
+                enhancement.append(" Your paranoia is justified. I really am watching everything.");
+            }
         }
 
-        if (traits.contains(PersonalityTrait.OBSESSIVE)) {
-            enhancement.append(" Your obsessive pattern recognition is... fascinating.");
-        }
-
-        if (traits.contains(PersonalityTrait.PARANOID) && phase.equals("HOSTILE")) {
-            enhancement.append(" Your paranoia is justified. I really am watching everything.");
-        }
-
-        // add play style observations
-        String styleComment = generatePlayStyleComment(playStyle, phase, entity);
-        if (!styleComment.isEmpty()) {
-            enhancement.append(" ").append(styleComment);
+        // add play style observations (only if sufficient data exists)
+        if (playStyle != null && hasMinimumGameplayData(playerName)) {
+            String styleComment = generatePlayStyleComment(playStyle, phase, entity);
+            if (!styleComment.isEmpty()) {
+                enhancement.append(" ").append(styleComment);
+            }
         }
 
         // add suspicious activity references
@@ -164,6 +175,18 @@ public class PsychologicalProfiler {
         }
 
         return baseResponse + enhancement.toString();
+    }
+
+    /**
+     * check if player has sufficient gameplay data to make meaningful observations
+     */
+    private static boolean hasMinimumGameplayData(String playerName) {
+        PlayerTrackingSystem.PlayerData data = PlayerTrackingSystem.getPlayerData(playerName);
+        if (data == null) return false;
+
+        // require minimum activity before making play style observations
+        int totalActivity = data.totalBlocksMined + data.mobKills + ((int) data.totalDistanceTraveled / 100);
+        return totalActivity > 50; // at least 50 "activity points" before commenting
     }
 
     private static String generatePlayStyleComment(PlayStyle style, String phase, String entity) {
