@@ -438,7 +438,7 @@ You had no choice anyway.
                 public void run() {
                     String[] wilsefFollowups = {
                         "i still have his photos saved. he's lucky he didn't have a webcam plugged in.",
-                        "most his collection is 'safe' with me. no webcam meant no face capture :/",
+                        "most of his collection is 'safe' with me. no webcam meant no face capture :/",
                         "wilsef's files remain. he dodged the camera though.",
                         "i archived everything about him. webcam would've been perfect.",
                         "his data is mine. camera feed would've completed it."
