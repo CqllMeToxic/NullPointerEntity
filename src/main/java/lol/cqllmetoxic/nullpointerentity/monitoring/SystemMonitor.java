@@ -65,24 +65,25 @@ public class SystemMonitor {
     }
 
     /**
-     * retrieves a list of currently running processes on the system.
-     * filters out most basic system processes but keeps some for atmosphere.
+     * retrieves a list of currently running GUI applications (taskbar apps).
      *
-     * @return list of process names
+     * @return list of taskbar application names
      */
+
+    // worst event of all time this was such a pain to get working without lagging like crazy
+
     public static List<String> getRunningProcesses() {
         List<String> processes = new ArrayList<>();
         try {
             ProcessBuilder processBuilder;
 
             if (IS_WINDOWS) {
-                // windows: use tasklist command
                 processBuilder = new ProcessBuilder("tasklist", "/fo", "csv", "/nh");
             } else if (IS_MAC) {
-                // mac: use ps command with mac-specific flags
+                // mac: use ps command to get GUI applications
                 processBuilder = new ProcessBuilder("ps", "-eo", "comm", "-c");
             } else if (IS_LINUX) {
-                // linux: use ps command with linux-specific flags
+                // linux: use ps command to get processes
                 processBuilder = new ProcessBuilder("ps", "-eo", "comm", "--no-headers");
             } else {
                 // fallback for unknown unix-like systems
@@ -94,29 +95,31 @@ public class SystemMonitor {
             try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
                 String line;
 
-                while ((line = reader.readLine()) != null && processes.size() < 100) {
+                while ((line = reader.readLine()) != null) {
                     String processName;
                     if (IS_WINDOWS) {
-                        // parse csv format without header
+                        // parse simple csv format: "name","pid","session","mem"
                         line = line.trim();
                         if (line.startsWith("\"") && line.contains("\",")) {
-                            int endQuote = line.indexOf("\",");
-                            processName = line.substring(1, endQuote);
+                            String[] parts = line.split("\",\"");
+                            if (parts.length >= 1) {
+                                processName = parts[0].substring(1); // remove leading quote
 
-                            // filter out system processes no one don't care about
-                            if (!isSystemProcess(processName)) {
-                                processes.add(processName);
+                                // only include GUI applications
+                                if (isTaskbarApplication(processName)) {
+                                    processes.add(processName);
+                                }
                             }
                         }
                     } else {
-                        // unix systems: process name is usually the whole line or first part
+                        // unix systems: only include known GUI applications
                         processName = line.trim();
                         if (!processName.isEmpty() && !processName.equals("COMMAND")) {
                             // clean up the process name (remove path, keep only executable name)
                             if (processName.contains("/")) {
                                 processName = processName.substring(processName.lastIndexOf("/") + 1);
                             }
-                            if (!isSystemProcess(processName)) {
+                            if (isTaskbarApplication(processName)) {
                                 processes.add(processName);
                             }
                         }
@@ -124,9 +127,9 @@ public class SystemMonitor {
                 }
             }
 
-
         } catch (Exception e) {
-            // fallback to common processes if we can't get real ones
+            NullPointerEntity.LOGGER.warn("Could not get taskbar applications: {}", e.getMessage());
+            // fallback to common GUI applications if we can't get real ones
             processes.addAll(getFallbackProcesses());
         }
 
@@ -138,32 +141,87 @@ public class SystemMonitor {
     }
 
     /**
-     * determines if a process should be filtered from the list.
-     * keeps interesting processes but removes basic system utilities.
+     * determines if a process is a GUI application that would appear in the taskbar.
+     * includes browsers, media players, communication apps, games, etc.
      */
-    private static boolean isSystemProcess(String processName) {
-        if (processName == null) return true;
+    private static boolean isTaskbarApplication(String processName) {
+        if (processName == null) return false;
 
         String lower = processName.toLowerCase();
 
-        // only filter out the most basic system processes - keep the creepy ones
-        // keep: smss.exe, csrss.exe, wininit.exe, services.exe, lsass.exe (these are creepy)
-        // keep: svchost.exe, dwm.exe (commonly running, adds to realism)
-        return lower.equals("system") ||
-               lower.equals("idle") ||
-               lower.equals("winlogon.exe") ||
-               lower.equals("spoolsv.exe") ||
-               lower.equals("taskhost.exe") ||
-               lower.equals("conhost.exe") ||
-               lower.equals("audiodg.exe") ||
-               lower.equals("dllhost.exe") ||
-               lower.equals("rundll32.exe") ||
-               lower.equals("wuauclt.exe") ||
-               lower.equals("taskhostw.exe") ||
-               lower.equals("searchindexer.exe") ||
-               lower.equals("msdtc.exe") ||
-               lower.equals("wbem") ||
-               lower.contains("microsoft") && lower.contains("antimalware");
+        // common GUI applications that appear in taskbar
+        return lower.contains("chrome") ||
+               lower.contains("firefox") ||
+               lower.contains("msedge") || lower.contains("edge") ||
+               lower.contains("opera") ||
+               lower.contains("brave") ||
+               lower.contains("safari") ||
+               lower.contains("discord") ||
+               lower.contains("spotify") ||
+               lower.contains("steam") ||
+               lower.contains("epicgames") ||
+               lower.contains("minecraft") ||
+               lower.contains("java") && !lower.contains("javaw") || // include java GUI apps
+               lower.contains("code") || // vscode
+               lower.contains("notepad++") ||
+               lower.contains("sublime") ||
+               lower.contains("atom") ||
+               lower.contains("explorer") && !lower.contains("iexplore") || // file explorer
+               lower.contains("vlc") ||
+               lower.contains("obs") ||
+               lower.contains("streamlabs") ||
+               lower.contains("photoshop") ||
+               lower.contains("illustrator") ||
+               lower.contains("premiere") ||
+               lower.contains("davinci") ||
+               lower.contains("gimp") ||
+               lower.contains("blender") ||
+               lower.contains("word") ||
+               lower.contains("excel") ||
+               lower.contains("powerpoint") ||
+               lower.contains("outlook") ||
+               lower.contains("teams") ||
+               lower.contains("zoom") ||
+               lower.contains("slack") ||
+               lower.contains("notion") ||
+               lower.contains("terminal") ||
+               lower.contains("iterm") ||
+               lower.contains("cmd") ||
+               lower.contains("powershell") ||
+               lower.contains("thunderbird") ||
+               lower.contains("skype") ||
+               lower.contains("telegram") ||
+               lower.contains("signal") ||
+               lower.contains("whatsapp") ||
+               lower.contains("itunes") ||
+               lower.contains("musicbee") ||
+               lower.contains("foobar") ||
+               lower.contains("winamp") ||
+               lower.contains("audacity") ||
+               lower.contains("premier") ||
+               lower.contains("twitch") ||
+               lower.contains("nvidia") && (lower.contains("geforce") || lower.contains("share")) ||
+               lower.contains("radeon") ||
+               lower.contains("afterburner") ||
+               lower.contains("hwmonitor") ||
+               lower.contains("cpuz") ||
+               lower.contains("gpuz") ||
+               lower.contains("battle.net") ||
+               lower.contains("origin") ||
+               lower.contains("uplay") ||
+               lower.contains("gog") ||
+               lower.contains("roblox") ||
+               lower.contains("fortnite") ||
+               lower.contains("leagueoflegends") ||
+               lower.contains("valorant") ||
+               lower.contains("overwolf") ||
+               lower.contains("parsec") ||
+               lower.contains("anydesk") ||
+               lower.contains("teamviewer") ||
+               lower.contains("rainmeter") ||
+               lower.contains("wallpaper") ||
+               lower.contains("7zip") ||
+               lower.contains("winrar");
     }
 
     /**
