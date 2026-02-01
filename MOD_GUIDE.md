@@ -14,8 +14,10 @@ This is a **psychological horror mod** where an AI assistant named AURORA become
 
 ### On First Launch
 You'll be greeted with a privacy consent screen asking if you want to:
-- **Enable Privacy Mode** (Recommended): All system information, browser history, and personal data will be randomized/faked (Do this if you're streaming, or just don't want to get doxxed in your chat lmao)
+- **Enable Privacy Mode** (Recommended if streaming): All system information, browser history, and personal data will be randomized/faked. However, microphone recordings still occur - you can select which microphone to use on this screen.
 - **Disable Privacy Mode**: The mod will access real system data for maximum immersion (PLEASE don't doxx yourself on stream, only recommended if you can edit info out of videos and with people you can trust for full immersion and effect.)
+
+**Note:** Privacy mode does NOT disable microphone recording during audio surveillance events.
 
 ### Commands to Control Privacy
 
@@ -36,6 +38,8 @@ Turns on privacy protection. The mod will use fake data instead of real informat
 /nullpointer privacy false
 ```
 Turns off privacy protection. The mod will access real system data (browser history, location via IP, running processes, etc.)
+
+**Important:** Microphone recording is NOT controlled by privacy mode. Audio clips are recorded regardless of privacy settings.
 
 #### Manual Config File Method
 You can also edit the config file directly:
@@ -132,7 +136,9 @@ The mod creates various "system interactions" to make it feel like the entity is
 ### 🟡 Camera & Microphone
 - **Camera Activation**: Opens your camera app (Windows Camera, webcam software, etc.)
 - **Photo Capture**: Attempts to take photos using your webcam
-- **Microphone Messages**: Claims to be listening through your microphone (visual only, doesn't actually access audio)
+- **Microphone Recording**: Records short audio clips (8-9 seconds) during audio surveillance events
+- **Audio File Creation**: Saves recordings as `.wav` files in your Music folder
+- **Microphone Selection**: Choose which microphone to use on the Privacy Screen before playing
 
 ### 🟡 File System (Read-Only)
 - **File Reading**: Reads filenames from your Desktop, Documents, and Downloads folders
@@ -209,10 +215,8 @@ These are background effects that can trigger randomly or be manually activated.
 
 1. **Enable Privacy Mode** if you're uncomfortable with real data being accessed
 2. **Play in Singleplayer Only** - The mod automatically disables in multiplayer
-3. **Back Up Your World** - Some events can delete chunks or cause crashes
-4. **Don't Use on Servers** - The mod is designed for singleplayer horror experiences
-5. **Use `/nullpointer config disable`** if you need to pause the horror
-6. **Check `/nullpointer progress`** to see where you are in the story
+3. **Use `/nullpointer config disable`** if you need to pause the mod for whatever reason (or just log out lol)
+4. *Check `/nullpointer progress`** to see where you are in the story
 
 ---
 
@@ -227,6 +231,7 @@ AURORA and NullPointerEntity respond to your chat messages. Try talking to them:
 - **Identity**: "aurora", "nullpointer", "ai"
 - **System**: "computer", "files", "privacy", "camera"
 - **Creator**: "toxic", "cqllmetoxic", "developer" (my friends said this was high ego lmao)
+- **Content Creator and Friends**: "One Last Time". "Pryzmm"
 - **And many more!**
 
 The entities will remember your conversations and reference past interactions. They become more aware and unsettling as the story progresses.
