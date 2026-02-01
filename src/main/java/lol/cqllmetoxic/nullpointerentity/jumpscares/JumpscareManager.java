@@ -228,8 +228,8 @@ public class JumpscareManager {
                 client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_STATIC, 1.2f));
                 break;
             case 3:
-                // whisper only
-                client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_WHISPER, 1.8f));
+                // ambient glitch only
+                client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_GLITCH, 1.8f));
                 break;
             case 4:
                 // chase music for intensity
@@ -241,9 +241,9 @@ public class JumpscareManager {
                 client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_STATIC, 1.5f));
                 break;
             case 6:
-                // tense heartbeat + whisper combo
+                // tense heartbeat + static combo
                 client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_HEARTBEAT_TENSE, 1.5f));
-                client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_WHISPER, 1.8f));
+                client.getSoundManager().play(PositionedSoundInstance.master(ModSounds.JUMPSCARE_STATIC, 1.2f));
                 break;
             default:
                 // all-out assault
