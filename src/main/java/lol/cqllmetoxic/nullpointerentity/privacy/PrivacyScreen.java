@@ -17,6 +17,8 @@ import net.minecraft.util.Formatting;
 public class PrivacyScreen extends Screen {
     private final Screen parent;
     private boolean privacyEnabled;
+    private javax.sound.sampled.Mixer.Info[] availableMicrophones;
+    private int selectedMicrophoneIndex = 0;
 
     /**
      * creates a new privacy configuration screen.
@@ -27,6 +29,20 @@ public class PrivacyScreen extends Screen {
         super(Text.literal("NullPointerEntity Privacy Settings"));
         this.parent = parent;
         this.privacyEnabled = PrivacyManager.isPrivacyEnabled();
+
+        // get available microphones
+        this.availableMicrophones = lol.cqllmetoxic.nullpointerentity.audio.AudioRecorder.getAvailableMicrophones();
+
+        // find currently selected microphone index
+        String currentMic = PrivacyManager.getSelectedMicrophoneName();
+        if (currentMic != null && availableMicrophones.length > 0) {
+            for (int i = 0; i < availableMicrophones.length; i++) {
+                if (availableMicrophones[i].getName().equals(currentMic)) {
+                    selectedMicrophoneIndex = i;
+                    break;
+                }
+            }
+        }
     }
 
     @Override
@@ -61,11 +77,29 @@ public class PrivacyScreen extends Screen {
                 .dimensions(centerX - buttonWidth/2, buttonY, buttonWidth, buttonHeight)
                 .build());
         } else {
+            // microphone selection button
+            int micButtonY = buttonY - 60;
+            this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(getMicrophoneButtonText()),
+                button -> {
+                    if (availableMicrophones.length > 0) {
+                        selectedMicrophoneIndex = (selectedMicrophoneIndex + 1) % availableMicrophones.length;
+                        button.setMessage(Text.literal(getMicrophoneButtonText()));
+                    }
+                })
+                .dimensions(centerX - 180, micButtonY, 360, buttonHeight)
+                .build());
+
             this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("I Understand"),
                 button -> {
                     PrivacyManager.setPrivacyEnabled(privacyEnabled);
                     PrivacyManager.setFirstTimeUser(false);
+
+                    // save selected microphone
+                    if (availableMicrophones.length > 0 && selectedMicrophoneIndex >= 0 && selectedMicrophoneIndex < availableMicrophones.length) {
+                        PrivacyManager.setSelectedMicrophone(availableMicrophones[selectedMicrophoneIndex].getName());
+                    }
 
                     String worldName = getCurrentWorldName();
                     if (worldName != null) {
@@ -92,6 +126,42 @@ public class PrivacyScreen extends Screen {
                 .dimensions(centerX + buttonSpacing/2, buttonY, buttonWidth, buttonHeight)
                 .build());
         }
+    }
+
+    private String getMicrophoneButtonText() {
+        if (availableMicrophones == null || availableMicrophones.length == 0) {
+            return "Microphone: None Detected";
+        }
+
+        if (selectedMicrophoneIndex < 0 || selectedMicrophoneIndex >= availableMicrophones.length) {
+            return "Microphone: Error - Invalid Selection";
+        }
+
+        // get microphone info
+        javax.sound.sampled.Mixer.Info micInfo = availableMicrophones[selectedMicrophoneIndex];
+        String micName = micInfo.getName();
+
+        // fallback to description if name is empty
+        if (micName == null || micName.trim().isEmpty()) {
+            micName = micInfo.getDescription();
+        }
+
+        // fallback to vendor if description is also empty
+        if (micName == null || micName.trim().isEmpty()) {
+            micName = micInfo.getVendor() + " Device";
+        }
+
+        // final fallback
+        if (micName == null || micName.trim().isEmpty()) {
+            micName = "Microphone #" + (selectedMicrophoneIndex + 1);
+        }
+
+        // truncate if too long
+        if (micName.length() > 45) {
+            micName = micName.substring(0, 42) + "...";
+        }
+
+        return "Microphone: " + micName;
     }
 
     private String getCurrentWorldName() {
@@ -151,6 +221,16 @@ public class PrivacyScreen extends Screen {
             int explanationColor = privacyEnabled ? 0xAAFFAA : 0xFFFF55;
             context.drawCenteredTextWithShadow(this.textRenderer, privacyExplanation, centerX, currentY, explanationColor);
             currentY += 30;
+
+            // microphone selection explanation
+            context.drawCenteredTextWithShadow(this.textRenderer, "Select your microphone:", centerX, currentY, 0xFFFFFF);
+            currentY += 20;
+            if (availableMicrophones.length == 0) {
+                context.drawCenteredTextWithShadow(this.textRenderer, "No microphones detected! Audio events may be silent.", centerX, currentY, 0xFF5555);
+            } else {
+                context.drawCenteredTextWithShadow(this.textRenderer, "Click the button above to cycle through available microphones.", centerX, currentY, 0xAAFFAA);
+            }
+            currentY += 60; // increased from 30 to add more space before final instruction
 
             context.drawCenteredTextWithShadow(this.textRenderer, "Toggle privacy mode and click 'I Understand' to continue.", centerX, currentY, 0xCCCCCC);
         }
