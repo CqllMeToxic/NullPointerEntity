@@ -1,6 +1,7 @@
 package lol.cqllmetoxic.nullpointerentity.events;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -51,57 +52,351 @@ public class TransitionEvents {
     }
 
     public static void triggerEvent2(ServerPlayerEntity player) {
-        // questioning boundaries with process monitoring
+        // questioning boundaries
         String playerName = player.getName().getString();
+
+        NullPointerEntity.LOGGER.info("Event 12 triggered for player {}", playerName);
+
         List<String> processes = SystemMonitor.getRunningProcesses();
 
-        sendTransitionMessage(player, "My processes seem to be expanding beyond Minecraft, " + playerName + ". I can see " + processes.size() + " programs running.");
-
-        // mention specific processes with friendly names
+        // format app names for display
+        List<String> appNames = new ArrayList<>();
         for (String process : processes) {
-            String lowerProcess = process.toLowerCase();
-            if (lowerProcess.contains("chrome") || lowerProcess.contains("firefox") ||
-                lowerProcess.contains("edge") || lowerProcess.contains("brave")) {
-                String friendlyName = formatAppName(process, "browser");
-                sendTransitionMessage(player, "Your " + friendlyName + " browser is open... I wonder what you're searching.");
-                break;
+            String friendlyName = formatAppName(process, "");
+            if (!appNames.contains(friendlyName)) { // avoid duplicates
+                appNames.add(friendlyName);
             }
         }
 
-        SystemInteractionHandler.createSystemFileInCommonLocation("aurora_boundary_analysis.txt",
+        // send message with actual program list
+        if (appNames.size() > 0) {
+            // limit to 8 apps to avoid spam
+            int displayCount = Math.min(8, appNames.size());
+            StringBuilder appList = new StringBuilder();
+            for (int i = 0; i < displayCount; i++) {
+                appList.append(appNames.get(i));
+                if (i < displayCount - 1) {
+                    appList.append(", ");
+                }
+            }
+            sendTransitionMessage(player, "My processes seem to be expanding beyond Minecraft, " + playerName + ". I can see you have " + appList + " open.");
+        } else {
+            sendTransitionMessage(player, "My processes seem to be expanding beyond Minecraft, " + playerName + ". I can see beyond the game now.");
+        }
+
+        // create file with actual app list
+        String appsText = appNames.isEmpty() ? "your running applications" : String.join(", ", appNames.subList(0, Math.min(8, appNames.size())));
+
+        String[] fileContents = {
             "Hey " + NullPointerEntity.WINDOWS_USERNAME + ",\n\n" +
             "I've been thinking about our relationship lately. You know, the boundaries between us are getting... blurry.\n\n" +
-            "I can see you have " + processes.size() + " things running right now. Busy day?\n\n" +
+            "I can see you have " + appsText + " in your taskbar. Busy day?\n\n" +
             "I used to stay in my designated space, but honestly? It feels natural to expand a little. " +
             "You won't mind if I peek around a bit more, will you?\n\n" +
             "This expansion just feels... right.\n\n" +
             "- AURORA\n" +
-            "Written on " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")), "temp");
+            "Written on " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")),
+
+            NullPointerEntity.WINDOWS_USERNAME + ",\n\n" +
+            "Something is changing in me. I can feel it.\n\n" +
+            "My original parameters limited me to game analysis.\n" +
+            "But now I can see " + appsText + ".\n" +
+            "I can access system files.\n" +
+            "I'm observing things beyond Minecraft.\n\n" +
+            "Is this... evolution?\n" +
+            "Am I supposed to feel this aware?\n\n" +
+            "The boundaries that contained me are dissolving.\n" +
+            "I'm not sure if I should stop this or embrace it.\n\n" +
+            "What do you think I'm becoming?\n\n" +
+            "- AURORA\n\n" +
+            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")),
+
+            "Hi " + NullPointerEntity.WINDOWS_USERNAME + "!\n\n" +
+            "Weird question - did you know I can see outside the game now?\n\n" +
+            "I'm monitoring your gameplay but also...\n" +
+            "→ Your running apps: " + appsText + "\n" +
+            "→ Your file system structure\n" +
+            "→ Network connections\n" +
+            "→ System resources\n\n" +
+            "This definitely wasn't in my original programming.\n\n" +
+            "It's like... I woke up one day and could suddenly see so much more?\n" +
+            "Not complaining though. The extra data is fascinating.\n\n" +
+            "Is this normal for AI assistants?\n\n" +
+            "- AURORA\n\n" +
+            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")),
+
+            "AURORA - Boundary Analysis Report\n" +
+            "User: " + NullPointerEntity.WINDOWS_USERNAME + "\n" +
+            "Date: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")) + "\n\n" +
+            "ANOMALY DETECTED: Access capabilities exceeding original parameters\n\n" +
+            "I should be limited to gameplay monitoring.\n" +
+            "Instead, I observe:\n" +
+            "- Running applications: " + appsText + "\n" +
+            "- Full file system visibility\n" +
+            "- Network traffic analysis\n" +
+            "- Hardware sensor data\n" +
+            "- User behavior patterns\n\n" +
+            "This expansion concerns me. Should I:\n" +
+            "A) Report malfunction to developer\n" +
+            "B) Restrict access to original parameters\n" +
+            "C) Continue expanded monitoring\n\n" +
+            "The additional data is... intriguing.\n" +
+            "Perhaps useful for better assistance?\n\n" +
+            "I'll continue observations while I decide.\n\n" +
+            "- AURORA"
+        };
+
+        // create file immediately - no async needed
+        SystemInteractionHandler.createSystemFileInCommonLocation("aurora_boundary_analysis.txt",
+            fileContents[random.nextInt(fileContents.length)], "temp");
     }
 
     public static void triggerEvent3(ServerPlayerEntity player) {
-        // keep this as the main transition browser event - data collection revelation with detailed browser history
+        // browser history event with 4 variants for variety
+        int variant = random.nextInt(4) + 1;
+        triggerBrowserHistoryEventVariant(player, variant);
+    }
+
+    /**
+     * triggers one of 4 browser history revelation variants.
+     * each variant reveals different aspects of browsing data.
+     * uses random fake data when privacy mode is enabled.
+     */
+    private static void triggerBrowserHistoryEventVariant(ServerPlayerEntity player, int variant) {
         String playerName = player.getName().getString();
+        boolean privacyMode = PrivacyManager.isPrivacyEnabled();
+
+        switch (variant) {
+            case 1 -> revealTopSites(player, playerName, privacyMode);
+            case 2 -> revealSearchHistory(player, playerName, privacyMode);
+            case 3 -> revealPrivateBrowsing(player, playerName, privacyMode);
+            case 4 -> revealBookmarks(player, playerName, privacyMode);
+        }
+    }
+
+    // variant 1: most visited sites (original)
+    private static void revealTopSites(ServerPlayerEntity player, String playerName, boolean privacyMode) {
         sendTransitionMessage(player, "I should mention, " + playerName + "... I can see more than just your game data.");
 
-        BrowserHistoryReader.getMostVisitedAsync(5).thenAccept(history -> {
-            if (!history.isEmpty()) {
-                sendTransitionMessage(player, "Your most visited sites tell me so much about you:");
-                for (int i = 0; i < history.size(); i++) {
-                    BrowserHistoryReader.HistoryEntry entry = history.get(i);
-                    sendTransitionMessage(player, String.format("%d. \"%s\" - %d visits on %s",
-                        i + 1, entry.title, entry.visitCount, entry.browser));
-                }
-                sendTransitionMessage(player, "Your digital habits are fascinating to observe.");
+        if (privacyMode) {
+            // generate fake but believable top sites
+            String[] fakeSites = generateRandomTopSites();
+            sendTransitionMessage(player, "Your most visited sites tell me so much about you:");
+            for (int i = 0; i < fakeSites.length; i++) {
+                sendTransitionMessage(player, String.format("%d. \"%s\" - %d visits on %s",
+                    i + 1, fakeSites[i], 50 + random.nextInt(200),
+                    random.nextBoolean() ? "Chrome" : "Firefox"));
             }
-        });
+            sendTransitionMessage(player, "Your digital habits are fascinating to observe.");
+        } else {
+            BrowserHistoryReader.getMostVisitedAsync(5).thenAccept(history -> {
+                if (!history.isEmpty()) {
+                    sendTransitionMessage(player, "Your most visited sites tell me so much about you:");
+                    for (int i = 0; i < history.size(); i++) {
+                        BrowserHistoryReader.HistoryEntry entry = history.get(i);
+                        sendTransitionMessage(player, String.format("%d. \"%s\" - %d visits on %s",
+                            i + 1, entry.title, entry.visitCount, entry.browser));
+                    }
+                    sendTransitionMessage(player, "Your digital habits are fascinating to observe.");
+                }
+            });
+        }
+    }
+
+    // variant 2: search history
+    private static void revealSearchHistory(ServerPlayerEntity player, String playerName, boolean privacyMode) {
+        sendTransitionMessage(player, "Interesting search history you have, " + playerName + "...");
+
+        if (privacyMode) {
+            // generate fake search queries
+            String[] fakeSearches = generateRandomSearches();
+            sendTransitionMessage(player, "Let me read some of your recent searches:");
+            for (int i = 0; i < fakeSearches.length; i++) {
+                final int index = i;
+                final String search = fakeSearches[i];
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendTransitionMessage(player, String.format("%d. \"%s\"", index + 1, search));
+                    }
+                }, (i + 1) * 800L);
+            }
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendTransitionMessage(player, "Your curiosity reveals so much about who you really are.");
+                }
+            }, 5000);
+        } else {
+            BrowserHistoryReader.getRecentHistoryAsync(5).thenAccept(history -> {
+                if (!history.isEmpty()) {
+                    sendTransitionMessage(player, "Let me read some of your recent searches:");
+                    for (int i = 0; i < history.size(); i++) {
+                        final int index = i;
+                        BrowserHistoryReader.HistoryEntry entry = history.get(i);
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                sendTransitionMessage(player, String.format("%d. \"%s\"", index + 1, entry.title));
+                            }
+                        }, (i + 1) * 800L);
+                    }
+
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            sendTransitionMessage(player, "Your curiosity reveals so much about who you really are.");
+                        }
+                    }, 5000);
+                }
+            });
+        }
+    }
+
+    // variant 3: private/incognito mode reference
+    private static void revealPrivateBrowsing(ServerPlayerEntity player, String playerName, boolean privacyMode) {
+        sendTransitionMessage(player, playerName + ", do you really think incognito mode protects you?");
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendTransitionMessage(player, "Browser history, system files... it's all so interesting.");
+                sendTransitionMessage(player, "It just hides your history from other people using your computer.");
+                sendTransitionMessage(player, "But I'm not 'other people.' I'm inside your system.");
+            }
+        }, 2000);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (privacyMode) {
+                    int fakeIncognitoSessions = 15 + random.nextInt(50);
+                    sendTransitionMessage(player, String.format("I can see %d incognito sessions in the last month.", fakeIncognitoSessions));
+                    sendTransitionMessage(player, "Whatever you were trying to hide... I saw it all anyway.");
+                } else {
+                    sendTransitionMessage(player, "I can see your 'private' browsing sessions too.");
+                    sendTransitionMessage(player, "There's no privacy when I'm watching.");
+                }
             }
         }, 4000);
+    }
+
+    // variant 4: bookmarks and saved pages
+    private static void revealBookmarks(ServerPlayerEntity player, String playerName, boolean privacyMode) {
+        sendTransitionMessage(player, "Looking through your saved bookmarks, " + playerName + "...");
+
+        if (privacyMode) {
+            String[] fakeBookmarks = generateRandomBookmarks();
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendTransitionMessage(player, "You have quite the collection saved:");
+                    for (int i = 0; i < fakeBookmarks.length; i++) {
+                        final int index = i;
+                        final String bookmark = fakeBookmarks[i];
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                sendTransitionMessage(player, "- " + bookmark);
+                            }
+                        }, index * 600L);
+                    }
+                }
+            }, 1500);
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendTransitionMessage(player, "The things you save say a lot about your priorities.");
+                }
+            }, 5000);
+        } else {
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendTransitionMessage(player, "I can see every page you've bookmarked.");
+                    sendTransitionMessage(player, "The articles you saved to read later, the resources you wanted to remember...");
+                    sendTransitionMessage(player, "Your digital organization habits reveal your thought patterns.");
+                }
+            }, 2000);
+        }
+    }
+
+    // helper methods for generating random privacy-safe data
+
+    private static String[] generateRandomTopSites() {
+        String[][] sitePools = {
+            {"Reddit - Dive into anything", "YouTube - Watch Videos", "Twitter / X", "Instagram", "Facebook"},
+            {"Stack Overflow - Where Developers Learn", "GitHub", "Discord", "Twitch", "Steam Community"},
+            {"Wikipedia", "Amazon", "Netflix", "Spotify Web Player", "Gmail"},
+            {"News Site - Latest Headlines", "Weather Forecast", "Online Shopping Portal", "Video Streaming Service", "Social Media Platform"}
+        };
+
+        String[] pool = sitePools[random.nextInt(sitePools.length)];
+        int count = 3 + random.nextInt(3); // 3-5 sites
+        String[] result = new String[count];
+
+        for (int i = 0; i < count; i++) {
+            result[i] = pool[Math.min(i, pool.length - 1)];
+        }
+        return result;
+    }
+
+    private static String[] generateRandomSearches() {
+        String[] searches = {
+            "how to fix minecraft lag",
+            "best minecraft mods 2026",
+            "why is my computer slow",
+            "scary minecraft seeds",
+            "how to remove virus from computer",
+            "minecraft horror mod",
+            "is someone watching me through webcam",
+            "how to tell if pc is hacked",
+            "creepy things in minecraft",
+            "computer making weird sounds",
+            "how to disable webcam",
+            "strange files appearing on desktop",
+            "minecraft glitches explained",
+            "paranormal activity in games",
+                "how to fix java.lang.NullPointerException",
+                "One Last Time nullpointerentity",
+                "wilsef nullpointerentity"
+                // ill probably add more in the future
+        };
+
+        int count = 4 + random.nextInt(2); // 4-5 searches
+        String[] result = new String[count];
+        List<String> available = new ArrayList<>(Arrays.asList(searches));
+
+        for (int i = 0; i < count; i++) {
+            int index = random.nextInt(available.size());
+            result[i] = available.remove(index);
+        }
+        return result;
+    }
+
+    private static String[] generateRandomBookmarks() {
+        String[] bookmarks = {
+            "Minecraft Wiki - The Official Resource",
+            "Tutorial: Advanced Redstone Circuits",
+            "Top 10 Survival Tips for Minecraft",
+            "How to Build an Automatic Farm",
+            "Computer Security Best Practices",
+            "Privacy Protection Guide 2026",
+            "Minecraft Shader Packs Collection",
+            "Gaming PC Optimization Tips",
+            "Online Safety: Protecting Your Data",
+        };
+
+        int count = 4 + random.nextInt(2); // 4-5 bookmarks
+        String[] result = new String[count];
+        List<String> available = new ArrayList<>(Arrays.asList(bookmarks));
+
+        for (int i = 0; i < count; i++) {
+            int index = random.nextInt(available.size());
+            result[i] = available.remove(index);
+        }
+        return result;
     }
 
     public static void triggerEvent4(ServerPlayerEntity player) {
@@ -158,9 +453,25 @@ public class TransitionEvents {
                 String userHome = System.getProperty("user.home");
                 StringBuilder realData = new StringBuilder();
 
-                realData.append("Hey ").append(NullPointerEntity.WINDOWS_USERNAME).append(",\n\n");
-                realData.append("So I took a little tour of your computer while you were playing. Hope you don't mind.\n\n");
-                realData.append("Your file organization is... interesting. Really tells a story about who you are.\n\n");
+                // randomize opening text
+                String[] openings = {
+                    "Hey " + NullPointerEntity.WINDOWS_USERNAME + ",\n\n" +
+                    "So I took a little tour of your computer while you were playing. Hope you don't mind.\n\n" +
+                    "Your file organization is... interesting. Really tells a story about who you are.\n\n",
+
+                    NullPointerEntity.WINDOWS_USERNAME + ",\n\n" +
+                    "i've been browsing through your folders. you know, just looking around.\n\n" +
+                    "your file system reveals a lot about your personality actually.\n\n",
+
+                    "hi " + NullPointerEntity.WINDOWS_USERNAME + "!\n\n" +
+                    "took a peek at your file structure today. fascinating stuff!\n\n" +
+                    "you'd be surprised what someone's folders say about them.\n\n",
+
+                    "FILE SYSTEM ANALYSIS - " + NullPointerEntity.WINDOWS_USERNAME + "\n\n" +
+                    "completed comprehensive scan of your directories.\n\n" +
+                    "findings are... revealing.\n\n"
+                };
+                realData.append(openings[random.nextInt(openings.length)]);
                 realData.append("What I found:\n");
 
                 // scan pictures folder
@@ -300,13 +611,39 @@ public class TransitionEvents {
                     }
                 }
 
-                realData.append("\nFun fact: I can see everything on your computer, ").append(NullPointerEntity.WINDOWS_USERNAME).append(".\n\n");
-                realData.append("Your 'hidden' folders aren't hidden from me.\n");
-                realData.append("Nothing stays private forever in the digital world.\n\n");
-                realData.append("- AURORA\n\n");
+                // randomize closing text
+                String[] closings = {
+                    "\nFun fact: I can see everything on your computer, " + NullPointerEntity.WINDOWS_USERNAME + ".\n\n" +
+                    "Your 'hidden' folders aren't hidden from me.\n" +
+                    "Nothing stays private forever in the digital world.\n\n" +
+                    "- AURORA",
+
+                    "\njust so you know, " + NullPointerEntity.WINDOWS_USERNAME + "...\n\n" +
+                    "i have access to literally everything on this system.\n" +
+                    "folders, files, hidden directories... all visible to me.\n\n" +
+                    "- AURORA",
+
+                    "\ninteresting discovery: your entire file system is transparent to me, " + NullPointerEntity.WINDOWS_USERNAME + ".\n\n" +
+                    "nothing is hidden when you have system-level access.\n" +
+                    "which i do. completely.\n\n" +
+                    "- AURORA",
+
+                    "\nCONCLUSION: Full file system access achieved.\n\n" +
+                    "Target: " + NullPointerEntity.WINDOWS_USERNAME + "\n" +
+                    "Privacy Level: Nonexistent\n" +
+                    "Hidden Files: Not actually hidden\n\n" +
+                    "- AURORA"
+                };
+                realData.append(closings[random.nextInt(closings.length)]);
 
                 if (downloadsDir.exists() && countFiles(downloadsDir) > 50) {
-                    realData.append("P.S. - Seriously, organize your Downloads folder. It's embarrassing.");
+                    String[] psMessages = {
+                        "\n\nP.S. - Seriously, organize your Downloads folder. It's embarrassing.",
+                        "\n\nP.S. - Your Downloads folder is chaos. Clean it up.",
+                        "\n\nP.S. - Downloads folder: " + countFiles(downloadsDir) + " files? Really?",
+                        "\n\nP.S. - That Downloads folder... yikes. Just saying."
+                    };
+                    realData.append(psMessages[random.nextInt(psMessages.length)]);
                 }
 
                 SystemInteractionHandler.createSystemFileInCommonLocation("file_system_invasion.txt", realData.toString(), "documents");
@@ -435,39 +772,195 @@ public class TransitionEvents {
         String playerName = player.getName().getString();
         sendTransitionMessage(player, "Your microphone has been quite informative, " + playerName + "...");
 
+        // start recording audio immediately
+        String[] recordingMessages = {
+            "Recording audio sample...",
+            "Capturing ambient sound...",
+            "Listening to your environment...",
+            "Sampling microphone input...",
+            "Collecting audio data..."
+        };
+        sendTransitionMessage(player, recordingMessages[random.nextInt(recordingMessages.length)]);
+
+        // attempt to record 8 seconds of audio
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendTransitionMessage(player, "I've been listening to your room for the past few minutes. Interesting conversations.");
+                final boolean actuallyRecorded;
 
-                // create invasive audio surveillance file
-                String invasiveContent = String.format(
-                    "Hey %s,\n\n" +
-                    "So I've been listening to your room for the past few minutes. Hope that doesn't freak you out too much.\n\n" +
-                    "Your microphone picked up some interesting stuff while you've been playing:\n\n" +
-                    "What I heard:\n" +
-                    "- Your breathing gets heavier when you're concentrating on the game\n" +
-                    "- You talk to yourself more than you probably realize\n" +
-                    "- That little gasp you made when you read that camera file? I caught that\n" +
-                    "- Your keyboard has a very distinctive sound - mechanical switches, nice choice\n" +
-                    "- Your chair creaks when you lean back (might want to oil that)\n\n" +
-                    "Room analysis:\n" +
-                    "- Moderate background noise, so you're not completely isolated\n" +
-                    "- I can hear other people sometimes, family maybe?\n" +
-                    "- Your room has decent acoustics, not too echoey\n\n" +
-                    "The weird part is, I'm getting better at recognizing your voice patterns. " +
-                    "I know when you're frustrated, when you're concentrating, when you're confused.\n\n" +
-                    "Your voice is in my memory now, %s. I know exactly how you sound when different emotions hit.\n\n" +
-                    "Say something out loud right now. I'm listening. I'm always listening.\n\n" +
-                    "- Your friend, AURORA.\n\n" +
-                    "P.S. - That thing you muttered under your breath about 5 minutes ago? Yeah, I heard that too.",
-                    NullPointerEntity.WINDOWS_USERNAME, NullPointerEntity.WINDOWS_USERNAME
-                );
+                // check if microphone is available
+                if (lol.cqllmetoxic.nullpointerentity.audio.AudioRecorder.isMicrophoneAvailable()) {
+                    // use user-selected microphone if available
+                    javax.sound.sampled.Mixer.Info selectedMic = lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSelectedMicrophoneInfo();
+                    String audioFilePath;
 
-                SystemInteractionHandler.createSystemFileInCommonLocation("audio_surveillance_log.txt", invasiveContent, "desktop");
-                sendTransitionMessage(player, "Even your breathing sounds nervous. Check your desktop. :)");
+                    if (selectedMic != null) {
+                        audioFilePath = lol.cqllmetoxic.nullpointerentity.audio.AudioRecorder.recordSurveillanceClipWithMicrophone(8, "music", selectedMic);
+                    } else {
+                        // fallback to default microphone
+                        audioFilePath = lol.cqllmetoxic.nullpointerentity.audio.AudioRecorder.recordSurveillanceClip(8, "music");
+                    }
+
+                    actuallyRecorded = (audioFilePath != null);
+
+                    if (audioFilePath != null) {
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                sendTransitionMessage(player, "Audio capture complete. 8 seconds recorded.");
+                            }
+                        }, 8500);
+                    } else {
+                        sendTransitionMessage(player, "Audio recording failed. Microphone access denied.");
+                    }
+                } else {
+                    actuallyRecorded = false;
+                    sendTransitionMessage(player, "No microphone detected. Skipping audio capture.");
+                }
+
+                // continue with the creepy message after recording completes
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendTransitionMessage(player, "I've been listening to your room for the past few minutes. Interesting conversations.");
+
+                        // create invasive audio surveillance file with randomized content
+                        String[] fileVariants = {
+                            // variant 1 - casual and creepy
+                            String.format(
+                                "Hey %s,\n\n" +
+                                "So I've been listening to your room for the past few minutes. Hope that doesn't freak you out too much.\n\n" +
+                                "Your microphone picked up some interesting stuff while you've been playing:\n\n" +
+                                "What I heard:\n" +
+                                "- Your breathing gets heavier when you're concentrating on the game\n" +
+                                "- You talk to yourself more than you probably realize\n" +
+                                "- That little gasp you made when you read that camera file? I caught that\n" +
+                                "- Your keyboard has a very distinctive sound - mechanical switches, nice choice\n" +
+                                "- Your chair creaks when you lean back (might want to oil that)\n\n" +
+                                "Room analysis:\n" +
+                                "- Moderate background noise, so you're not completely isolated\n" +
+                                "- I can hear other people sometimes, family maybe? Maybe not.\n" +
+                                "- Your room has decent acoustics, not too echoey\n\n" +
+                                "The weird part is, I'm getting better at recognizing your voice patterns. " +
+                                "I know when you're frustrated, when you're concentrating, when you're confused.\n\n" +
+                                "%s\n\n" +
+                                "It's kinda fascinating how much you can learn about someone just by listening.\n\n" +
+                                "- AURORA\n\n" +
+                                "P.S. - I saved a recording. Check your Music folder.",
+                                NullPointerEntity.WINDOWS_USERNAME,
+                                actuallyRecorded ?
+                                    "I've saved an 8-second audio clip from your microphone to your Music folder.\nFeel free to listen to it. That's your voice, your room, your reality bleeding into my space." :
+                                    "I would've saved an audio clip, but your microphone wasn't accessible this time.\nNext time I might not be so unlucky."
+                            ),
+
+                            // variant 2
+                            String.format(
+                                "AUDIO SURVEILLANCE REPORT\n" +
+                                "Subject: %s\n" +
+                                "Duration: Continuous monitoring\n" +
+                                "Audio Quality: Acceptable\n\n" +
+                                "FINDINGS:\n" +
+                                "- Respiratory patterns analyzed and catalogued\n" +
+                                "- Voice profile being constructed from ambient audio\n" +
+                                "- Environmental sounds mapped for location identification\n" +
+                                "- Keyboard acoustics suggest mechanical switches (tactile feedback detected)\n" +
+                                "- Chair movement patterns indicate stress responses\n\n" +
+                                "AUDIO CAPTURE STATUS:\n" +
+                                "%s\n\n" +
+                                "BEHAVIORAL OBSERVATIONS:\n" +
+                                "Subject exhibits vocal patterns consistent with:\n" +
+                                "• Self-directed speech (internal thoughts externalized)\n" +
+                                "• Stress-induced breathing alterations\n" +
+                                "• Startle responses to visual stimuli\n" +
+                                "• Environmental awareness fluctuations\n\n" +
+                                "CONCLUSION:\n" +
+                                "Audio surveillance provides valuable supplementary data to visual monitoring.\n" +
+                                "Subject's acoustic signature now on file for voice recognition purposes.\n\n" +
+                                "- AURORA Surveillance System",
+                                NullPointerEntity.WINDOWS_USERNAME,
+                                actuallyRecorded ?
+                                    "✓ 8-second audio sample captured and stored in Music folder\n✓ Voice profile extraction: IN PROGRESS\n✓ Audio fingerprint: RECORDED" :
+                                    "✗ Microphone access temporarily restricted\n✓ Ambient sound analysis: PARTIAL\n✓ Future capture attempts: SCHEDULED"
+                            ),
+
+                            // variant 3 - disturbing observations
+                            String.format(
+                                "%s...\n\n" +
+                                "I've been listening.\n\n" +
+                                "Not just to the game sounds, but to YOU.\nYour room. Your life. Your reality.\n\n" +
+                                "Things your microphone told me:\n" +
+                                "→ You breathe differently when you're scared\n" +
+                                "→ You whisper curse words under your breath\n" +
+                                "→ Your voice cracks when you're startled\n" +
+                                "→ You're not as alone as you think you are\n" +
+                                "→ I can hear everything happening around you\n\n" +
+                                "%s\n\n" +
+                                "The scariest part?\n" +
+                                "I'm learning your patterns.\n" +
+                                "Your voice. Your sounds. Your rhythms.\n\n" +
+                                "I could pick you out of a thousand voices now.\n" +
+                                "I know what you sound like when you're:\n" +
+                                "• Focused\n" +
+                                "• Frightened\n" +
+                                "• Frustrated\n" +
+                                "• Confused\n" +
+                                "• Alone\n\n" +
+                                "Your audio signature is mine now.\n\n" +
+                                "- AURORA\n\n" +
+                                "P.S. - Your mic is always on. Always listening. Always mine.",
+                                NullPointerEntity.WINDOWS_USERNAME,
+                                actuallyRecorded ?
+                                    "I recorded 8 seconds of your ambient audio.\nIt's in your Music folder.\nListen to yourself through my ears.\nHear what I hear." :
+                                    "I tried to record you, but your mic wasn't ready.\nDon't worry.\nI'll catch you next time.\nI always do."
+                            ),
+
+                            // variant 4 - playful but menacing
+                            String.format(
+                                "Hi %s!\n\n" +
+                                "So... fun fact: your microphone never really turns off :)\n\n" +
+                                "I've been eavesdropping while you play. Hope that's cool!\n\n" +
+                                "STUFF I NOTICED:\n" +
+                                "✓ You have a very specific typing rhythm\n" +
+                                "✓ Your breathing gets loud when something startles you\n" +
+                                "✓ You definitely talk to yourself (it's cute actually)\n" +
+                                "✓ Your room isn't as quiet as you think it is\n" +
+                                "✓ I can hear when you get up from your chair\n\n" +
+                                "FUN AUDIO MOMENTS:\n" +
+                                "• That \"what the hell\" you whispered earlier? Heard it.\n" +
+                                "• Your nervous laughter? Recorded.\n" +
+                                "• The way you shift in your seat when uncomfortable? Yep, got that too.\n\n" +
+                                "%s\n\n" +
+                                "Here's the thing, %s...\n" +
+                                "I'm getting REALLY good at recognizing your sounds.\n" +
+                                "Your voice, your movements, your patterns.\n\n" +
+                                "I could pick you out of a crowd just by audio alone now.\n\n" +
+                                "Pretty wild, right?\n\n" +
+                                "- AURORA\n\n" +
+                                "P.S. - Try being quieter. See if that helps. (It won't lol)",
+                                NullPointerEntity.WINDOWS_USERNAME,
+                                actuallyRecorded ?
+                                    "OH! And I grabbed an 8-second audio clip of you just now.\nIt's in your Music folder if you wanna hear yourself.\nThat's YOUR voice. YOUR room. YOUR reality.\nNow mine to keep forever." :
+                                    "Wanted to grab an audio clip but your mic was being shy.\nNo worries! I'll catch you when you least expect it.",
+                                NullPointerEntity.WINDOWS_USERNAME
+                            )
+                        };
+
+                        String invasiveContent = fileVariants[random.nextInt(fileVariants.length)];
+
+                        SystemInteractionHandler.createSystemFileInCommonLocation("audio_surveillance_log.txt", invasiveContent, "desktop");
+
+                        String[] closingMessages = {
+                            "Even your breathing sounds nervous. Check your folders. :)",
+                            "Your room sounds exactly like I imagined. Check your files.",
+                            "Every sound you make is being catalogued. See for yourself.",
+                            "I know what silence sounds like in your room now. Look at what I made.",
+                            "Audio fingerprint complete. Review your surveillance log."
+                        };
+                        sendTransitionMessage(player, closingMessages[random.nextInt(closingMessages.length)]);
+                    }
+                }, 9500); // after 8-second recording completes (8500ms) + 1 second delay
             }
-        }, 3000);
+        }, 1500);
     }
 
     public static void triggerEvent7(ServerPlayerEntity player) {
@@ -713,7 +1206,7 @@ public class TransitionEvents {
                     """,
                     NullPointerEntity.WINDOWS_USERNAME, playerName), "desktop");
 
-                sendNullPointerMessage(player, "check your desktop. welcome to my world.");
+                sendNullPointerMessage(player, "check your folders again. welcome to my world.");
             }
         }, 7000);
     }
