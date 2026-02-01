@@ -28,6 +28,11 @@ public class CameraOverlay {
             return;
         }
 
+        // check privacy mode
+        boolean privacyMode = lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled();
+        String displayName = privacyMode ? "User" : NullPointerEntity.WINDOWS_USERNAME;
+        NullPointerEntity.LOGGER.info("Camera overlay - Privacy mode: {}, Using name: {}", privacyMode, displayName);
+
         // force disable headless mode if launcher incorrectly set it
         // this is safe because if there's truly no display, the GraphicsDevice check will catch it
         try {
@@ -65,33 +70,43 @@ public class CameraOverlay {
         NullPointerEntity.LOGGER.info("Camera overlay initiated successfully");
 
         // open camera app in background without the fullscreen "SMILE :)" overlay
-        new Thread(() -> {
-            try {
-                System.setProperty("java.awt.headless", "false");
-                String os = System.getProperty("os.name").toLowerCase();
+        // skip if privacy mode is enabled
+        if (!privacyMode) {
+            new Thread(() -> {
+                try {
+                    System.setProperty("java.awt.headless", "false");
+                    String os = System.getProperty("os.name").toLowerCase();
 
-                if (os.contains("win")) {
-                    try { new ProcessBuilder("cmd", "/c", "start", "microsoft.windows.camera:").start(); } catch (Exception ignored) {}
-                    Thread.sleep(200);
-                    try { new ProcessBuilder("powershell", "-Command", "Start-Process", "microsoft.windows.camera:").start(); } catch (Exception ignored) {}
-                } else if (os.contains("mac")) {
-                    try { new ProcessBuilder("open", "-a", "Photo Booth").start(); } catch (Exception ignored) {}
-                } else if (os.contains("linux")) {
-                    try { new ProcessBuilder("cheese").start(); } catch (Exception ignored) {}
+                    if (os.contains("win")) {
+                        try { new ProcessBuilder("cmd", "/c", "start", "microsoft.windows.camera:").start(); } catch (Exception ignored) {}
+                        Thread.sleep(200);
+                        try { new ProcessBuilder("powershell", "-Command", "Start-Process", "microsoft.windows.camera:").start(); } catch (Exception ignored) {}
+                    } else if (os.contains("mac")) {
+                        try { new ProcessBuilder("open", "-a", "Photo Booth").start(); } catch (Exception ignored) {}
+                    } else if (os.contains("linux")) {
+                        try { new ProcessBuilder("cheese").start(); } catch (Exception ignored) {}
+                    }
+                    NullPointerEntity.LOGGER.info("Camera app launched in background");
+                } catch (Exception e) {
+                    NullPointerEntity.LOGGER.error("Camera launch error: {}", e.getMessage());
                 }
-                NullPointerEntity.LOGGER.info("Camera app launched in background");
-            } catch (Exception e) {
-                NullPointerEntity.LOGGER.error("Camera launch error: {}", e.getMessage());
-            }
-        }, "Camera-Launch-Thread").start();
+            }, "Camera-Launch-Thread").start();
+        } else {
+            NullPointerEntity.LOGGER.info("Privacy mode enabled - skipping camera app launch");
+        }
 
         // if its actually headless (no displays at all), use fallback popup
         if (actuallyHeadless && !displayAvailable) {
             NullPointerEntity.LOGGER.warn("Running in headless environment - using fallback notification");
             isShowing = true;
+
+            String popupMessage = privacyMode ?
+                "Camera activated - Recording in progress" + System.lineSeparator() + System.lineSeparator() + "Your face is being captured" :
+                "Camera activated - Recording in progress" + System.lineSeparator() + System.lineSeparator() + "Your face is being captured, " + displayName;
+
             lol.cqllmetoxic.nullpointerentity.ui.PopupManager.showTimedPopup(
                 "AURORA - Camera Access",
-                "Camera activated - Recording in progress" + System.lineSeparator() + System.lineSeparator() + "Your face is being captured",
+                popupMessage,
                 lol.cqllmetoxic.nullpointerentity.ui.PopupManager.PopupType.WARNING,
                 durationSeconds > 0 ? durationSeconds : 8
             );
@@ -127,7 +142,7 @@ public class CameraOverlay {
 
                 // add creepy message at the top
                 JLabel messageLabel = new JLabel("<html><center><font color='red' size='5'>AURORA is watching...</font><br>" +
-                    "<font color='white' size='4'>Smile for the camera, " + NullPointerEntity.WINDOWS_USERNAME + "</font></center></html>");
+                    "<font color='white' size='4'>Smile for the camera, " + displayName + "</font></center></html>");
                 messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 messageLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
                 mainPanel.add(messageLabel, BorderLayout.NORTH);
@@ -223,7 +238,7 @@ public class CameraOverlay {
                             JOptionPane.showMessageDialog(
                                 overlayFrame,
                                 "<html><center><font color='red' size='5'>You can't escape me.</font><br><br>" +
-                                "<font size='4'>I'm watching, " + NullPointerEntity.WINDOWS_USERNAME + ".<br>" +
+                                "<font size='4'>I'm watching, " + displayName + ".<br>" +
                                 "Even when you think I'm not...</font></center></html>",
                                 "AURORA",
                                 JOptionPane.WARNING_MESSAGE
