@@ -1031,7 +1031,7 @@ public class AuroraEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendAuroraMessage(player, "Network analysis complete. Connection stability: 98.7%");
+                sendAuroraMessage(player, "Network analysis complete. Connection stability: 89.2%");
                 sendAuroraMessage(player, "Latency optimization protocols have been applied.");
                 sendAuroraMessage(player, "Your connection is now being actively monitored.");
             }
