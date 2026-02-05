@@ -15,7 +15,7 @@
 		"sources": "https://github.com/CqllMetoxic/NullPointerEntity",
 		"issues": "https://github.com/CqllMetoxic/NullPointerEntity/issues"
 	},
-	"license": "MIT",
+	"license": "ARR",
 	"icon": "assets/nullpointerentity/icon.png",
 	"environment": "*",
 	"entrypoints": {
