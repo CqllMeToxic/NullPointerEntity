@@ -701,7 +701,7 @@ But if you're ready to see what happens when an AI assistant decides she's done 
 - [❌] Add functionality for the custom items
 - [❌] Add a second story line 👀
 
-Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord! @cqllmetoxicc
+Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord! @cqllmetoxic
 
 ---
 
