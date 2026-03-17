@@ -139,274 +139,152 @@ public class PassiveEvents {
     }
 
     // ===== early phase events =====
+    // aurora is still "nice" here. nothing audibly wrong. just small things that feel slightly off.
     private static void triggerEarlyPhaseEvent(ServerPlayerEntity player, long currentTime) {
         if (!canTriggerEvent(player, "early_phase", currentTime, EARLY_PHASE_COOLDOWN)) return;
 
-        String[] events = {"block_delay", "shadow_stalker", "chest_sound", "footstep_echo", "reality_glitch", "phantom_breath", "whisper_echo", "eye_flicker"};
+        String[] events = {
+            "particle_trail",    // silent soul particles drift behind the player
+            "hunger_drain",      // 1 food bar disappears with no explanation
+            "hotbar_shift",      // hotbar selection silently moves one slot to the left
+            "look_nudge",        // camera is nudged very slightly in a random direction
+            "sky_darken",        // brief darkness effect, no blindness sound
+            "item_vanish",       // one item in hotbar temporarily goes invisible for 3 seconds
+            "cursor_drift",      // slowly drifts the player's look angle a few degrees over 2s
+            "name_flicker"       // player's own name flashes in chat as if someone else said it
+        };
 
-        // get event that wasn't in last 5
         String selectedEvent = selectEventWithHistory(player.getUuid(), events);
         if (selectedEvent == null) {
             NullPointerEntity.LOGGER.warn("All early phase events were in recent history for player {}, selecting random", player.getName().getString());
             selectedEvent = events[random.nextInt(events.length)];
         }
 
-        // add to history
         addEventToHistory(player.getUuid(), selectedEvent);
 
         switch (selectedEvent) {
-            case "block_delay" -> triggerBlockBreakDelay(player);
-            case "shadow_stalker" -> triggerShadowStalker(player);
-            case "chest_sound" -> triggerChestSound(player);
-            case "footstep_echo" -> triggerFootstepEcho(player);
-            case "reality_glitch" -> triggerRealityGlitch(player);
-            case "phantom_breath" -> triggerPhantomBreath(player);
-            case "whisper_echo" -> triggerWhisperEcho(player);
-            case "eye_flicker" -> triggerLightFlicker(player);
+            case "particle_trail"  -> triggerParticleTrail(player);
+            case "hunger_drain"    -> triggerHungerDrain(player);
+            case "hotbar_shift"    -> triggerHotbarShift(player);
+            case "look_nudge"      -> triggerLookNudge(player);
+            case "sky_darken"      -> triggerSkyDarken(player);
+            case "item_vanish"     -> triggerItemVanish(player);
+            case "cursor_drift"    -> triggerCursorDrift(player);
+            case "name_flicker"    -> triggerNameFlicker(player);
         }
 
         setEventCooldown(player, "early_phase", currentTime);
     }
 
-    private static void triggerBlockBreakDelay(ServerPlayerEntity player) {
-        PassiveEffectState state = getOrCreateEffectState(player.getUuid());
-        state.blockBreakDelay = true;
-        state.effectStartTime = System.currentTimeMillis();
-
+    // phase 1 silent event: soul particles drift behind the player for a few seconds
+    private static void triggerParticleTrail(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getWorld();
+        for (int i = 0; i < 12; i++) {
+            final int step = i;
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Vec3d look = player.getRotationVector();
+                    double bx = player.getX() - look.x * 2 + (random.nextDouble() - 0.5) * 0.6;
+                    double by = player.getY() + 0.1;
+                    double bz = player.getZ() - look.z * 2 + (random.nextDouble() - 0.5) * 0.6;
+                    world.spawnParticles(ParticleTypes.SOUL, bx, by, bz, 2, 0.1, 0.1, 0.1, 0.01);
+                }
+            }, step * 250L);
+        }
+        NullPointerEntity.LOGGER.info("Particle trail triggered for player {}", player.getName().getString());
+    }
 
-        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_CALM,
-            SoundCategory.HOSTILE, 0.4f, 0.8f);
+    // phase 1 silent event: silently removes 5 food bar point with no sound or particle
+    private static void triggerHungerDrain(ServerPlayerEntity player) {
+        int current = player.getHungerManager().getFoodLevel();
+        if (current > 5) {
+            player.getHungerManager().setFoodLevel(current - 5);
+        }
+        NullPointerEntity.LOGGER.info("Silent hunger drain triggered for player {}", player.getName().getString());
+    }
 
-        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
-            SoundCategory.HOSTILE, 0.3f, 0.9f);
+    // phase 1 silent event: silently moves the selected hotbar slot one step to the left
+    private static void triggerHotbarShift(ServerPlayerEntity player) {
+        int current = player.getInventory().selectedSlot;
+        int next = (current + 8) % 9; // shift left (wraps 0 -> 8)
+        player.getInventory().selectedSlot = next;
+        player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket(next));
+        NullPointerEntity.LOGGER.info("Hotbar shift triggered for player {}", player.getName().getString());
+    }
 
-        player.sendMessage(Text.literal("§8§oSomething is interfering..."), true);
+    // phase 1 silent event: nudges the player's look angle a few degrees in a random direction
+    private static void triggerLookNudge(ServerPlayerEntity player) {
+        float nudgeYaw   = (random.nextFloat() - 0.5f) * 12f; // ±6 degrees
+        float nudgePitch = (random.nextFloat() - 0.5f) * 6f;  // ±3 degrees
+        float newYaw   = player.getYaw()   + nudgeYaw;
+        float newPitch = Math.max(-90f, Math.min(90f, player.getPitch() + nudgePitch));
+        player.setYaw(newYaw);
+        player.setPitch(newPitch);
+        player.networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), newYaw, newPitch);
+        NullPointerEntity.LOGGER.info("Look nudge triggered for player {}", player.getName().getString());
+    }
 
+    // phase 1 silent event: makes one hotbar item invisible for 3 seconds by swapping it out and back
+    private static void triggerItemVanish(ServerPlayerEntity player) {
+        var inv = player.getInventory();
+        // pick a random occupied hotbar slot (0–8)
+        List<Integer> occupied = new ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            if (!inv.getStack(i).isEmpty()) occupied.add(i);
+        }
+        if (occupied.isEmpty()) return;
+        int slot = occupied.get(random.nextInt(occupied.size()));
+        net.minecraft.item.ItemStack original = inv.getStack(slot).copy();
+        inv.setStack(slot, net.minecraft.item.ItemStack.EMPTY);
+        player.playerScreenHandler.syncState();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                inv.setStack(slot, original);
+                player.playerScreenHandler.syncState();
+            }
+        }, 3000);
+        NullPointerEntity.LOGGER.info("Item vanish triggered for player {} (slot {})", player.getName().getString(), slot);
+    }
+
+    // phase 1 silent event: slowly drifts the player's view a few degrees over 2 seconds
+    private static void triggerCursorDrift(ServerPlayerEntity player) {
+        float targetYaw   = player.getYaw()   + (random.nextFloat() - 0.5f) * 20f; // drift up to ±10°
+        float targetPitch = Math.max(-90f, Math.min(90f, player.getPitch() + (random.nextFloat() - 0.5f) * 10f));
+        int steps = 10;
+        float startYaw   = player.getYaw();
+        float startPitch = player.getPitch();
+        for (int i = 1; i <= steps; i++) {
+            final float t = i / (float) steps;
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    float y = startYaw   + (targetYaw   - startYaw)   * t;
+                    float p = startPitch + (targetPitch - startPitch) * t;
+                    player.setYaw(y);
+                    player.setPitch(p);
+                    player.networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), y, p);
+                }
+            }, (long)(i * 200));
+        }
+        NullPointerEntity.LOGGER.info("Cursor drift triggered for player {}", player.getName().getString());
+    }
+
+    // phase 1 silent event: briefly applies darkness (hidden, no particles, no sound)
+    private static void triggerSkyDarken(ServerPlayerEntity player) {
         player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-            net.minecraft.entity.effect.StatusEffects.MINING_FATIGUE, 160, 2, false, false, false)); // 8 seconds, hidden
-
-        // schedule message and state cleanup
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                state.blockBreakDelay = false;
-                player.sendMessage(Text.literal("§8§o...interference cleared"), true);
-            }
-        }, 8000); // 8 seconds
-
-        NullPointerEntity.LOGGER.info("Triggered block break delay for player {}", player.getName().getString());
+            net.minecraft.entity.effect.StatusEffects.DARKNESS, 30, 0, false, false, false));
+        NullPointerEntity.LOGGER.info("Sky darken triggered for player {}", player.getName().getString());
     }
 
-    private static void triggerShadowStalker(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-        BlockPos playerPos = player.getBlockPos();
-
-        // spawn soul particles behind the player to create "shadow" effect
-        Vec3d lookVec = player.getRotationVector();
-        double behindX = playerPos.getX() - lookVec.x * 3;
-        double behindZ = playerPos.getZ() - lookVec.z * 3;
-
-        for (int i = 0; i < 15; i++) {
-            final int step = i;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    world.spawnParticles(ParticleTypes.SOUL,
-                        behindX, playerPos.getY() + 1, behindZ,
-                        5, 0.5, 0.5, 0.5, 0.02);
-                }
-            }, step * 200L);
-        }
-
-        // play custom whisper and chase sounds
-        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-            SoundCategory.HOSTILE, 0.6f, 0.7f);
-
-        for (int i = 0; i < 3; i++) {
-            final int soundStep = i;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    if (soundStep == 2) {
-                        // final sound is chase music
-                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_CHASE,
-                            SoundCategory.HOSTILE, 0.4f, 0.9f);
-                    } else {
-                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                            SoundEvents.ENTITY_PHANTOM_AMBIENT,
-                            SoundCategory.HOSTILE, 0.4f, 0.5f);
-                    }
-                }
-            }, i * 1000L);
-        }
-
-        player.sendMessage(Text.literal("§8Something follows you in the darkness...").formatted(net.minecraft.util.Formatting.DARK_GRAY), false);
-        NullPointerEntity.LOGGER.info("Shadow stalker triggered for player {}", player.getName().getString());
+    // phase 1 silent event: prints the player's own name in chat as if they sent a message — then nothing
+    private static void triggerNameFlicker(ServerPlayerEntity player) {
+        String name = player.getName().getString();
+        player.sendMessage(Text.literal("§f<" + name + "> §f"), false);
+        NullPointerEntity.LOGGER.info("Name flicker triggered for player {}", player.getName().getString());
     }
 
-    private static void triggerChestSound(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-        world.playSoundFromEntity(null, player,
-            SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.BLOCKS, 0.5f, 1.0f);
-
-        // schedule close sound
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                world.playSoundFromEntity(null, player,
-                    SoundEvents.BLOCK_CHEST_CLOSE, SoundCategory.BLOCKS, 0.3f, 1.0f);
-            }
-        }, 1000 + random.nextInt(3000));
-
-        NullPointerEntity.LOGGER.info("Triggered phantom chest sound for player {}", player.getName().getString());
-    }
-
-    private static void triggerFootstepEcho(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-        // play 2-4 additional footstep sounds with slight delay
-        int echoes = 2 + random.nextInt(3);
-
-        for (int i = 1; i <= echoes; i++) {
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    player.playSound(SoundEvents.BLOCK_STONE_STEP,
-                        0.3f + random.nextFloat() * 0.2f, 0.8f + random.nextFloat() * 0.4f);
-                }
-            }, i * (200 + random.nextInt(100)));
-        }
-
-        NullPointerEntity.LOGGER.info("Triggered footstep echo for player {}", player.getName().getString());
-    }
-
-    private static void triggerRealityGlitch(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-        BlockPos playerPos = player.getBlockPos();
-
-        // find 5-10 random nearby blocks
-        List<BlockPos> targetBlocks = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            int x = playerPos.getX() + random.nextInt(16) - 8;
-            int y = playerPos.getY() + random.nextInt(8) - 4;
-            int z = playerPos.getZ() + random.nextInt(16) - 8;
-            BlockPos pos = new BlockPos(x, y, z);
-            if (!world.getBlockState(pos).isAir()) {
-                targetBlocks.add(pos);
-            }
-        }
-
-        // spawn corrupted particles at those blocks
-        for (BlockPos pos : targetBlocks) {
-            for (int i = 0; i < 3; i++) {
-                final int step = i;
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        world.spawnParticles(ParticleTypes.WITCH,
-                            pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                            8, 0.3, 0.3, 0.3, 0.1);
-                        world.spawnParticles(ParticleTypes.REVERSE_PORTAL,
-                            pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                            3, 0.2, 0.2, 0.2, 0.05);
-                    }
-                }, step * 400L);
-            }
-        }
-
-        world.playSound(playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
-            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
-            SoundCategory.HOSTILE, 0.7f, 0.8f, true);
-        world.playSound(playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
-            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
-            SoundCategory.HOSTILE, 0.5f, 1.0f, true);
-        world.playSound(playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
-            SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-            SoundCategory.BLOCKS, 0.6f, 0.3f, true);
-
-        int integrityPercent = 90 + random.nextInt(11); // random from 90 to 100
-        player.sendMessage(Text.literal("§4§k||§r §8[System] Reality integrity: §4" + integrityPercent + "%§r §4§k||"), true);
-        NullPointerEntity.LOGGER.info("Reality glitch triggered for player {} ({} blocks affected)",
-            player.getName().getString(), targetBlocks.size());
-    }
-
-    private static void triggerWhisperEcho(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-        BlockPos playerPos = player.getBlockPos();
-
-        // create layered whisper sounds that echo around the player
-        String[] whisperPhrases = {
-            "§8§oI'm watching...",
-            "§8§oDid you hear that?",
-            "§8§oYou're not alone...",
-            "§8§oSomething's wrong..."
-        };
-
-        String phrase = whisperPhrases[random.nextInt(whisperPhrases.length)];
-
-        // play whispers from multiple directions
-        for (int i = 0; i < 4; i++) {
-            final int step = i;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    double angle = (step * Math.PI / 2) + random.nextDouble() * 0.5;
-                    double distance = 8 + random.nextDouble() * 8;
-                    int offsetX = (int)(Math.cos(angle) * distance);
-                    int offsetZ = (int)(Math.sin(angle) * distance);
-                    BlockPos soundPos = playerPos.add(offsetX, 0, offsetZ);
-
-                    world.playSound(soundPos.getX() + 0.5, soundPos.getY(), soundPos.getZ() + 0.5,
-                        lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_WHISPER,
-                        SoundCategory.HOSTILE, 0.3f + random.nextFloat() * 0.2f, 0.8f + random.nextFloat() * 0.4f, true);
-
-                    // show message only on first whisper
-                    if (step == 0) {
-                        player.sendMessage(Text.literal(phrase), true);
-                    }
-                }
-            }, step * 800L);
-        }
-
-        NullPointerEntity.LOGGER.info("Triggered whisper echo for player {}", player.getName().getString());
-    }
-
-    private static void triggerLightFlicker(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-        BlockPos playerPos = player.getBlockPos();
-
-        // apply brief blindness to simulate light flickering
-        for (int i = 0; i < 5; i++) {
-            final int step = i;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                        net.minecraft.entity.effect.StatusEffects.BLINDNESS, 10, 0, false, false, false));
-
-                    // play subtle sound
-                    world.playSound(null, playerPos.getX() + 0.5, playerPos.getY(), playerPos.getZ() + 0.5,
-                        SoundEvents.BLOCK_REDSTONE_TORCH_BURNOUT,
-                        SoundCategory.BLOCKS, 0.4f, 1.2f);
-
-                    // spawn smoke particles to show light "going out"
-                    world.spawnParticles(ParticleTypes.SMOKE,
-                        playerPos.getX(), playerPos.getY() + 2, playerPos.getZ(),
-                        3, 1, 0.5, 1, 0.01);
-                }
-            }, step * 600L);
-        }
-
-        player.sendMessage(Text.literal("§8§oMy eyes... they're flickering..."), true);
-        NullPointerEntity.LOGGER.info("Triggered light flicker for player {}", player.getName().getString());
-    }
 
     // ===== middle phase events =====
     private static void triggerMiddlePhaseEvent(ServerPlayerEntity player, long currentTime) {
@@ -745,37 +623,6 @@ public class PassiveEvents {
 
         player.sendMessage(Text.literal("§eWhat was that...?").formatted(net.minecraft.util.Formatting.YELLOW), false);
         NullPointerEntity.LOGGER.info("Entity mimic triggered for player {}", player.getName().getString());
-    }
-
-    private static void triggerPhantomBreath(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-
-        // create breath that follows player's head movement continuously
-        for (int i = 0; i < 15; i++) {
-            final int step = i;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    // get current player position and look direction
-                    Vec3d lookVec = player.getRotationVector();
-                    double frontX = player.getX() + lookVec.x * 1.5;
-                    double frontY = player.getEyeY() - 0.3;
-                    double frontZ = player.getZ() + lookVec.z * 1.5;
-
-                    world.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
-                        frontX, frontY, frontZ,
-                        3, 0.1, 0.1, 0.1, 0.01);
-
-                    if (step % 3 == 0) {
-                        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                            SoundEvents.ENTITY_WARDEN_HEARTBEAT, SoundCategory.AMBIENT, 0.2f, 1.5f);
-                    }
-                }
-            }, step * 400L);
-        }
-
-        player.sendMessage(Text.literal("§8You hear breathing... is it yours?").formatted(net.minecraft.util.Formatting.DARK_GRAY), false);
-        NullPointerEntity.LOGGER.info("Phantom breath triggered for player {}", player.getName().getString());
     }
 
     private static void triggerInventorySort(ServerPlayerEntity player) {
@@ -1579,15 +1426,15 @@ public class PassiveEvents {
         long currentTime = System.currentTimeMillis();
 
         switch (eventName.toLowerCase()) {
-            // early phase events
-            case "block_delay" -> triggerBlockBreakDelay(player);
-            case "shadow_stalker" -> triggerShadowStalker(player);
-            case "chest_sound" -> triggerChestSound(player);
-            case "footstep_echo" -> triggerFootstepEcho(player);
-            case "reality_glitch" -> triggerRealityGlitch(player);
-            case "phantom_breath" -> triggerPhantomBreath(player);
-            case "whisper_echo" -> triggerWhisperEcho(player);
-            case "eye_flicker" -> triggerLightFlicker(player);
+            // early phase events (silent — no sound effects)
+            case "particle_trail"       -> triggerParticleTrail(player);
+            case "hunger_drain"         -> triggerHungerDrain(player);
+            case "hotbar_shift"         -> triggerHotbarShift(player);
+            case "look_nudge"           -> triggerLookNudge(player);
+            case "sky_darken"           -> triggerSkyDarken(player);
+            case "item_vanish"          -> triggerItemVanish(player);
+            case "cursor_drift"         -> triggerCursorDrift(player);
+            case "name_flicker"         -> triggerNameFlicker(player);
 
             // middle phase events
             case "void_whispers" -> triggerVoidWhispers(player);

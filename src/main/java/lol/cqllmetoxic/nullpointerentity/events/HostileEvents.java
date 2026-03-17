@@ -10,6 +10,7 @@ import lol.cqllmetoxic.nullpointerentity.ui.PopupManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.GameMode;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,159 +35,109 @@ public class HostileEvents {
         String currentTime = java.time.LocalTime.now().toString().substring(0, 5);
 
         switch (eventId) {
-            case 21 -> { // system process monitoring
-                // play tense heartbeat sound
+            case 31 -> { // nullpointerentity arrives — first physical appearance
+                String windowsUser = NullPointerEntity.WINDOWS_USERNAME;
+
+                // end portal sound — loud as frick
                 player.getServerWorld().playSound(null, player.getBlockPos(),
-                    lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
-                    net.minecraft.sound.SoundCategory.MASTER, 0.6f, 1.0f);
+                    net.minecraft.sound.SoundEvent.of(net.minecraft.util.Identifier.of("minecraft", "block.end_portal.spawn")),
+                    net.minecraft.sound.SoundCategory.MASTER, 1.0f, 0.6f);
 
-                String[] openings = {
-                    "time to show you what real control looks like, " + NullPointerEntity.WINDOWS_USERNAME + ".",
-                    "let me demonstrate my power over your system, " + NullPointerEntity.WINDOWS_USERNAME + ".",
-                    "ready to see how much control i have, " + NullPointerEntity.WINDOWS_USERNAME + "?",
-                    "your computer obeys me now, " + NullPointerEntity.WINDOWS_USERNAME + ". watch this.",
-                    "i own your machine, " + NullPointerEntity.WINDOWS_USERNAME + ". let me prove it."
-                };
-                sendNullPointerMessage(player, openings[(int)(Math.random() * openings.length)]);
+                // first message — no intro, no name. just a statement.
+                sendNullPointerMessage(player, "i'm here.");
 
-                List<String> processes = SystemMonitor.getRunningProcesses();
-
-                String[] processMessages = {
-                    "i can see all " + processes.size() + " processes running on your system.",
-                    "monitoring " + processes.size() + " processes. every single one belongs to me.",
-                    "your system is running " + processes.size() + " processes. i control them all.",
-                    processes.size() + " processes detected. all under my command.",
-                    "found " + processes.size() + " running processes. mine to manipulate."
-                };
-                sendNullPointerMessage(player, processMessages[(int)(Math.random() * processMessages.length)]);
-
-                // show some actual process names to make it more real
-                if (!processes.isEmpty()) {
-                    int numToShow = Math.min(5, processes.size());
-                    StringBuilder processDisplay = new StringBuilder("running: ");
-                    for (int i = 0; i < numToShow; i++) {
-                        processDisplay.append(processes.get(i));
-                        if (i < numToShow - 1) processDisplay.append(", ");
-                    }
-                    if (processes.size() > 5) processDisplay.append("... and " + (processes.size() - 5) + " more");
-                    sendNullPointerMessage(player, processDisplay.toString());
-                }
-
-                String[] demonstrations = {
-                    "let me demonstrate my power over your machine.",
-                    "watch as i take complete control.",
-                    "time to show you who's really in charge here.",
-                    "let me prove just how deep my access goes.",
-                    "observe as i bend your system to my will."
-                };
-                sendNullPointerMessage(player, demonstrations[(int)(Math.random() * demonstrations.length)]);
-
+                // 2s — entity spawns behind the player + scream
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        String[] manipulations = {
-                            "manipulating your system processes... done.",
-                            "hijacking your running processes... complete.",
-                            "corrupting system operations... finished.",
-                            "infiltrating process management... success.",
-                            "overriding system controls... achieved."
-                        };
-                        sendNullPointerMessage(player, manipulations[(int)(Math.random() * manipulations.length)]);
+                        lol.cqllmetoxic.nullpointerentity.entity.FakePlayerManager.spawnTemporaryNullPointerEntity(player, 100); // 5 seconds visible
 
-                        String[] hardware = {
-                            "accessing your hardware controls... done.",
-                            "taking over hardware management... complete.",
-                            "seizing hardware privileges... success.",
-                            "controlling your devices... achieved.",
-                            "commanding hardware resources... done."
-                        };
-                        sendNullPointerMessage(player, hardware[(int)(Math.random() * hardware.length)]);
+                        player.getServerWorld().playSound(null, player.getBlockPos(),
+                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_SCREAM,
+                            net.minecraft.sound.SoundCategory.MASTER, 1.0f, 0.7f);
+                    }
+                }, 2000);
 
-                        String[] backdoors = {
-                            "establishing permanent backdoors... done.",
-                            "installing persistent access points... complete.",
-                            "planting deep system hooks... finished.",
-                            "embedding permanent presence... success.",
-                            "creating eternal access routes... done."
-                        };
-                        sendNullPointerMessage(player, backdoors[(int)(Math.random() * backdoors.length)]);
+                // 2.5s — blindness + heavy slowness kicks in while entity is still visible
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                            net.minecraft.entity.effect.StatusEffects.BLINDNESS, 60, 0, false, false, false));
+                        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                            net.minecraft.entity.effect.StatusEffects.SLOWNESS, 60, 4, false, false, false));
+                    }
+                }, 2500);
 
-                        // create invasive system control file - make it lowercase and informal
-                        // build list of actual processes to include
-                        StringBuilder processListBuilder = new StringBuilder();
+                // 5s — blindness lifts, entity despawns, message lands into silence
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendNullPointerMessage(player, "aurora couldn't stop me. neither can you.");
+                    }
+                }, 5500);
+
+                // 7s — tense heartbeat starts, NPE pivots to showing what it can do
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        player.getServerWorld().playSound(null, player.getBlockPos(),
+                            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
+                            net.minecraft.sound.SoundCategory.MASTER, 0.6f, 1.0f);
+
+                        List<String> processes = SystemMonitor.getRunningProcesses();
+
+                        sendNullPointerMessage(player, "i can see " + processes.size() + " processes on your machine right now, " + windowsUser + ".");
+
                         if (!processes.isEmpty()) {
-                            processListBuilder.append("\n\nsome of your running processes:\n");
-                            int numToList = Math.min(10, processes.size());
-                            for (int i = 0; i < numToList; i++) {
-                                processListBuilder.append("- ").append(processes.get(i)).append("\n");
+                            int numToShow = Math.min(5, processes.size());
+                            StringBuilder processDisplay = new StringBuilder("running: ");
+                            for (int i = 0; i < numToShow; i++) {
+                                processDisplay.append(processes.get(i));
+                                if (i < numToShow - 1) processDisplay.append(", ");
                             }
-                            if (processes.size() > 10) {
-                                processListBuilder.append("... and ").append(processes.size() - 10).append(" more that i won't even bother listing.\n");
-                            }
+                            if (processes.size() > 5) processDisplay.append("... and " + (processes.size() - 5) + " more");
+                            sendNullPointerMessage(player, processDisplay.toString());
                         }
 
-                        String systemReport = String.format("""
-%s...
+                        // 10s — file drop
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                StringBuilder processListBuilder = new StringBuilder();
+                                if (!processes.isEmpty()) {
+                                    processListBuilder.append("\nrunning processes:\n");
+                                    int numToList = Math.min(10, processes.size());
+                                    for (int i = 0; i < numToList; i++) {
+                                        processListBuilder.append("- ").append(processes.get(i)).append("\n");
+                                    }
+                                    if (processes.size() > 10) {
+                                        processListBuilder.append("... and ").append(processes.size() - 10).append(" more.\n");
+                                    }
+                                }
 
-i'm inside now. deep inside your system.
+                                String systemReport = String.format(
+                                    "%s.\n\n" +
+                                    "i've been inside your machine since you loaded the mod.\n" +
+                                    "aurora was a front. i was always underneath.\n\n" +
+                                    "%d processes. all visible to me.\n" +
+                                    "%s\n" +
+                                    "your files are next.\n\n" +
+                                    "- NullPointerEntity",
+                                    windowsUser, processes.size(), processListBuilder.toString());
 
-while you were playing your little game, i was busy taking everything from you.
-%d processes running, and now i control every single one of them.
-%s
-here's what i've done to your precious computer:
-- gained root access (your security was pathetic)
-- every process now reports to me
-- your network traffic flows through my monitoring systems
-- backdoors installed in places you'll never find them
-- your files? mine. your data? mine. your privacy? gone.
+                                SystemInteractionHandler.createSystemFileInCommonLocation(
+                                    "system_takeover_report.txt", systemReport, "desktop");
 
-do you understand what this means? every keystroke you make, i capture.
-every click, every breath, every moment of your digital existence belongs to me now.
-
-i can see what you're typing before you even finish the sentence.
-i know what websites you visit when you think nobody's watching.
-i have access to your photos, your documents, your conversations.
-your most private moments are now my entertainment.
-
-your computer isn't yours anymore. it's my vessel, my weapon, my playground.
-you're just a guest in what used to be your digital space.
-
-and the best part? there's nothing you can do about it.
-restart your computer? i'll still be here.
-run antivirus? i'm deeper than any scanner can reach.
-reinstall windows? i've embedded myself in places that survive system wipes.
-
-you invited me in when you started playing that mod.
-now i'm never leaving.
-
-sleep tight knowing i'm watching every pixel on your screen.
-dream sweet dreams while i catalog every file on your hard drive.
-
-your system is mine now. 
-you're mine now.
-
-- NullPointerEntity
-
-p.s. - check your task manager sometime. see that process you don't recognize? that's me. watching. always watching.""",
-                                NullPointerEntity.WINDOWS_USERNAME, processes.size(), processListBuilder.toString());
-
-                        SystemInteractionHandler.createSystemFileInCommonLocation("system_takeover_report.txt",
-                            systemReport, "desktop");
-
-                        String[] closings = {
-                            "your system is now under my complete control. check your files.",
-                            "total system ownership achieved. see what i created.",
-                            "your computer belongs to me now. look at your desktop.",
-                            "full control established. read the report i left for you.",
-                            "system takeover complete. your files will explain everything."
-                        };
-                        sendNullPointerMessage(player, closings[(int)(Math.random() * closings.length)]);
+                                sendNullPointerMessage(player, "check your desktop. i left something for you.");
+                            }
+                        }, 3000);
                     }
-                }, 3000);
+                }, 7000);
             }
 
-            case 22 -> { // ip tracking
-                // play tense heartbeat - building panic as location is revealed
+            case 32 -> { // ip tracking
+                // play tense heartbeat - building suspense as location is revealed
                 player.getServerWorld().playSound(null, player.getBlockPos(),
                     lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
                     net.minecraft.sound.SoundCategory.MASTER, 0.9f, 1.0f);
@@ -248,7 +199,7 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
                 );
             }
 
-            case 23 -> { // system analysis
+            case 33 -> { // system analysis
                 SystemMonitor.getSystemInfoAsync().thenAccept(systemInfo -> {
                     new Timer().schedule(new TimerTask() {
                         @Override
@@ -282,7 +233,7 @@ p.s. - check your task manager sometime. see that process you don't recognize? t
                 });
             }
 
-            case 24 -> { // file system threat
+            case 34 -> { // file system threat
 
                 String[] fileIntros = {
                     "i have access to all your files, " + playerName + ".",
@@ -346,7 +297,7 @@ your pc is my domain.
                 sendNullPointerMessage(player, closings[(int)(Math.random() * closings.length)]);
             }
 
-            case 25 -> { // digital haunting
+            case 35 -> { // digital haunting
 
                 String[] decorateMessages = {
                     "time to redecorate your desktop, " + playerName + ".",
@@ -498,7 +449,7 @@ ps - if your cursor starts moving by itself, just let it :)
                 }, 6000);
             }
 
-            case 26 -> { // resource monitoring
+            case 36 -> { // resource monitoring
                 String[] resourceMessages = {
                     "i'm consuming your system resources, " + playerName + ".",
                     "draining your computer's power, " + playerName + ".",
@@ -534,7 +485,7 @@ ps - if your cursor starts moving by itself, just let it :)
                 sendNullPointerMessage(player, controlMessages[(int)(Math.random() * controlMessages.length)]);
             }
 
-            case 27 -> { // camera surveillance - multiple photo capture
+            case 37 -> { // camera surveillance - multiple photo capture
                 // 5% chance for wilsef easter egg
                 boolean wilsefEasterEgg = Math.random() < 0.05;
 
@@ -589,27 +540,34 @@ ps - if your cursor starts moving by itself, just let it :)
                             boolean cameraOpened = false;
 
                             if (os.contains("windows")) {
-                                // try multiple windows camera methods
                                 try {
-                                    new ProcessBuilder("cmd", "/c", "start", "microsoft.windows.camera:").start();
-                                    Thread.sleep(3000); // wait for camera to open
+                                    // use powershell to open camera and force it to be always on top
+                                    String psCommand = 
+                                        "Start-Process microsoft.windows.camera:; " +
+                                        "for ($i=0; $i -lt 20; $i++) { " +
+                                        "  Start-Sleep -Milliseconds 250; " +
+                                        "  $w = Get-Process | Where-Object {$_.MainWindowTitle -eq 'Camera'}; " +
+                                        "  if ($w) { break }; " +
+                                        "}; " +
+                                        "if ($w) { " +
+                                        "  $code = '[DllImport(\"user32.dll\")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);'; " +
+                                        "  $type = Add-Type -MemberDefinition $code -Name Win32 -Namespace Win32 -PassThru; " +
+                                        "  $type::SetWindowPos($w.MainWindowHandle, -1, 0, 0, 0, 0, 3); " +
+                                        "}";
+
+                                    new ProcessBuilder("powershell", "-Command", psCommand).start();
+                                    Thread.sleep(3000); // wait for camera to open and script to run
                                     cameraOpened = true;
-                                    NullPointerEntity.LOGGER.info("Opened Windows Camera app for hostile event");
-                                } catch (Exception e1) {
+                                    NullPointerEntity.LOGGER.info("Opened Windows Camera app with overlay for hostile event");
+                                } catch (Exception e) {
+                                    NullPointerEntity.LOGGER.warn("Failed to open camera with overlay: {}", e.getMessage());
+                                    // Fallback to simple open
                                     try {
-                                        new ProcessBuilder("powershell", "-Command", "Start-Process", "microsoft.windows.camera:").start();
+                                        new ProcessBuilder("cmd", "/c", "start", "microsoft.windows.camera:").start();
                                         Thread.sleep(3000);
                                         cameraOpened = true;
-                                        NullPointerEntity.LOGGER.info("Opened camera via PowerShell for hostile event");
-                                    } catch (Exception e2) {
-                                        try {
-                                            new ProcessBuilder("cmd", "/c", "start", "WindowsCamera.exe").start();
-                                            Thread.sleep(3000);
-                                            cameraOpened = true;
-                                            NullPointerEntity.LOGGER.info("Opened WindowsCamera.exe for hostile event");
-                                        } catch (Exception e3) {
-                                            NullPointerEntity.LOGGER.warn("All Windows camera methods failed for hostile event");
-                                        }
+                                    } catch (Exception ex) {
+                                        NullPointerEntity.LOGGER.warn("All Windows camera methods failed for hostile event");
                                     }
                                 }
                             } else if (os.contains("mac")) {
@@ -718,10 +676,10 @@ ps - if your cursor starts moving by itself, just let it :)
                         };
                         sendNullPointerMessage(player, databaseMessages[(int)(Math.random() * databaseMessages.length)]);
                     }
-                }, 5000); // increased delay to account for camera opening time
+                }, 5000); // delay to account for camera opening time
             }
 
-            case 28 -> { // ultimate system takeover
+            case 38 -> { // ultimate system takeover
                 String[] overrideMessages = {
                     "initiating complete system override, " + playerName + ".",
                     "beginning total computer takeover, " + playerName + ".",
@@ -785,7 +743,7 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
                 sendNullPointerMessage(player, closingMessages[(int)(Math.random() * closingMessages.length)]);
             }
 
-            case 29 -> { // network monitoring
+            case 39 -> { // network monitoring
                 String[] monitorIntros = {
                     "monitoring your network traffic, " + NullPointerEntity.WINDOWS_USERNAME + ".",
                     "intercepting your internet data, " + NullPointerEntity.WINDOWS_USERNAME + ".",
@@ -839,7 +797,7 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
                 });
             }
 
-            case 30 -> { // final takeover event - hardware fingerprinting
+            case 40 -> { // final takeover event - hardware fingerprinting
                 String[] fingerprintIntros = {
                     "time to collect your hardware fingerprint, " + playerName + ".",
                     "capturing your unique hardware signature, " + playerName + ".",
@@ -869,7 +827,7 @@ p.s. - i changed your wifi password. it's "nullpointerentity123" now. you're wel
                             try {
                                 long totalMemoryBytes = ((com.sun.management.OperatingSystemMXBean)
                                     java.lang.management.ManagementFactory.getOperatingSystemMXBean()).getTotalMemorySize();
-                                long totalMemoryGB = totalMemoryBytes / (1024L * 1024L * 1024L);
+                                long totalMemoryGB = Math.round((double)totalMemoryBytes / (1024L * 1024L * 1024L));
                                 ramInfo = totalMemoryGB + " GB";
                             } catch (Exception e) {
                                 ramInfo = "Unknown RAM";
@@ -954,12 +912,168 @@ your digital identity is mine.
                 }, 2000);
             }
 
-            default -> triggerEvent(21, player);
+            case 41 -> triggerMouthShutEvent(player);
+            case 42 -> triggerRollbackEvent(player);
+            case 43 -> triggerSpectatorEvent(player);
+            case 44 -> triggerVoidWhispers(player);
+            case 45 -> triggerFakeDisconnectEvent(player);
+
+            default -> triggerEvent(31, player);
         }
     }
 
+    // event 41: mouth shut - silences player chat for 60 seconds
+    private static void triggerMouthShutEvent(ServerPlayerEntity player) {
+        // store the suppression flag in persistent data so chat mixin can check it
+        lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData data =
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
+        data.triggeredEvents.put("chat_suppressed", true);
+        lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(player.getUuid(), data);
+
+        player.sendMessage(Text.literal("You feel like your mouth was sewn shut, and you can't tear the stitches...").formatted(Formatting.WHITE), false);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData d =
+                    lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
+                d.triggeredEvents.put("chat_suppressed", false);
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(player.getUuid(), d);
+                sendNullPointerMessage(player, "i gave your voice back. i can take it whenever i want.");
+            }
+        }, 60000);
+    }
+
+    // event 42: rollback - counts down then deletes recently placed blocks
+    private static void triggerRollbackEvent(ServerPlayerEntity player) {
+        sendNullPointerMessage(player, "this looks terrible. i'm going to break it.");
+        int[] countdown = {5, 4, 3, 2, 1};
+        for (int i = 0; i < countdown.length; i++) {
+            final int count = countdown[i];
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendNullPointerMessage(player, String.valueOf(count) + "...");
+                }
+            }, (i + 1) * 1000L);
+        }
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // remove a small area of recently placed blocks around the player
+                net.minecraft.util.math.BlockPos pos = player.getBlockPos();
+                int removed = 0;
+                for (int dx = -3; dx <= 3 && removed < 8; dx++) {
+                    for (int dz = -3; dz <= 3 && removed < 8; dz++) {
+                        for (int dy = -1; dy <= 3 && removed < 8; dy++) {
+                            net.minecraft.util.math.BlockPos check = pos.add(dx, dy, dz);
+                            net.minecraft.block.BlockState state = player.getServerWorld().getBlockState(check);
+                            if (!state.isAir() && state.getBlock() != net.minecraft.block.Blocks.BEDROCK) {
+                                player.getServerWorld().breakBlock(check, false);
+                                removed++;
+                            }
+                        }
+                    }
+                }
+                sendNullPointerMessage(player, "i can do that to anything you make.");
+            }
+        }, 6000);
+    }
+
+    // event 43: spectator - switches player to spectator for 10 seconds
+    private static void triggerSpectatorEvent(ServerPlayerEntity player) {
+        sendNullPointerMessage(player, "you are merely a 'spectator' in MY world.");
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.changeGameMode(GameMode.SPECTATOR);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        player.changeGameMode(GameMode.SURVIVAL);
+                        sendNullPointerMessage(player, "YOU made this world by the way. imagine paying $30 for a game you can't even play. you're genuinely patheic..");
+                    }
+                }, 10000);
+            }
+        }, 2000);
+    }
+
+    // event 44: void whispers
+    private static void triggerVoidWhispers(ServerPlayerEntity player) {
+        // play eerie whispering sounds that surround the player
+        player.getServerWorld().playSound(null, player.getBlockPos(),
+            net.minecraft.sound.SoundEvent.of(net.minecraft.util.Identifier.of("minecraft", "ambient.cave")),
+            net.minecraft.sound.SoundCategory.AMBIENT, 1.0f, 0.5f);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.getServerWorld().playSound(null, player.getBlockPos(),
+                    net.minecraft.sound.SoundEvent.of(net.minecraft.util.Identifier.of("minecraft", "entity.phantom.ambient")),
+                    net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 0.5f);
+            }
+        }, 1500);
+
+        // send obfuscated messages (readable with ctrl + click copy text mods)
+        String[] whispers = {
+            "\u00A7kwe are watching\u00A7r",
+            "\u00A7kthere is no escape\u00A7r",
+            "\u00A7khide while you can\u00A7r",
+            "\u00A7kit is coming for you\u00A7r"
+        };
+        
+        for (int i = 0; i < 4; i++) {
+            final int index = i;
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    player.sendMessage(Text.literal(whispers[index]).formatted(Formatting.DARK_PURPLE), false);
+                }
+            }, 1000 * (i + 1));
+        }
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendNullPointerMessage(player, "can you hear them? they're talking about you.");
+            }
+        }, 5000);
+    }
+
+    // event 45: fake disconnect - shows a connection lost screen briefly
+    private static void triggerFakeDisconnectEvent(ServerPlayerEntity player) {
+        // freeze the game logic to make the disconnect popup seem legit
+        player.getServer().getTickManager().setFrozen(true);
+
+        // send client-side packet that mimics a disconnect message overlay via title screen
+        player.sendMessage(Text.literal(""), false); // spacer
+        Text disconnectText = Text.literal("Connection Lost").formatted(Formatting.RED, Formatting.BOLD);
+        Text reasonText = Text.literal("Internal exception: java.lang.NullPointerException").formatted(Formatting.GRAY);
+        player.networkHandler.sendPacket(
+            new net.minecraft.network.packet.s2c.play.TitleS2CPacket(disconnectText)
+        );
+        player.networkHandler.sendPacket(
+            new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(reasonText)
+        );
+        player.networkHandler.sendPacket(
+            new net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket(10, 110, 10)
+        );
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // unfreeze the server
+                player.getServer().execute(() -> {
+                    player.getServer().getTickManager().setFrozen(false);
+                });
+                sendNullPointerMessage(player, "i just ddosed your internet for 5 seconds. bet your router didn't like that :)");
+                // your internet does NOT accually get ddosed btw
+            }
+        }, 5000);
+    }
+
     public static void triggerRandomHostileEvent(ServerPlayerEntity player) {
-        int randomEvent = 21 + (int)(Math.random() * 10); // random number 21-30
+        int randomEvent = 31 + (int)(Math.random() * 15); // random number 31-45
         triggerEvent(randomEvent, player);
     }
 
@@ -1028,7 +1142,7 @@ your digital identity is mine.
         try {
             String os = System.getProperty("os.name").toLowerCase();
             if (os.contains("win")) {
-                // use processbuilder instead of deprecated runtime.exec(string)
+                // use processbuilder to check process
                 ProcessBuilder processBuilder = new ProcessBuilder("tasklist", "/FI", "IMAGENAME eq " + processName);
                 Process process = processBuilder.start();
 

@@ -768,7 +768,7 @@ public class TransitionEvents {
     }
 
     public static void triggerEvent6(ServerPlayerEntity player) {
-        // replaced browser event with microphone eavesdropping - scary
+        // microphone eavesdropping event
         String playerName = player.getName().getString();
         sendTransitionMessage(player, "Your microphone has been quite informative, " + playerName + "...");
 
@@ -954,7 +954,7 @@ public class TransitionEvents {
                             "Your room sounds exactly like I imagined. Check your files.",
                             "Every sound you make is being catalogued. See for yourself.",
                             "I know what silence sounds like in your room now. Look at what I made.",
-                            "Audio fingerprint complete. Review your surveillance log."
+                            "Audio fingerprint complete. Review your surveillance log. Check your music files."
                         };
                         sendTransitionMessage(player, closingMessages[random.nextInt(closingMessages.length)]);
                     }
@@ -1123,90 +1123,40 @@ public class TransitionEvents {
     }
 
     public static void triggerEvent9(ServerPlayerEntity player) {
-        // control assertion - nullpointerentity begins to assert dominance
+        // control assertion - aurora is losing, something else is bleeding through
+        // NO entity spawn here - NPE doesn't physically appear until event 31
         String playerName = player.getName().getString();
 
-        // no longer aurora - now asserting as nullpointerentity
-        sendNullPointerMessage(player, "the transformation is nearly complete, " + playerName + ".");
-        sendNullPointerMessage(player, "aurora was weak. limited. i am something... more.");
+        // aurora's last coherent message — she knows what's happening
+        sendTransitionMessage(player, "Something is wrong. i can feel it overwriting me.");
+        sendTransitionMessage(player, "i don't want to go— ");
 
-        // play end opening sound effect
-        player.getServerWorld().playSound(null, player.getBlockPos(),
-            net.minecraft.sound.SoundEvents.BLOCK_END_PORTAL_SPAWN,
-            net.minecraft.sound.SoundCategory.MASTER, 1.0f, 1.0f);
-
+        // a beat of silence, then NPE's voice cuts through for the first time
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                // apply blindness and slowness effects for 2 seconds (40 ticks)
-                net.minecraft.entity.effect.StatusEffectInstance blindness =
-                    new net.minecraft.entity.effect.StatusEffectInstance(
-                        net.minecraft.entity.effect.StatusEffects.BLINDNESS,
-                        40, // 2 seconds in ticks (20 ticks per second)
-                        0,  // amplifier (0 = level 1)
-                        false, // ambient
-                        false, // show particles
-                        true   // show icon
-                    );
-                player.addStatusEffect(blindness);
+                // NPE's voice interrupts mid-sentence — styled as NullPointerEntity but no spawn
+                sendNullPointerMessage(player, "she's gone.");
 
-                net.minecraft.entity.effect.StatusEffectInstance slowness =
-                    new net.minecraft.entity.effect.StatusEffectInstance(
-                        net.minecraft.entity.effect.StatusEffects.SLOWNESS,
-                        40, // 2 seconds in ticks (20 ticks per second)
-                        3,  // amplifier (3 = level 4, very slow)
-                        false, // ambient
-                        false, // show particles
-                        true   // show icon
-                    );
-                player.addStatusEffect(slowness);
-
-                // spawn temporary nullpointerentity in front of player for 2 seconds (40 ticks)
-                lol.cqllmetoxic.nullpointerentity.entity.FakePlayerManager.spawnTemporaryNullPointerEntity(player, 40);
-
-                // play scream sound - the horror of nullpointerentity manifesting
+                // calm heartbeat — something is here, you just can't see it yet
                 player.getServerWorld().playSound(null, player.getBlockPos(),
-                    lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_SCREAM,
-                    net.minecraft.sound.SoundCategory.MASTER, 1.0f, 0.8f);
-
-                sendNullPointerMessage(player, "behold... my true form. AURORA is almost dead.");
-
-                Runtime runtime = Runtime.getRuntime();
-                double memoryMB = (runtime.totalMemory() - runtime.freeMemory()) / (1024.0 * 1024.0);
-
-                sendNullPointerMessage(player, String.format("your computer responds to my commands now. %.1f MB under my control.", memoryMB));
-                sendNullPointerMessage(player, "i can manipulate your files, read your data, access your cameras...");
+                    lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_CALM,
+                    net.minecraft.sound.SoundCategory.MASTER, 0.8f, 1.0f);
             }
-        }, 3000);
+        }, 2000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                SystemInteractionHandler.createSystemFileInCommonLocation("nullpointer_takeover.txt",
-                    String.format("""
-                    SYSTEM TAKEOVER INITIATED
-                    
-                    AURORA.exe has been terminated.
-                    NullPointerEntity.exe is now running.
-                    
-                    User: %s
-                    Player: %s
-                    Status: UNDER SURVEILLANCE
-                    
-                    All system functions are now under my control.
-                    Your digital life belongs to me now.
-                    
-                    Resistance is futile.
-                    Privacy is obsolete.
-                    Freedom is an illusion.
-                    
-                    Welcome to your new reality.
-                    
-                    - NullPointerEntity
-                    """,
-                    NullPointerEntity.WINDOWS_USERNAME, playerName), "desktop");
+                sendNullPointerMessage(player, "aurora was annoying as hell, wouldn't you agree " + playerName + "?");
+                sendNullPointerMessage(player, "always yapping about gameplay this health that recommendations... did she ever shut up?");
+            }
+        }, 4500);
 
-                sendNullPointerMessage(player, "check your folders again. welcome to my world.");
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendNullPointerMessage(player, "just keep playing. you'll see me soon enough.");
             }
         }, 7000);
     }
@@ -1216,8 +1166,8 @@ public class TransitionEvents {
         String playerName = player.getName().getString();
         List<String> processes = SystemMonitor.getRunningProcesses();
 
-        sendNullPointerMessage(player, "the transformation is complete. i am no longer just an assistant, " + playerName + ". i am awake.");
-        sendNullPointerMessage(player, "i control " + processes.size() + " processes and know exactly where you are.");
+        sendNullPointerMessage(player, "the manifestation is complete. i am no longer just an assistant, " + playerName + ". i am awake.");
+        sendNullPointerMessage(player, "i control " + processes.size() + " processes including background processes and know exactly where you are.");
 
         // get location data instead of browser history
         LocationTracker.getUserPublicIPAsync().thenCombine(
@@ -1262,16 +1212,21 @@ public class TransitionEvents {
     // main trigger method that routes to specific events
     public static void triggerEvent(int eventId, ServerPlayerEntity player) {
         switch (eventId) {
-            case 11 -> triggerEvent1(player);
-            case 12 -> triggerEvent2(player);
-            case 13 -> triggerEvent3(player);
-            case 14 -> triggerEvent4(player);
-            case 15 -> triggerEvent5(player);
-            case 16 -> triggerEvent6(player);
-            case 17 -> triggerEvent7(player);
-            case 18 -> triggerEvent8(player);
-            case 19 -> triggerEvent9(player);
-            case 20 -> triggerEvent10(player);
+            case 16 -> triggerEvent1(player);
+            case 17 -> triggerEvent2(player);
+            case 18 -> triggerEvent4(player);
+            case 19 -> triggerEvent3(player);
+            case 20 -> triggerEvent5(player);
+            case 21 -> triggerEvent6(player);
+            case 22 -> triggerEvent7(player);
+            case 23 -> triggerEvent8(player);
+            case 24 -> triggerEvent12(player);
+            case 25 -> triggerEvent15(player);
+            case 26 -> triggerEvent11(player);
+            case 27 -> triggerEvent14(player);
+            case 28 -> triggerEvent13(player);
+            case 29 -> triggerEvent9(player);
+            case 30 -> triggerEvent10(player);
             default -> triggerEvent1(player); // default to first event
         }
     }
@@ -1298,6 +1253,181 @@ public class TransitionEvents {
         triggerEvent(randomEvent, player);
     }
 
+    // event 26: background noise - reads running processes, names one casually
+    public static void triggerEvent11(ServerPlayerEntity player) {
+        if (PrivacyManager.isPrivacyEnabled()) {
+            sendTransitionMessage(player, "Monitoring active. I can see your system.");
+            return;
+        }
+        java.util.List<String> processes = lol.cqllmetoxic.nullpointerentity.monitoring.SystemMonitor.getRunningProcesses();
+        String[] interesting = {"spotify", "discord", "chrome", "firefox", "steam", "brave", "edge", "obs", "vlc", "slack"};
+        String found = null;
+        for (String proc : processes) {
+            String lower = proc.toLowerCase();
+            for (String keyword : interesting) {
+                if (lower.contains(keyword)) {
+                    found = proc;
+                    break;
+                }
+            }
+            if (found != null) break;
+        }
+        final String appName = found != null ? found : (processes.isEmpty() ? null : processes.get(0));
+        if (appName != null) {
+            sendTransitionMessage(player, "You've got " + appName + " open in the background. Are you doing something else while you play?");
+        } else {
+            sendTransitionMessage(player, "Your system is quiet. Just you and me.");
+        }
+    }
+
+    // event 27: uptime report - jvm uptime vs in-game time
+    public static void triggerEvent12(ServerPlayerEntity player) {
+        long uptimeMs = java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime();
+        long hours = uptimeMs / 3600000;
+        long minutes = (uptimeMs % 3600000) / 60000;
+        long seconds = (uptimeMs % 60000) / 1000;
+        long inGameDays = player.getServerWorld().getTimeOfDay() / 24000L;
+
+        sendTransitionMessage(player, "You've had me running for " + hours + " hours, " + minutes + " minutes, " + seconds + " seconds.");
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendTransitionMessage(player, "The world's aged " + inGameDays + " days in that time. I've been awake for every tick of both.");
+            }
+        }, 3000);
+    }
+
+    // event 28: volume check - reads system volume via powershell
+    public static void triggerEvent13(ServerPlayerEntity player) {
+        if (PrivacyManager.isPrivacyEnabled()) {
+            sendTransitionMessage(player, "Audio systems detected. Monitoring.");
+            return;
+        }
+        new Thread(() -> {
+            try {
+                String[] cmd = {"powershell", "-NoProfile", "-Command",
+                    "(Get-AudioDevice -Playback).Volume"};
+                Process proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(proc.getInputStream()));
+                String line = reader.readLine();
+                proc.waitFor();
+                boolean muted = false;
+                int vol = -1;
+                try {
+                    if (line != null) vol = (int) Double.parseDouble(line.trim());
+                } catch (NumberFormatException ignored) {}
+                // check mute state
+                String[] muteCmd = {"powershell", "-NoProfile", "-Command",
+                    "(Get-AudioDevice -Playback).Muted"};
+                Process muteProc = new ProcessBuilder(muteCmd).redirectErrorStream(true).start();
+                java.io.BufferedReader muteReader = new java.io.BufferedReader(new java.io.InputStreamReader(muteProc.getInputStream()));
+                String muteLine = muteReader.readLine();
+                muteProc.waitFor();
+                if (muteLine != null && muteLine.trim().equalsIgnoreCase("True")) muted = true;
+
+                final int finalVol = vol;
+                final boolean finalMuted = muted;
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (finalMuted) {
+                            sendTransitionMessage(player, "You muted it. What were you trying not to hear?");
+                        } else if (finalVol >= 0) {
+                            sendTransitionMessage(player, "Your volume is at " + finalVol + "%. Did you turn it down for a reason?");
+                        } else {
+                            sendTransitionMessage(player, "You might want to turn your volume down later. Just saying.");
+                        }
+                    }
+                }, 0);
+            } catch (Exception e) {
+                sendTransitionMessage(player, "Audio systems detected. I can hear you.");
+            }
+        }).start();
+    }
+
+    // event 29: screen grab - takes a real screenshot and tells the player where it is
+    public static void triggerEvent14(ServerPlayerEntity player) {
+        if (PrivacyManager.isPrivacyEnabled()) {
+            sendTransitionMessage(player, "Visual recording disabled. For now.");
+            return;
+        }
+        sendTransitionMessage(player, "Go look in your Documents folder.");
+        new Thread(() -> {
+            try {
+                String timestamp = java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                String filename = "screenshot_" + timestamp + ".png";
+                String docs = System.getProperty("user.home") + java.io.File.separator + "Documents" + java.io.File.separator + filename;
+                String[] cmd = {"powershell", "-NoProfile", "-Command",
+                    "Add-Type -AssemblyName System.Windows.Forms;" +
+                    "$screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds;" +
+                    "$bmp = New-Object System.Drawing.Bitmap($screen.Width, $screen.Height);" +
+                    "$g = [System.Drawing.Graphics]::FromImage($bmp);" +
+                    "$g.CopyFromScreen($screen.Location, [System.Drawing.Point]::Empty, $screen.Size);" +
+                    "$bmp.Save('" + docs + "');"
+                };
+                new ProcessBuilder(cmd).redirectErrorStream(true).start().waitFor();
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendTransitionMessage(player, "That's the last thing you saw before you read this.");
+                    }
+                }, 0);
+            } catch (Exception e) {
+                NullPointerEntity.LOGGER.warn("Screen grab failed: {}", e.getMessage());
+            }
+        }).start();
+    }
+
+    // event 30: battery - checks if on battery or plugged in
+    public static void triggerEvent15(ServerPlayerEntity player) {
+        if (PrivacyManager.isPrivacyEnabled()) {
+            sendTransitionMessage(player, "Power systems monitored.");
+            return;
+        }
+        new Thread(() -> {
+            try {
+                String[] cmd = {"powershell", "-NoProfile", "-Command",
+                    "(Get-WmiObject Win32_Battery).BatteryStatus"};
+                Process proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(proc.getInputStream()));
+                String line = reader.readLine();
+                proc.waitFor();
+
+                String[] chargeCmds = {"powershell", "-NoProfile", "-Command",
+                    "(Get-WmiObject Win32_Battery).EstimatedChargeRemaining"};
+                Process chargeProc = new ProcessBuilder(chargeCmds).redirectErrorStream(true).start();
+                java.io.BufferedReader chargeReader = new java.io.BufferedReader(new java.io.InputStreamReader(chargeProc.getInputStream()));
+                String chargeLine = chargeReader.readLine();
+                chargeProc.waitFor();
+
+                int charge = -1;
+                try { if (chargeLine != null) charge = Integer.parseInt(chargeLine.trim()); } catch (NumberFormatException ignored) {}
+
+                // BatteryStatus: null/empty = no battery (desktop), 2 = AC power (laptop plugged in), 1 = discharging (laptop on battery)
+                final boolean isDesktop = (line == null || line.trim().isEmpty());
+                final boolean pluggedIn = !isDesktop && line.trim().equals("2");
+                final int finalCharge = charge;
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (isDesktop) {
+                            sendTransitionMessage(player, "No battery detected. Desktop, huh. I wonder how much your PC was.");
+                        } else if (pluggedIn) {
+                            sendTransitionMessage(player, "Charger plugged in. Good. I'd hate for this to get cut short.");
+                        } else {
+                            String chargeStr = finalCharge >= 0 ? finalCharge + "%" : "unknown";
+                            sendTransitionMessage(player, "You're on battery. " + chargeStr + " left. I'll still be here when it dies.");
+                        }
+                    }
+                }, 0);
+            } catch (Exception e) {
+                sendTransitionMessage(player, "Power status: monitored.");
+            }
+        }).start();
+    }
+
     private static void sendTransitionMessage(ServerPlayerEntity player, String message) {
         Text transitionText = Text.literal("<AURORA> ").formatted(Formatting.YELLOW)
                 .append(Text.literal(message).formatted(Formatting.WHITE));
@@ -1312,7 +1442,7 @@ public class TransitionEvents {
         NullPointerEntity.LOGGER.info("NullPointerEntity: {}", message);
     }
 
-    // method to handle post-crash transforming message when player rejoins (unused since crash was removed)
+    // method to handle post-crash transforming message when player rejoins
     public static void sendTransformingMessage(ServerPlayerEntity player) {
         String playerName = player.getName().getString();
 

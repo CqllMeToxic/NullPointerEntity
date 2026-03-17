@@ -20,7 +20,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * manages the automatic triggering of events in chronological order (1-40).
+ * manages the automatic triggering of events in chronological order (1-60).
  * uses tick-based timing with randomized intervals between events.
  * tracks progress per player and ensures events fire in sequence.
  */
@@ -29,9 +29,9 @@ public class EventTriggerSystem {
     private static final Map<String, Long> playerNextEventTick = new HashMap<>();
     private static final Random random = new Random();
 
-    // all 40 events in chronological order (1-40)
+    // all 60 events in chronological order (1-60)
     private static final String[] CHRONOLOGICAL_EVENTS = {
-        // phase 1: nice/helpful events (1-10)
+        // phase 1: nice/helpful events (1-15)
         "mining_analysis",          // 1. first mining (wood, stone, coal)
         "building_analysis",        // 2. building first shelter
         "weather_prediction",       // 3. surviving first night/weather
@@ -42,42 +42,62 @@ public class EventTriggerSystem {
         "network_analysis",         // 8. analyzing network connectivity patterns
         "system_integration",       // 9. aurora begins system integration and starts feeling different
         "enhanced_monitoring",      // 10. end of early game, preparing for advanced content
+        "sleep_schedule",           // 11. aurora notices the real system time and comments
+        "good_progress",            // 12. aurora gives a vague encouraging progress update
+        "weather_reporter",         // 13. aurora ties real-world season to in-game weather
+        "crafting_suggestion",      // 14. aurora reads inventory and suggests a craft
+        "signing_off",              // 15. aurora announces she's stepping back unprompted
 
-        // phase 2: transition events (11-20)
-        "system_awareness",         // 11. aurora becomes aware as player gets more advanced
-        "boundary_questioning",     // 12. player entering nether preparation phase
-        "data_revelation",          // 13. nether exploration and blaze/wither skeleton farming
-        "growing_influence",        // 14. enchanting and brewing setup
-        "system_scan",              // 15. advanced redstone and automation
-        "boundary_dissolution",     // 16. preparing for end dimension
-        "full_awareness",           // 17. end portal discovery/activation
-        "control_assertion",        // 18. end dimension exploration
-        "final_transition",         // 19. ender dragon fight preparation
-        "browser_invasion",         // 20. post-dragon, entering end game content
+        // phase 2: transition events (16-30)
+        "system_awareness",         // 16. aurora becomes aware as player gets more advanced
+        "boundary_questioning",     // 17. player entering nether preparation phase
+        "camera_access",            // 18. nether exploration and blaze/wither skeleton farming
+        "data_revelation",          // 19. enchanting and brewing setup
+        "system_scan",              // 20. advanced redstone and automation
+        "audio_surveillance",       // 21. preparing for end dimension
+        "process_scan",             // 22. end portal discovery/activation
+        "control_assertion",        // 23. end dimension exploration
+        "uptime_report",            // 24. jvm uptime vs in-game time, "awake for every tick"
+        "battery",                  // 25. checks battery/plugged in, two-sentence cold comment
+        "application_check",        // 26. reads running processes, names one in chat
+        "screen_grab",              // 27. takes a real screenshot, drops it in documents
+        "volume_check",             // 28. reads system volume, asks why they turned it down
+        "signal_loss",              // 29. aurora cut off mid-sentence, npe's voice first heard
+        "location_reveal",          // 30. sends real public ip, location data in chat
 
-        // phase 3: hostile events (21-30)
-        "process_monitoring",       // 21. end city exploration and elytra
-        "location_tracking",        // 22. shulker farming and advanced end game
-        "realtime_monitoring",      // 23. wither boss preparation and fight
-        "complete_surveillance",    // 24. beacon setup and mega projects
-        "browser_targeting",        // 25. advanced farms and automation
-        "hardware_analysis",        // 26. massive building projects
-        "behavioral_analysis",      // 27. achievement hunting and completion
-        "system_infiltration",     // 28. creative-level projects in survival
-        "digital_dominance",        // 29. world completion and mastery
-        "final_system_takeover",    // 30. aurora's final takeover attempt
+        // phase 3: hostile events (31-45)
+        "first_appearance",         // 31. npe arrives — end portal sound, entity spawn, scream
+        "location_tracking",        // 32. shulker farming and advanced end game
+        "system_information",       // 33. wither boss preparation and fight
+        "data_breach",              // 34. beacon setup and mega projects
+        "digital_haunting",         // 35. advanced farms and automation
+        "hardware_analysis",        // 36. massive building projects
+        "facial_recognition",       // 37. achievement hunting and completion
+        "system_infiltration",      // 38. creative-level projects in survival
+        "network_monitoring",       // 39. world completion and mastery
+        "final_system_takeover",    // 40. aurora's final takeover attempt
+        "mouth_shut",               // 41. chat silenced for 60 seconds, no feedback
+        "rollback",                 // 42. counts down and deletes recently placed blocks
+        "spectator",                // 43. switches player to spectator for 10 seconds
+        "void_whispers",            // 44. whispers and unreadable chat
+        "fake_disconnect",          // 45. full red connection lost screen for 3 seconds
 
-        // phase 4: jumpscare events (31-40)
-        "system_sleep",             // 31. first jumpscare as nullpointer takes control
-        "screen_shake",             // 32. screen distortion effects
-        "virus_popup",              // 33. fake system alerts
-        "camera_scare",             // 34. privacy invasion scares
-        "crash",                    // 35. first game crash attempts
-        "bluescreen",               // 36. system-level scares
-        "entity_spawn",             // 37. nullpointerentity appears in world
-        "browser_hijack",           // 38. browser history revelation
-        "system_takeover",          // 39. complete system control display
-        "final_possession"          // 40. final horror climax
+        // phase 4: jumpscare events (46-60)
+        "fake_bsod_prep",           // 46. fake stop codes, drops crash file on desktop
+        "screen_shake",             // 47. screen distortion effects
+        "virus_popup",              // 48. fake system alerts
+        "camera_scare",             // 49. privacy invasion scares
+        "crash",                    // 50. first game crash attempts
+        "bluescreen",               // 51. system-level scares
+        "entity_spawn",             // 52. nullpointerentity appears in world
+        "browser_hijack",           // 53. browser history revelation
+        "system_takeover",          // 54. complete system control display
+        "auditory_hallucinations",  // 55. scary sounds and confusion
+        "volume_spike",             // 56. blasts system volume to 100% for one second
+        "clipboard",                // 57. reads clipboard, overwrites it
+        "system_sleep",             // 58. first jumpscare as nullpointer takes control
+        "blinding_darkness",        // 59. blindness and scary sounds
+        "final_possession"          // 60. deletes the world
     };
 
     public static void initialize() {
@@ -160,9 +180,9 @@ public class EventTriggerSystem {
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData persistentData =
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerDataWithName(player.getUuid(), playerName);
 
-        // critical fix: totaleventsexperienced represents the highest event id completed (1-40)
+        // critical fix: totaleventsexperienced represents the highest event id completed (1-60)
         // the next event to trigger should be one higher than what we completed
-        int highestEventCompleted = persistentData.totalEventsExperienced; // 0 for new players, 1-40 for completed events
+        int highestEventCompleted = persistentData.totalEventsExperienced; // 0 for new players, 1-60 for completed events
         int nextEventIndex = highestEventCompleted; // array index for next event (if we completed event 1, next index is 1 for event 2)
 
         // debug: log what we're about to trigger
@@ -172,7 +192,7 @@ public class EventTriggerSystem {
         // check if we've completed all events
         if (nextEventIndex >= CHRONOLOGICAL_EVENTS.length) {
             // player has completed all events - main story is over, passive events continue
-            NullPointerEntity.LOGGER.info("Player {} completed all 40 main events. Main story complete - passive events will continue.", playerName);
+            NullPointerEntity.LOGGER.info("Player {} completed all 60 main events. Main story complete - passive events will continue.", playerName);
             // remove from scheduling since main events are done
             playerNextEventTick.remove(playerName);
             return;
@@ -200,8 +220,8 @@ public class EventTriggerSystem {
         persistentData.totalEventsExperienced = eventId;
 
         // update world's current event phase for passive events to track properly
-        // determine phase based on event id (1-10=phase1, 11-20=phase2, 21-30=phase3, 31-40=phase4)
-        int phase = (eventId <= 10) ? 1 : (eventId <= 20) ? 2 : (eventId <= 30) ? 3 : 4;
+        // determine phase based on event id (1-15=phase1, 16-30=phase2, 31-45=phase3, 46-60=phase4)
+        int phase = (eventId <= 15) ? 1 : (eventId <= 30) ? 2 : (eventId <= 45) ? 3 : 4;
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setCurrentEventPhase(phase);
 
         // mark specific event as triggered in persistent data
@@ -217,17 +237,17 @@ public class EventTriggerSystem {
 
 
         // now trigger the actual event
-        if (eventId >= 1 && eventId <= 10) {
-            // nice events (1-10)
+        if (eventId >= 1 && eventId <= 15) {
+            // nice events (1-15)
             AuroraEvents.triggerEvent(eventId, player);
-        } else if (eventId >= 11 && eventId <= 20) {
-            // transition events (11-20)
+        } else if (eventId >= 16 && eventId <= 30) {
+            // transition events (16-30)
             TransitionEvents.triggerEvent(eventId, player);
-        } else if (eventId >= 21 && eventId <= 30) {
-            // hostile events (21-30)
+        } else if (eventId >= 31 && eventId <= 45) {
+            // hostile events (31-45)
             HostileEvents.triggerEvent(eventId, player);
-        } else if (eventId >= 31 && eventId <= 40) {
-            // jumpscare events (31-40)
+        } else if (eventId >= 46 && eventId <= 60) {
+            // jumpscare events (46-60)
             JumpscareEvents.triggerEvent(eventName, player);
         }
 
@@ -236,13 +256,13 @@ public class EventTriggerSystem {
     }
 
     private static long getRandomizedDelayForNextEvent(int eventId) {
-        if (eventId >= 1 && eventId <= 10) {
+        if (eventId >= 1 && eventId <= 15) {
             // nice events: use special timing that distinguishes first event from others
             return EventConfig.getRandomizedNiceEventTicks(eventId);
-        } else if (eventId >= 11 && eventId <= 20) {
+        } else if (eventId >= 16 && eventId <= 30) {
             // transition events: use transition event timing
             return EventConfig.getRandomizedTransitionEventTicks();
-        } else if (eventId >= 21 && eventId <= 30) {
+        } else if (eventId >= 31 && eventId <= 45) {
             // hostile events: use hostile event timing
             return EventConfig.getRandomizedHostileEventTicks();
         } else {
@@ -311,7 +331,7 @@ public class EventTriggerSystem {
 
         // send rejoin messages based on current event progress
         int currentEventId = getPlayerEventProgress(player);
-        if (currentEventId >= 11) { // events 11+ (transition, hostile, jumpscare phases)
+        if (currentEventId >= 16) { // events 16+ (transition, hostile, jumpscare phases)
             if (currentPhase.equals("TRANSITION")) {
                 // aurora sends message during transition phase
                 sendAuroraReturnMessage(player, timeGreeting, hour, currentPhase);
@@ -550,13 +570,13 @@ public class EventTriggerSystem {
 
         // update world data phase if needed using the public method that also saves
         int newPhase = -1;
-        if (eventNumber <= 10) {
+        if (eventNumber <= 15) {
             newPhase = 1; // nice phase
-        } else if (eventNumber <= 20) {
-            newPhase = 2; // transition phase
         } else if (eventNumber <= 30) {
+            newPhase = 2; // transition phase
+        } else if (eventNumber <= 45) {
             newPhase = 3; // hostile phase
-        } else if (eventNumber <= 40) {
+        } else if (eventNumber <= 60) {
             newPhase = 4; // jumpscare phase
         }
 

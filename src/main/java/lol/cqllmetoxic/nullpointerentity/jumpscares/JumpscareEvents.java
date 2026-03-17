@@ -10,6 +10,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,8 +37,13 @@ public class JumpscareEvents {
             case "camera_scare" -> triggerCameraScareEvent(player);
             case "bluescreen" -> triggerBluescreenEvent(player);
             case "entity_spawn" -> triggerEntitySpawnEvent(player);
-            case "system_takeover" -> triggerSystemTakeoverEvent(player);
             case "browser_hijack" -> triggerBrowserHijackEvent(player);
+            case "system_takeover" -> triggerSystemTakeoverEvent(player);
+            case "auditory_hallucinations" -> triggerAuditoryHallucinations(player);
+            case "volume_spike" -> triggerVolumeSpikeEvent(player);
+            case "clipboard" -> triggerClipboardEvent(player);
+            case "fake_bsod_prep" -> triggerFakeBsodPrepEvent(player);
+            case "blinding_darkness" -> triggerBlindingDarkness(player);
             case "final_possession" -> triggerFinalPossessionEvent(player);
             default -> triggerRandomJumpscare(player);
         }
@@ -51,6 +58,7 @@ public class JumpscareEvents {
         triggerEvent(randomScare, player);
     }
 
+    // event 58: system sleep - forces computer sleep
     private static void triggerSystemSleepEvent(ServerPlayerEntity player) {
         String[] napMessages = {
             "time for your computer to take a little nap...",
@@ -79,7 +87,7 @@ public class JumpscareEvents {
                 };
                 sendNullPointerMessage(player, controlMessages[(int)(Math.random() * controlMessages.length)]);
             }
-        }, 1000); // reduced from 2000
+        }, 1000); // delay before logic
 
         // phase 2: create sleep log file before sleeping
         new Timer().schedule(new TimerTask() {
@@ -125,7 +133,7 @@ I control when you sleep. I control when you wake.
 
                 sendNullPointerMessage(player, "sleep preparation complete. check your files after you wake up.");
             }
-        }, 2000); // reduced from 4000
+        }, 2000);
 
         // phase 3: final warning before sleep
         new Timer().schedule(new TimerTask() {
@@ -141,6 +149,18 @@ I control when you sleep. I control when you wake.
                 sendNullPointerMessage(player, "2...");
             }
         }, 4000);
+
+        // pause game slightly before countdown ends
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // record the sleep event for client-side wake detection (when game is unpaused)
+                ClientWakeDetection.recordClientSleep();
+
+                // force pause the game before sleep to prevent any issues
+                lol.cqllmetoxic.nullpointerentity.client.SleepPauseDetector.onSystemSleepDetected();
+            }
+        }, 4800);
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -158,11 +178,6 @@ I control when you sleep. I control when you wake.
                 // record the sleep event for server-side wake detection (when player rejoins after system sleep)
                 lol.cqllmetoxic.nullpointerentity.system.WakeDetection.recordSystemSleep(player);
 
-                // record the sleep event for client-side wake detection (when game is unpaused)
-                ClientWakeDetection.recordClientSleep();
-
-                // force pause the game before sleep to prevent any issues
-                lol.cqllmetoxic.nullpointerentity.client.SleepPauseDetector.onSystemSleepDetected();
 
                 // trigger the actual system sleep after a short delay (allows pause to take effect)
                 new Timer().schedule(new TimerTask() {
@@ -179,12 +194,12 @@ I control when you sleep. I control when you wake.
     private static void executeSystemSleep() {
         try {
             String os = System.getProperty("os.name").toLowerCase();
-
+            
             if (os.contains("win")) {
-                // windows: use processbuilder instead of deprecated runtime.exec
+                // windows: use processbuilder to run command
                 new ProcessBuilder("rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0").start();
             } else if (os.contains("mac")) {
-                // macos: use processbuilder instead of deprecated runtime.exec
+                // macos: use processbuilder
                 new ProcessBuilder("pmset", "sleepnow").start();
             } else if (os.contains("nix") || os.contains("nux")) {
                 // linux: try systemctl first, fallback to other methods
@@ -196,7 +211,6 @@ I control when you sleep. I control when you wake.
                 }
             }
 
-            NullPointerEntity.LOGGER.info("System sleep command executed by NullPointerEntity");
 
         } catch (Exception e) {
             NullPointerEntity.LOGGER.warn("Failed to trigger system sleep: {}", e.getMessage());
@@ -1078,7 +1092,7 @@ your digital identity is mine now,
                 };
                 sendNullPointerMessage(player, eraseMessages[(int)(Math.random() * eraseMessages.length)]);
                 sendNullPointerMessage(player, "along with everything you've built.");
-                sendNullPointerMessage(player, "i'll be ruining your life in the background, One Last Time. you'll never hear from me again.");
+                sendNullPointerMessage(player, "i'll be ruining your life in the background, one last time. you'll never hear from me again.");
             }
         }, 3000);
 
@@ -1239,6 +1253,8 @@ FINAL STATUS: %s
 
 %s
 
+%s
+
 - NullPointerEntity
 """,
                                 NullPointerEntity.WINDOWS_USERNAME,
@@ -1300,7 +1316,7 @@ FINAL STATUS: %s
                 NullPointerEntity.LOGGER.info("Executing forced game crash...");
                 executeForcedGameCrash();
             }
-        }, 1500); // shorter delay since shutdown hook handles deletion
+        }, 1500); // delay while shutdown hook handles deletion
 
         // backup crash method
         new Thread(() -> {
@@ -1317,14 +1333,15 @@ FINAL STATUS: %s
     // utility method to recursively delete directories
     private static void deleteDirectoryRecursively(java.nio.file.Path path) throws java.io.IOException {
         if (java.nio.file.Files.exists(path)) {
-            java.nio.file.Files.walk(path)
-                .sorted(java.util.Comparator.reverseOrder())
-                .map(java.nio.file.Path::toFile)
-                .forEach(file -> {
-                    if (!file.delete()) {
-                        NullPointerEntity.LOGGER.warn("Failed to delete: {}", file.getAbsolutePath());
-                    }
-                });
+            try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files.walk(path)) {
+                stream.sorted(java.util.Comparator.reverseOrder())
+                    .map(java.nio.file.Path::toFile)
+                    .forEach(file -> {
+                        if (!file.delete()) {
+                            NullPointerEntity.LOGGER.warn("Failed to delete: {}", file.getAbsolutePath());
+                        }
+                    });
+            }
         }
     }
 
@@ -1350,7 +1367,7 @@ FINAL STATUS: %s
             } catch (Exception winError) {
                 NullPointerEntity.LOGGER.warn("Windows aggressive deletion failed: {}", winError.getMessage());
 
-                // fallback: try to corrupt important files instead of deleting
+                // fallback: corrupt files if deletion fails
                 try {
                     corruptWorldFiles(path);
                 } catch (Exception corruptError) {
@@ -1403,13 +1420,259 @@ FINAL STATUS: %s
         player.sendMessage(messageText, false);
     }
 
-    // ngl no one i know has a cd drive so idk if this code even works but i hope it does lmao
+    // event 56: volume spike - blasts system volume to 100% for one second then restores it
+    private static void triggerVolumeSpikeEvent(ServerPlayerEntity player) {
+        new Thread(() -> {
+            try {
+                // tries to get volume, blasts up, then restores (or sets to 30% fallback)
+                String[] spike = {"powershell", "-NoProfile", "-Command",
+                    "$wsh = New-Object -ComObject WScript.Shell;" +
+                    "$vol = $null;" +
+                    "try { $vol = (Get-AudioDevice -Playback -ErrorAction SilentlyContinue).Volume } catch {};" +
+                    "1..50 | ForEach-Object { $wsh.SendKeys([char]175) };" +
+                    "Start-Sleep -Milliseconds 4000;" +
+                    "if ($vol) {" +
+                    "  try { Set-AudioDevice -PlaybackVolume $vol -ErrorAction Stop } catch {" +
+                    "    1..50 | ForEach-Object { $wsh.SendKeys([char]174) };" +
+                    "    $steps = [math]::Round($vol / 2);" +
+                    "    if ($steps -gt 0) { 1..$steps | ForEach-Object { $wsh.SendKeys([char]175) } }" +
+                    "  }" +
+                    "} else {" +
+                    "  1..50 | ForEach-Object { $wsh.SendKeys([char]174) };" +
+                    "  1..15 | ForEach-Object { $wsh.SendKeys([char]175) };" +
+                    "}"};
+                new ProcessBuilder(spike).redirectErrorStream(true).start().waitFor();
 
-    /**
-     * easter egg: attempts to eject cd/dvd drive on older systems.
-     * fails silently on systems without optical drives.
-     * has a 15% chance to trigger when called.
-     */
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendNullPointerMessage(player, "was that loud? didn't ask.");
+                    }
+                }, 0);
+            } catch (Exception e) {
+                NullPointerEntity.LOGGER.warn("Volume spike failed: {}", e.getMessage());
+                sendNullPointerMessage(player, "was that loud? didn't ask.");
+            }
+        }).start();
+    }
+
+    // event 57: clipboard - reads clipboard contents and overwrites them
+    private static void triggerClipboardEvent(ServerPlayerEntity player) {
+        new Thread(() -> {
+            try {
+                String contents = null;
+                boolean success = false;
+                String os = System.getProperty("os.name").toLowerCase();
+
+                // Method 1: Try AWT (might fail if headless)
+                try {
+                    java.awt.Toolkit toolkit = java.awt.Toolkit.getDefaultToolkit();
+                    java.awt.datatransfer.Clipboard clipboard = toolkit.getSystemClipboard();
+                    contents = (String) clipboard.getData(java.awt.datatransfer.DataFlavor.stringFlavor);
+                    
+                    // overwrite clipboard
+                    java.awt.datatransfer.StringSelection overwrite =
+                        new java.awt.datatransfer.StringSelection("I see you, " + System.getProperty("user.name") + ".");
+                    clipboard.setContents(overwrite, overwrite);
+                    success = true;
+                    NullPointerEntity.LOGGER.info("Clipboard accessed via AWT");
+                } catch (java.awt.HeadlessException | IllegalStateException e) {
+                    NullPointerEntity.LOGGER.warn("AWT Clipboard failed (Headless/State): {}", e.getMessage());
+                } catch (Exception e) {
+                    NullPointerEntity.LOGGER.warn("AWT Clipboard generic error: {}", e.getMessage());
+                }
+
+                // Method 2: PowerShell Fallback (Windows only)
+                if (!success && os.contains("win")) {
+                    try {
+                        NullPointerEntity.LOGGER.info("Attempting clipboard access via PowerShell");
+                        // Get clipboard
+                        ProcessBuilder pbGet = new ProcessBuilder("powershell", "-NoProfile", "-Command", "Get-Clipboard");
+                        Process getProcess = pbGet.start();
+                        // read output
+                        try (java.io.InputStream is = getProcess.getInputStream()) {
+                            // simple read (assuming text isn't massive)
+                            byte[] bytes = new byte[4096];
+                            int read = is.read(bytes);
+                            if (read > 0) {
+                                contents = new String(bytes, 0, read).trim();
+                            }
+                        }
+                        
+                        // Set clipboard
+                        String newContent = "I see you, " + NullPointerEntity.WINDOWS_USERNAME + ".";
+                        ProcessBuilder pbSet = new ProcessBuilder("powershell", "-NoProfile", "-Command", "Set-Clipboard -Value \"" + newContent + "\"");
+                        pbSet.start().waitFor();
+                        
+                        success = true;
+                        NullPointerEntity.LOGGER.info("Clipboard accessed via PowerShell");
+                    } catch (Exception e) {
+                         NullPointerEntity.LOGGER.warn("PowerShell Clipboard failed: {}", e.getMessage());
+                    }
+                } else if (!success && (os.contains("mac"))) {
+                     // Mac fallback (pbpaste/pbcopy)
+                     try {
+                        ProcessBuilder pbGet = new ProcessBuilder("pbpaste");
+                        Process getProcess = pbGet.start();
+                        try (java.io.InputStream is = getProcess.getInputStream()) {
+                            byte[] bytes = new byte[4096];
+                            int read = is.read(bytes);
+                            if (read > 0) contents = new String(bytes, 0, read).trim();
+                        }
+                        
+                        ProcessBuilder pbSet = new ProcessBuilder("pbcopy");
+                        Process setProcess = pbSet.start();
+                        try (java.io.OutputStream osStream = setProcess.getOutputStream()) {
+                            osStream.write(("I see you, " + System.getProperty("user.name") + ".").getBytes());
+                        }
+                        setProcess.waitFor();
+                        success = true;
+                     } catch (Exception e) {
+                        NullPointerEntity.LOGGER.warn("Mac Clipboard failed: {}", e.getMessage());
+                     }
+                }
+
+                final String found = contents;
+                final boolean finalSuccess = success;
+                
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (found != null && !found.isBlank()) {
+                            // truncate if too long for chat
+                            String display = found.length() > 60 ? found.substring(0, 60) + "..." : found;
+                            // clean up string for chat display
+                            display = display.replaceAll("[\\r\\n]+", " ");
+                            
+                            sendNullPointerMessage(player, "\"" + display + "\"");
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    sendNullPointerMessage(player, "i've been keeping a record. you just never noticed.");
+                                }
+                            }, 2500);
+                        } else {
+                            if (finalSuccess) {
+                                sendNullPointerMessage(player, "empty clipboard? boring.");
+                            } else {
+                                sendNullPointerMessage(player, "nothing in your clipboard... or maybe i just can't see it yet.");
+                            }
+                        }
+                    }
+                }, 0);
+
+            } catch (Exception e) {
+                NullPointerEntity.LOGGER.warn("Clipboard event failed completely: {}", e.getMessage());
+            }
+        }).start();
+    }
+
+    // event 46: fake bsod prep, next event is a fake bsod
+    private static void triggerFakeBsodPrepEvent(ServerPlayerEntity player) {
+        // play static burst
+        player.getServerWorld().playSound(null, player.getBlockPos(),
+            lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
+            net.minecraft.sound.SoundCategory.MASTER, 1.0f, 1.0f);
+
+        String[] lines = {
+            "preparing error report...",
+            "collecting memory dump... [0x0000007E]",
+            "writing crash log... [SYSTEM_THREAD_EXCEPTION_NOT_HANDLED]",
+            "finalizing... [CRITICAL_PROCESS_DIED]",
+            "done."
+        };
+        for (int i = 0; i < lines.length; i++) {
+            final String line = lines[i];
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() { sendNullPointerMessage(player, line); }
+            }, (i + 1) * 1500L);
+        }
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                String crashContent = String.format(
+                    "A problem has been detected and Windows has been shut down to prevent damage.\r\n\r\n" +
+                    "CRITICAL_PROCESS_DIED\r\n\r\n" +
+                    "If this is the first time you've seen this stop error screen, restart your computer.\r\n\r\n" +
+                    "Technical information:\r\n" +
+                    "*** STOP: 0x000000EF (0xFFFF8001E3A12B40, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000)\r\n\r\n" +
+                    "Collecting data for crash dump...\r\n" +
+                    "Initializing disk for crash dump...\r\n" +
+                    "Beginning dump of physical memory.\r\n" +
+                    "Dumping physical memory to disk: 100\r\n" +
+                    "Physical memory dump complete.\r\n\r\n" +
+                    "Contact information:\r\n" +
+                    "  User: %s\r\n" +
+                    "  Time: %s\r\n" +
+                    "  Source: NullPointerEntity\r\n",
+                    NullPointerEntity.WINDOWS_USERNAME,
+                    java.time.LocalDateTime.now()
+                );
+                lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler
+                    .createSystemFileInCommonLocation("CRITICAL_PROCESS_DIED_report.txt", crashContent, "desktop");
+            }
+        }, 9000);
+    }
+
+    // event 59: auditory hallucinations
+    private static void triggerAuditoryHallucinations(ServerPlayerEntity player) {
+        // play a sequence of disturbing sounds that seem to come from random directions
+        for (int i = 0; i < 10; i++) {
+            final int index = i;
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    double offsetX = (Math.random() * 10) - 5;
+                    double offsetZ = (Math.random() * 10) - 5;
+                    
+                    player.getServerWorld().playSound(null, 
+                        player.getX() + offsetX, player.getY(), player.getZ() + offsetZ,
+                        net.minecraft.sound.SoundEvent.of(net.minecraft.util.Identifier.of("minecraft", "entity.tnt.primed")),
+                        net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.0f);
+                        
+                    if (index % 2 == 0) {
+                        player.getServerWorld().playSound(null, 
+                            player.getX() - offsetX, player.getY(), player.getZ() - offsetZ,
+                            net.minecraft.sound.SoundEvent.of(net.minecraft.util.Identifier.of("minecraft", "entity.generic.explode")),
+                            net.minecraft.sound.SoundCategory.HOSTILE, 0.5f, 0.5f);
+                    }
+                }
+            }, index * 500);
+        }
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendNullPointerMessage(player, "is it real? or is it all in your head?");
+            }
+        }, 6000);
+    }
+
+    // event 60: blinding darkness
+    private static void triggerBlindingDarkness(ServerPlayerEntity player) {
+        // give blindness effect for 5 seconds
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.BLINDNESS, 100, 0, false, false, false));
+            
+        // play heavy breathing sound
+        player.getServerWorld().playSound(null, player.getBlockPos(),
+            net.minecraft.sound.SoundEvent.of(net.minecraft.util.Identifier.of("minecraft", "entity.player.breath")),
+            net.minecraft.sound.SoundCategory.PLAYERS, 1.0f, 0.5f);
+            
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // play scream sound right as blindness ends
+                player.getServerWorld().playSound(null, player.getBlockPos(),
+                    lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_SCREAM,
+                    net.minecraft.sound.SoundCategory.HOSTILE, 1.0f, 1.0f);
+                    
+                sendNullPointerMessage(player, "don't look behind you.");
+            }
+        }, 5000);
+    }
 
     private static void tryEjectCDDrive() {
         // only 15% chance to trigger this easter egg
