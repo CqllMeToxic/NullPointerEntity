@@ -10,10 +10,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 public class PhaseDetector {
 
     public enum Phase {
-        NICE(1, 10, "NICE"),
-        TRANSITION(11, 20, "TRANSITION"),
-        HOSTILE(21, 30, "HOSTILE"),
-        JUMPSCARE(31, 40, "JUMPSCARE");
+        NICE(1, 15, "NICE"),
+        TRANSITION(16, 30, "TRANSITION"),
+        HOSTILE(31, 45, "HOSTILE"),
+        JUMPSCARE(46, 60, "JUMPSCARE");
 
         private final int startEvent;
         private final int endEvent;
