@@ -181,22 +181,21 @@ public class FakePlayerEntity extends MobEntity {
     }
 
     private void facePlayer() {
-        if (targetPlayer != null && existenceTimer % 10 == 0 && !isWalking) {
-            Vec3d playerPos = targetPlayer.getPos();
-            Vec3d entityPos = this.getPos();
-
-            // calculate yaw to face player (like a real player would look)
-            double deltaX = playerPos.x - entityPos.x;
-            double deltaZ = playerPos.z - entityPos.z;
-            double yaw = Math.toDegrees(Math.atan2(-deltaX, deltaZ));
-
-            this.setYaw((float) yaw);
-            this.setHeadYaw((float) yaw);
-
-            // occasionally look away briefly like a real person
-            if (Math.random() < 0.1) {
-                this.setHeadYaw((float) yaw + (float)(Math.random() - 0.5) * 60);
-            }
+        if (targetPlayer != null && targetPlayer.isAlive()) {
+            double diffX = targetPlayer.getX() - this.getX();
+            double diffZ = targetPlayer.getZ() - this.getZ();
+            double diffY = targetPlayer.getEyeY() - this.getEyeY();
+            
+            double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+            
+            float yaw = (float)(Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0F);
+            float pitch = (float)-(Math.toDegrees(Math.atan2(diffY, dist)));
+            
+            this.setYaw(yaw);
+            this.setHeadYaw(yaw);
+            this.setBodyYaw(yaw);
+            this.setPitch(pitch);
+            this.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES, targetPlayer.getEyePos());
         }
     }
 
