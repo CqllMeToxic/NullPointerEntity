@@ -129,6 +129,8 @@ public class CameraOverlay {
                 // try to set always on top, but don't fail if it doesn't work
                 try {
                     overlayFrame.setAlwaysOnTop(true);
+                    overlayFrame.toFront();
+                    overlayFrame.requestFocus();
                 } catch (SecurityException e) {
                     NullPointerEntity.LOGGER.warn("Cannot set window always on top (launcher restriction): {}", e.getMessage());
                 }
