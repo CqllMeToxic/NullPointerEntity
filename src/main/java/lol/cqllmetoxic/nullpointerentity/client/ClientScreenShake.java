@@ -25,6 +25,14 @@ public class ClientScreenShake {
     private static int windowHeight = -1;
 
     /**
+     * checks if the screen shake effect is currently active.
+     * used to block fullscreen toggling during the event.
+     */
+    public static boolean isShakeActive() {
+        return isShaking;
+    }
+
+    /**
      * triggers an intense window shake effect.
      * exits fullscreen, centers the window, then rapidly moves it around the screen.
      */
@@ -116,6 +124,11 @@ public class ClientScreenShake {
 
                         client.execute(() -> {
                             try {
+                                // force windowed mode if player tries to escape
+                                if (client.getWindow().isFullscreen()) {
+                                    client.getWindow().toggleFullscreen();
+                                }
+
                                 long windowHandle = client.getWindow().getHandle();
                                 if (windowHandle != 0 && centerX != -1 && centerY != -1) {
                                     int shakeIntensity;

@@ -1,9 +1,9 @@
 package lol.cqllmetoxic.nullpointerentity.client;
 
 import lol.cqllmetoxic.nullpointerentity.NullPointerEntity;
-import lol.cqllmetoxic.nullpointerentity.system.WakeDetection;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -30,7 +30,8 @@ public class ClientWakeDetection {
             if (client == null || client.player == null) return;
 
             // track pause state changes
-            boolean isCurrentlyPaused = client.isPaused();
+            boolean isMenuOpen = client.currentScreen instanceof GameMenuScreen;
+            boolean isCurrentlyPaused = client.isPaused() || isMenuOpen;
 
             // game was just unpaused
             if (wasGamePaused && !isCurrentlyPaused) {
