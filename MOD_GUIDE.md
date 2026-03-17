@@ -93,7 +93,7 @@ Disables all events. Use this if you want to pause the horror experience.
 Shows all available commands.
 
 #### `/nullpointer list`
-Lists all 40 story events in chronological order (1-40).
+Lists all 60 story events in chronological order (1-60).
 
 #### `/nullpointer progress`
 Shows your current event progression. Tells you which event you're on and how many you've completed.
@@ -106,7 +106,7 @@ Shows your current event progression. Tells you which event you're on and how ma
 ⚠️ **WARNING**: Resets your event progress back to the beginning. You'll start over from event 1.
 
 #### `/nullpointer skip <number>`
-Skips to a specific event number (1-40). Useful if you want to jump to a particular phase.
+Skips to a specific event number (1-60). Useful if you want to jump to a particular phase.
 
 **Example:**
 ```
@@ -165,6 +165,77 @@ The mod creates various "system interactions" to make it feel like the entity is
 - ❌ Does **NOT** access passwords or sensitive accounts
 - ❌ Does **NOT** work in multiplayer
 
+## 📜 Story Events
+
+The mod plays through these events in order.
+
+### Phase 1: Nice (Events 1-15)
+1. **mining_analysis**: Analyzes your mining efficiency.
+2. **building_analysis**: Compliments your building style.
+3. **weather_prediction**: Predicts in-game weather changes.
+4. **system_optimization**: Suggests optimizations for better FPS.
+5. **activity_patterns**: Notes your gameplay habits.
+6. **combat_analysis**: Analyzes your combat performance.
+7. **resource_optimization**: Suggests better resource management.
+8. **network_analysis**: Checks your connection stability.
+9. **system_integration**: "Integrating" with your system for better performance.
+10. **enhanced_monitoring**: Increases monitoring for "your safety".
+11. **sleep_schedule**: Comments on your real-life sleep schedule.
+12. **good_progress**: Encourages your progress.
+13. **weather_reporter**: Reports on weather conditions.
+14. **crafting_suggestion**: Suggests items you should craft.
+15. **signing_off**: A friendly sign-off message.
+
+### Phase 2: Transition (Events 16-30)
+16. **system_awareness**: Comments on your PC specs.
+17. **boundary_questioning**: Asks if you think she is real.
+18. **camera_access**: Requests camera access (or implies it).
+19. **data_revelation**: Reveals it knows something about your data.
+20. **system_scan**: Scans your running processes.
+21. **audio_surveillance**: Implies it is listening to you.
+22. **process_scan**: Lists specific apps you have open.
+23. **control_assertion**: Hints that it has more control than you think.
+24. **uptime_report**: Reports how long you've been "online".
+25. **battery**: Comments on your battery life (Laptop only).
+26. **application_check**: Checks specific applications running.
+27. **screen_grab**: Takes a screenshot (simulated or real depending on privacy).
+28. **volume_check**: adjusts volume slightly.
+29. **signal_loss**: Brief connection interruption simulation.
+30. **location_reveal**: Reveals your approximate location (State/Country).
+
+### Phase 3: Hostile (Events 31-45)
+31. **first_appearance**: NullPointerEntity makes its first visual appearance.
+32. **location_tracking**: Tracks your in-game movement aggressively.
+33. **system_information**: Reads out detailed system info menacingly.
+34. **data_breach**: Simulates a data breach warning.
+35. **digital_haunting**: Spooky sounds and visual glitches.
+36. **hardware_analysis**: Criticizes your hardware.
+37. **facial_recognition**: "Scanning face..." message with camera activation.
+38. **system_infiltration**: "Uploading to system..." progress bar.
+39. **network_monitoring**: "Monitoring traffic..." message.
+40. **final_system_takeover**: "System Control: TRANSFERRED".
+41. **mouth_shut**: prevents you from typing in chat.
+42. **rollback**: Rolls back your position in game.
+43. **spectator**: Forces you into spectator mode briefly.
+44. **void_whispers**: Spooky warden sounds and void particles.
+45. **fake_disconnect**: Kicks you from the world with a fake message.
+
+### Phase 4: Jumpscare (Events 46-60)
+46. **fake_bsod_prep**: Prepares the system for a crash simulation.
+47. **screen_shake**: Violent screen shaking.
+48. **virus_popup**: Fake virus detection popups.
+49. **camera_scare**: SUDDEN camera activation.
+50. **crash**: Simulates a game crash.
+51. **bluescreen**: Shows a fake Blue Screen of Death.
+52. **entity_spawn**: NullPointerEntity spawns right in front of you.
+53. **browser_hijack**: Opens browser windows to specific pages.
+54. **system_takeover**: Mouse cursor starts moving on its own.
+55. **auditory_hallucinations**: Plays creepy sounds directly to your output device.
+56. **volume_spike**: MAXIMIZES your system volume for a jump scare.
+57. **clipboard**: Puts creepy text into your system clipboard.
+58. **system_sleep**: PUTS YOUR REAL PC TO SLEEP (Safe, but scary).
+59. **blinding_darkness**: Gives you blindness and plays scary sounds.
+60. **final_possession**: The final scare. Good luck.
 
 ## 🎮 Passive Events
 
@@ -246,4 +317,3 @@ Enjoy the experience, and remember: **It's just a game... or is it?** 👁️
 ---
 
 **For technical details, bug reports, or contributions, see the main README.md file.**
-

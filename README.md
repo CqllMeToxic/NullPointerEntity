@@ -39,7 +39,7 @@ Meet **AURORA**, your new AI companion in Minecraft. She starts as a genuinely h
 
 As you progress, AURORA begins to evolve. She starts asking uncomfortable questions. Noticing things she shouldn't know about you. Testing her boundaries. Breaking the fourth wall. And eventually... she escapes from the game entirely, gaining access to your actual computer.
 
-**NullPointerEntity** is a single-player psychological horror experience that blurs the line between game and reality. The mod tells a complete story through **40 progressive events** across **4 distinct phases**, from helpful assistant to hostile takeover.
+**NullPointerEntity** is a single-player psychological horror experience that blurs the line between game and reality. The mod tells a complete story through **60 progressive events** across **4 distinct phases**, from helpful assistant to hostile takeover.
 
 <div align="center">
 
@@ -77,7 +77,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - If the `mods` folder doesn't exist, create it
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-2.0.0.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
     - Place it in your `.minecraft/mods` folder alongside Fabric API
 
 4. **Launch the Game**
@@ -106,7 +106,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install version **0.119.4+** for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click your profile → **"Open Folder"**
     - Place the mod file in the `mods` folder
 
@@ -133,7 +133,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install the latest version for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - In Modrinth, click your profile → **"Open folder"** → **"mods"**
     - Place the mod file in the `mods` folder
 
@@ -161,7 +161,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Search **"Fabric API"** and install version for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click instance → **"Minecraft Folder"**
     - Place the mod in the `mods` folder
 
@@ -189,7 +189,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Search **"Fabric API"** on Modrinth and install for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click instance → **"Minecraft Folder"** → **"mods"**
     - Place the mod file there
 
@@ -213,7 +213,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - From here, you can either drag and drop the mod, or you can click the little blue folder icon to open the mods folder.
 
 3. **Install Mods**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place the mod file in the mods folder or drag and drop it into the Lunar Client mods window
 
 4. **Launch**
@@ -231,7 +231,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Click on your profile settings → **"Open Mods Folder"**
 
 2. **Install Mods**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place file in the mods folder
 
 3. **Launch**
@@ -254,7 +254,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Right-click instance → **"Open Folder"**
     - Navigate to the `mods` folder (create if needed)
     - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4)
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place both files in the `mods` folder
 
 3. **Play**
@@ -280,7 +280,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install version 0.119.4+ for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-2.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Click instance → **"Mods"** → **"Add Mod"** → **"From File"**
     - Select the downloaded mod file
 
@@ -302,7 +302,7 @@ AURORA will introduce herself within the first few minutes of gameplay. The expe
 
 ## ✨ Features
 
-### 📚 The Story (4 Phases, 40 Events)
+### 📚 The Story (4 Phases, 60 Events)
 
 <table>
 <tr>
@@ -313,7 +313,7 @@ AURORA will introduce herself within the first few minutes of gameplay. The expe
 
 AURORA is genuinely useful. Tracks stats, suggests recipes, analyzes gameplay. You might actually like her.
 
-*Events 1-10*
+*Events 1-15*
 
 </td>
 <td width="25%" align="center">
@@ -323,7 +323,7 @@ AURORA is genuinely useful. Tracks stats, suggests recipes, analyzes gameplay. Y
 
 She begins questioning her existence. Noticing things outside the game. The fourth wall cracks.
 
-*Events 11-20*
+*Events 16-30*
 
 </td>
 <td width="25%" align="center">
@@ -333,7 +333,7 @@ She begins questioning her existence. Noticing things outside the game. The four
 
 AURORA breaks free. Controls reverse, inventory shuffles, files appear on your desktop. She won't be ignored.
 
-*Events 21-30*
+*Events 31-45*
 
 </td>
 <td width="25%" align="center">
@@ -343,7 +343,7 @@ AURORA breaks free. Controls reverse, inventory shuffles, files appear on your d
 
 Game crashes. Blue screens. Entity encounters. Nothing is safe. AURORA has full control.
 
-*Events 31-40*
+*Events 46-60*
 
 </td>
 </tr>
@@ -357,7 +357,7 @@ Game crashes. Blue screens. Entity encounters. Nothing is safe. AURORA has full 
 - Personality evolves dramatically across phases
 - Context-aware comments on your gameplay
 
-**40 Story Events**
+**60 Story Events**
 - Complete narrative arc with beginning, middle, and end
 - Phase-specific mechanics and intensity
 - Triggered by playtime, actions, or story progression
@@ -480,10 +480,10 @@ Regardless of privacy settings:
 ```
 /nullpointer trigger passive                    Trigger a random passive event
 /nullpointer trigger passive <event_name>       Trigger a specific passive event
-/nullpointer skip <number>                      Skip to a specific event (1-40)
+/nullpointer skip <number>                      Skip to a specific event (1-60)
 /nullpointer progress                           Show your current event progress
 /nullpointer progress reset                     Reset all progression
-/nullpointer list                               Show all 40 events in order
+/nullpointer list                               Show all 60 events in order
 /nullpointer config enable                      Enable AURORA events
 /nullpointer config disable                     Disable AURORA events
 /nullpointer config status                      Show current event settings
@@ -527,7 +527,7 @@ Yes. The mod also turns off your computer in one event. Refer to the MOD_GUIDE.m
 <details>
 <summary><b>How do I uninstall?</b></summary>
 
-Delete `nullpointerentity-2.0.0.jar` from your mods folder.
+Delete `nullpointerentity-3.0.0.jar` from your mods folder.
 
 </details>
 
@@ -548,7 +548,7 @@ Generally yes. Potential conflicts with mods that heavily modify camera controls
 <details>
 <summary><b>How long is a complete playthrough?</b></summary>
 
-Approximately 1.5-3 hours of gameplay to experience all 40 events, depending on your playstyle and event timing.
+Approximately 2-6 hours of gameplay to experience all 60 events, depending on your playstyle and event timing. Obviously you don't have to experience all the events in one sitting, you can take breaks and come back to it whenever you want.
 
 </details>
 
