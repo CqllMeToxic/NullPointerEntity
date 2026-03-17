@@ -5,6 +5,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.registry.Registries;
+import net.minecraft.stat.ServerStatHandler;
+import net.minecraft.stat.Stats;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +55,7 @@ public class PlayerTrackingSystem {
         public final Map<Block, Integer> blocksPlaced = new HashMap<>();
         public int totalBlocksPlaced = 0;
         public final Set<BlockPos> buildingLocations = new HashSet<>();
+        public long lastRecordedPlacedStatTotal = 0;
 
         public double totalDistanceTraveled = 0;
         public final Map<String, Double> biomeTimeSpent = new HashMap<>();
@@ -121,7 +125,7 @@ public class PlayerTrackingSystem {
         UUID playerId = player.getUuid();
 
         if (!playerDataMap.containsKey(playerName)) {
-            // create new player data and load from persistent storage
+            // create player data and load from persistent storage
             PlayerData data = new PlayerData(playerName);
 
             // load existing data from persistent storage if it exists
@@ -145,6 +149,7 @@ public class PlayerTrackingSystem {
             data.totalDistanceSprinted = persistentData.totalDistanceSprinted;
             data.itemsUsed.putAll(persistentData.itemsUsed);
             data.mobKillCounts.putAll(persistentData.mobKillCounts);
+            data.lastRecordedPlacedStatTotal = getCurrentPlacedBlockStatTotal(player);
 
             playerDataMap.put(playerName, data);
         } else {
@@ -152,6 +157,7 @@ public class PlayerTrackingSystem {
             PlayerData data = playerDataMap.get(playerName);
             data.sessionStartTime = System.currentTimeMillis();
             data.lastActivityTime = System.currentTimeMillis();
+            data.lastRecordedPlacedStatTotal = getCurrentPlacedBlockStatTotal(player);
         }
     }
 
@@ -279,6 +285,48 @@ public class PlayerTrackingSystem {
             data.totalBlocksPlaced++;
             data.lastActivityTime = System.currentTimeMillis();
         }
+    }
+
+    /**
+     * Updates placement tracking using vanilla stats deltas so all placed block items are counted.
+     */
+    public static void refreshBlockPlacementTracking(ServerPlayerEntity player) {
+        String playerName = player.getName().getString();
+        PlayerData data = playerDataMap.get(playerName);
+
+        if (data == null) {
+            return;
+        }
+
+        long currentPlacedTotal = getCurrentPlacedBlockStatTotal(player);
+
+        // Stats can reset between worlds/saves; resync baseline without applying a negative delta.
+        if (currentPlacedTotal < data.lastRecordedPlacedStatTotal) {
+            data.lastRecordedPlacedStatTotal = currentPlacedTotal;
+            return;
+        }
+
+        long placedDelta = currentPlacedTotal - data.lastRecordedPlacedStatTotal;
+        if (placedDelta > 0) {
+            data.totalBlocksPlaced += (int) placedDelta;
+            data.lastActivityTime = System.currentTimeMillis();
+        }
+
+        data.lastRecordedPlacedStatTotal = currentPlacedTotal;
+    }
+
+    private static long getCurrentPlacedBlockStatTotal(ServerPlayerEntity player) {
+        ServerStatHandler stats = player.getStatHandler();
+        long total = 0;
+
+        // Sum all block-item uses; this tracks real placement behavior better than a short hardcoded item list.
+        for (Item item : Registries.ITEM) {
+            if (item instanceof net.minecraft.item.BlockItem) {
+                total += stats.getStat(Stats.USED.getOrCreateStat(item));
+            }
+        }
+
+        return total;
     }
 
     // movement tracking

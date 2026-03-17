@@ -80,6 +80,7 @@ public class PlayerTrackingEvents {
 
                 // update system stats every 20 ticks (1 second)
                 if (server.getTicks() % 20 == 0) {
+                    PlayerTrackingSystem.refreshBlockPlacementTracking(player);
                     PlayerTrackingSystem.updateSystemStats(player);
                 }
 
