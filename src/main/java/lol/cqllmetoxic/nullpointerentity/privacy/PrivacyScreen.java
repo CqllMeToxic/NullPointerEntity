@@ -189,7 +189,7 @@ public class PrivacyScreen extends Screen {
         currentY += 25;
 
         // attribution
-        context.drawCenteredTextWithShadow(this.textRenderer, "Inspired by the success of \"Split Self\" by Pryzmm", centerX, currentY, 0x888888);
+        context.drawCenteredTextWithShadow(this.textRenderer, "Developed by CqllMeToxic, inspired by Split Self by Pryzmm", centerX, currentY, 0x888888);
         currentY += 35;
 
         if (isMultiplayerWorld()) {
@@ -230,7 +230,7 @@ public class PrivacyScreen extends Screen {
             } else {
                 context.drawCenteredTextWithShadow(this.textRenderer, "Click the button above to cycle through available microphones.", centerX, currentY, 0xAAFFAA);
             }
-            currentY += 60; // increased from 30 to add more space before final instruction
+            currentY += 60; // extra space before final instruction
 
             context.drawCenteredTextWithShadow(this.textRenderer, "Toggle privacy mode and click 'I Understand' to continue.", centerX, currentY, 0xCCCCCC);
         }
