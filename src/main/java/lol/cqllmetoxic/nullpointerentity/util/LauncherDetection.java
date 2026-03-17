@@ -69,7 +69,7 @@ public class LauncherDetection {
                 NullPointerEntity.LOGGER.info("Parent directory: {}", parentDir);
             }
 
-            // check for feather client first (since you're using it)
+            // check for feather client first
             if (isFeatherClient(gameDir)) {
                 detectedLauncher = Launcher.FEATHER_LUNAR;
                 hasDetected = true;
