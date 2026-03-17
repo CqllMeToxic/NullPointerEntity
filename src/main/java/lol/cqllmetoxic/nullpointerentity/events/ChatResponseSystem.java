@@ -213,7 +213,7 @@ public class ChatResponseSystem {
     private static boolean handleSpecialResponses(ServerPlayerEntity player, String phase, String message) {
         // check for special responses in priority order
 
-        // creator responses (new - highest priority, works in all phases)
+        // creator responses (highest priority, works in all phases)
         if (ChatKeywords.containsCreatorKeywords(message)) {
             SpecialResponseHandler.handleCreatorMention(player, phase, message);
             return true; // response sent

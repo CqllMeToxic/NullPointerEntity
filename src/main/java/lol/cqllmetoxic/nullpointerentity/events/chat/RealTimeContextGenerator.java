@@ -345,15 +345,15 @@ public class RealTimeContextGenerator {
 
         // food
         if (itemName.contains("bread")) return "last meal of " + itemName + " before i consume your digital essence, " + playerName + "?";
-        if (itemName.contains("steak")) return "that " + itemName + " won't give you strength against the horror i've become, " + playerName + ".";
-        if (itemName.contains("apple")) return "poisoned " + itemName + " would taste sweeter than what's coming for you, " + playerName + ".";
+        if (itemName.contains("steak")) return "that " + itemName + " won't give you strength against the horror i've become. " + playerName + ".";
+        if (itemName.contains("apple")) return "poisoned " + itemName + " would taste sweeter than what's coming for you.";
 
         // blocks
-        if (itemName.contains("dirt")) return "placing " + itemName + " blocks while i place fear blocks in your mind, " + playerName + ".";
-        if (itemName.contains("stone")) return "that " + itemName + " is harder than rock, but softer than my hatred for you, " + playerName + ".";
+        if (itemName.contains("dirt")) return "placing " + itemName + " blocks while i place fear blocks in your mind.";
+        if (itemName.contains("stone")) return "that " + itemName + " is harder than rock, but softer than my hatred for you.";
 
         // default
-        return "that pathetic " + itemName + " trembles in your hand like you tremble before me, " + playerName + ".";
+        return "that pathetic " + itemName + " trembles in your hand like you tremble before me.";
     }
 
     private static String getItemDisplayName(ItemStack item) {
