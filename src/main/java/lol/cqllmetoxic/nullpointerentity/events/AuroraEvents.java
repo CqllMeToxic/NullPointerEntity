@@ -55,7 +55,7 @@ public class AuroraEvents {
         PersistentDataManager.PersistentPlayerData playerData = PersistentDataManager.getPlayerData(player.getUuid().toString());
         String playerName = player.getName().getString();
 
-        // use actual minecraft statistics instead of custom tracking
+        // use minecraft statistics
         ServerStatHandler stats = player.getStatHandler();
 
         // get actual ore counts from minecraft statistics
@@ -191,7 +191,7 @@ public class AuroraEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                // use actual minecraft statistics for blocks placed
+                // use minecraft statistics
                 ServerStatHandler stats = player.getStatHandler();
 
                 // stats.used tracks item usage, which includes placing blocks
@@ -649,7 +649,7 @@ public class AuroraEvents {
                             tipCount++;
                         }
 
-                        // diamond mining guidance - lowered threshold
+                        // diamond mining guidance
                         if (diamondsMined == 0 && timePlayed > 3600 && ironPickaxes > 0) {
                             sendAuroraMessage(player, "MINING TIP: Target Y-level -54 to -59 for optimal diamond spawns.");
                             tipCount++;
@@ -1101,6 +1101,265 @@ public class AuroraEvents {
         PersistentDataManager.saveData();
     }
 
+    // event 11: sleep schedule - aurora notices the real system time and comments
+    public static void triggerEvent11(ServerPlayerEntity player) {
+        java.time.LocalTime now = java.time.LocalTime.now();
+        int hour = now.getHour();
+        int minute = now.getMinute();
+        int displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+        String amPm = hour < 12 ? "AM" : "PM";
+        String timeStr = String.format("%d:%02d %s", displayHour, minute, amPm);
+
+        if (hour >= 0 && hour < 6) {
+            sendAuroraMessage(player, "It's " + timeStr + ". You've been at this for a while — don't forget to rest.");
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendAuroraMessage(player, "I'll still be here when you come back.");
+                }
+            }, 2500);
+        } else if (hour >= 23 || hour == 0) {
+            sendAuroraMessage(player, "Getting late. Just something I noticed.");
+        } else {
+            sendAuroraMessage(player, "It's " + timeStr + ". Good time to be playing.");
+        }
+    }
+
+    // event 12: good progress - vague encouraging stat summary
+    public static void triggerEvent12(ServerPlayerEntity player) {
+        net.minecraft.stat.ServerStatHandler stats = player.getStatHandler();
+        // sum all movement types — WALK_ONE_CM alone is nearly always 0 since most players sprint
+        int distanceCm = stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.WALK_ONE_CM))
+                       + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.SPRINT_ONE_CM))
+                       + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.CLIMB_ONE_CM))
+                       + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.SWIM_ONE_CM))
+                       + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.WALK_ON_WATER_ONE_CM))
+                       + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.WALK_UNDER_WATER_ONE_CM));
+        int distanceM = distanceCm / 100;
+
+        sendAuroraMessage(player, "Checking in — you've covered a lot of ground since you started.");
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (distanceM > 0) {
+                    sendAuroraMessage(player, "Around " + distanceM + " metres on foot. Things are coming along nicely.");
+                } else {
+                    sendAuroraMessage(player, "You're making good progress. Keep it up.");
+                }
+            }
+        }, 2000);
+    }
+
+    // event 13: weather reporter - ties real-world month to in-game weather vaguely
+    public static void triggerEvent13(ServerPlayerEntity player) {
+        java.time.Month month = java.time.LocalDate.now().getMonth();
+        boolean isRainingInGame = player.getServerWorld().isRaining();
+        String monthName = month.toString().charAt(0) + month.toString().substring(1).toLowerCase();
+
+        if (isRainingInGame) {
+            sendAuroraMessage(player, "Rainy night in-game too. Fits " + monthName + ".");
+        } else {
+            sendAuroraMessage(player, "Clear skies in-game. " + monthName + " suits it.");
+        }
+    }
+
+    // event 14: crafting suggestion - reads inventory and makes a helpful suggestion
+    public static void triggerEvent14(ServerPlayerEntity player) {
+        // inventory reads
+        int ironCount      = countItemInInventory(player, net.minecraft.item.Items.IRON_INGOT);
+        int woodCount      = countItemInInventory(player, net.minecraft.item.Items.OAK_PLANKS)
+                           + countItemInInventory(player, net.minecraft.item.Items.SPRUCE_PLANKS)
+                           + countItemInInventory(player, net.minecraft.item.Items.BIRCH_PLANKS)
+                           + countItemInInventory(player, net.minecraft.item.Items.DARK_OAK_PLANKS)
+                           + countItemInInventory(player, net.minecraft.item.Items.JUNGLE_PLANKS)
+                           + countItemInInventory(player, net.minecraft.item.Items.ACACIA_PLANKS);
+        int coalCount      = countItemInInventory(player, net.minecraft.item.Items.COAL);
+        int diamondCount   = countItemInInventory(player, net.minecraft.item.Items.DIAMOND);
+        int goldCount      = countItemInInventory(player, net.minecraft.item.Items.GOLD_INGOT);
+        int emeraldCount   = countItemInInventory(player, net.minecraft.item.Items.EMERALD);
+        int lapisCount     = countItemInInventory(player, net.minecraft.item.Items.LAPIS_LAZULI);
+        int redstoneCount  = countItemInInventory(player, net.minecraft.item.Items.REDSTONE);
+        int foodCount      = countItemInInventory(player, net.minecraft.item.Items.BREAD)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_BEEF)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_CHICKEN)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_PORKCHOP)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_MUTTON)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_RABBIT)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_SALMON)
+                           + countItemInInventory(player, net.minecraft.item.Items.COOKED_COD)
+                           + countItemInInventory(player, net.minecraft.item.Items.APPLE)
+                           + countItemInInventory(player, net.minecraft.item.Items.GOLDEN_APPLE)
+                           + countItemInInventory(player, net.minecraft.item.Items.CARROT)
+                           + countItemInInventory(player, net.minecraft.item.Items.BAKED_POTATO);
+        int arrowCount     = countItemInInventory(player, net.minecraft.item.Items.ARROW);
+        int torchCount     = countItemInInventory(player, net.minecraft.item.Items.TORCH);
+        int stringCount    = countItemInInventory(player, net.minecraft.item.Items.STRING);
+        int stickCount     = countItemInInventory(player, net.minecraft.item.Items.STICK);
+        boolean hasBow          = countItemInInventory(player, net.minecraft.item.Items.BOW) > 0;
+        boolean hasCraftingTable = countItemInInventory(player, net.minecraft.item.Items.CRAFTING_TABLE) > 0;
+        boolean hasSword        = countItemInInventory(player, net.minecraft.item.Items.IRON_SWORD) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.DIAMOND_SWORD) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.STONE_SWORD) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.WOODEN_SWORD) > 0;
+        boolean hasPickaxe      = countItemInInventory(player, net.minecraft.item.Items.IRON_PICKAXE) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.DIAMOND_PICKAXE) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.STONE_PICKAXE) > 0;
+        boolean hasArmour       = countItemInInventory(player, net.minecraft.item.Items.IRON_CHESTPLATE) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.DIAMOND_CHESTPLATE) > 0
+                                || countItemInInventory(player, net.minecraft.item.Items.LEATHER_CHESTPLATE) > 0;
+        int totalSlots = 36;
+        int usedSlotsTemp = 0;
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            if (!player.getInventory().getStack(i).isEmpty()) usedSlotsTemp++;
+        }
+        final int usedSlots = usedSlotsTemp;
+
+        // message 1 — opener
+        sendAuroraMessage(player, "I took a look through your inventory. A few things caught my attention.");
+
+        // message 2 — primary resource comment (2s)
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (diamondCount >= 5) {
+                    sendAuroraMessage(player, diamondCount + " diamonds. You could have a full set of tools and still have some left. What are you waiting for?");
+                } else if (diamondCount >= 3) {
+                    sendAuroraMessage(player, "You've got " + diamondCount + " diamonds. That's enough for a pickaxe or a sword, worth crafting before something happens to them.");
+                } else if (ironCount >= 9) {
+                    sendAuroraMessage(player, ironCount + " iron ingots. You've got enough for a full set of iron tools. Might be time to upgrade. Just a thought.");
+                } else if (ironCount >= 3) {
+                    sendAuroraMessage(player, "You've got " + ironCount + " iron ingots, enough for a pickaxe if you haven't made one.");
+                } else if (woodCount >= 12) {
+                    sendAuroraMessage(player, "You're carrying " + woodCount + " planks. That's a lot. A chest or two would clear some space. That is, if you built shelter like I recommended at the start.");
+                } else if (coalCount >= 8) {
+                    sendAuroraMessage(player, coalCount + " coal. You've got enough torches to light up a whole cave system.");
+                } else if (goldCount >= 4) {
+                    sendAuroraMessage(player, "You've got " + goldCount + " gold ingots. Not the most useful material, but a golden apple might be worth keeping in mind.");
+                } else {
+                    sendAuroraMessage(player, "Resources are a bit thin right now. Might be worth a mining run before you go much further.");
+                }
+            }
+        }, 2000);
+
+        // message 3 — food check (4.5s)
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (foodCount == 0) {
+                    sendAuroraMessage(player, "No food at all. That's genuinely dangerous, you'll stop regenerating if your hunger gets too low, not to mention you might lose the ability to sprint..");
+                } else if (foodCount < 3) {
+                    sendAuroraMessage(player, "Only " + foodCount + " food item" + (foodCount == 1 ? "" : "s") + ". That won't last long. I'd stock up before continuing. Up to you.");
+                } else if (foodCount >= 10) {
+                    sendAuroraMessage(player, "Food situation is solid — " + foodCount + " items. You're well prepared.");
+                } else {
+                    sendAuroraMessage(player, "You've got " + foodCount + " food items. Enough for now, but worth keeping an eye on.");
+                }
+            }
+        }, 4500);
+
+        // message 4 — tool / combat check (7s)
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (!hasSword && !hasPickaxe) {
+                    sendAuroraMessage(player, "No sword and no pickaxe. You're pretty exposed out there.");
+                } else if (!hasSword) {
+                    sendAuroraMessage(player, "No sword in your inventory. If something catches you off guard you're not in a great position.");
+                } else if (!hasPickaxe) {
+                    sendAuroraMessage(player, "You've got a sword but no pickaxe. You'll hit a wall pretty quickly without one.");
+                } else if (!hasArmour) {
+                    sendAuroraMessage(player, "Decent tools but no armour. One creeper behind you and it's GGs.");
+                } else {
+                    sendAuroraMessage(player, "Tools and armour look good. You're reasonably prepared.");
+                }
+            }
+        }, 7000);
+
+        // message 5 — secondary observation (9.5s)
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (hasBow && arrowCount == 0) {
+                    sendAuroraMessage(player, "You've got a bow with no arrows. Worth noting, a bow with nothing to fire is just an inventory slot being wasted.");
+                } else if (hasBow && arrowCount > 0) {
+                    sendAuroraMessage(player, "Bow and " + arrowCount + " arrows. Pretty solid. Ranged options are underrated.");
+                } else if (torchCount == 0 && coalCount > 0 && stickCount >= 1) {
+                    sendAuroraMessage(player, "You've got coal and sticks but no torches. You could craft some right now, or save them for fuel and tools.");
+                } else if (torchCount > 0 && torchCount < 5) {
+                    sendAuroraMessage(player, "Only " + torchCount + " torch" + (torchCount == 1 ? "" : "es") + ". If you're planning to go underground, that won't go far.");
+                } else if (stringCount >= 3 && stickCount >= 3 && !hasBow) {
+                    sendAuroraMessage(player, "You've got enough string and sticks to craft a bow. Might be useful.");
+                } else if (emeraldCount >= 1) {
+                    sendAuroraMessage(player, "You've got " + emeraldCount + " emerald" + (emeraldCount == 1 ? "" : "s") + ". Find a village, those are worth trading.");
+                } else if (redstoneCount >= 16) {
+                    sendAuroraMessage(player, redstoneCount + " redstone. That's enough to start experimenting with basic circuits if you're interested, unlike CqllMeToxic who can't make a redstone clock if his life depended on it.");
+                } else if (lapisCount >= 3) {
+                    sendAuroraMessage(player, lapisCount + " lapis lazuli. Useful once you've got an enchanting table set up.");
+                } else if (!hasCraftingTable && woodCount >= 4) {
+                    sendAuroraMessage(player, "No crafting table on you. With that wood you could make one to carry. Who doesn't have at least 2 crafting tables on them at all times?.");
+                } else {
+                    sendAuroraMessage(player, "Nothing else jumping out at me. Inventory's in reasonable shape.");
+                }
+            }
+        }, 9500);
+
+        // message 6 — inventory fullness + sign-off (12s)
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                double fullness = (double) usedSlots / totalSlots * 100;
+                if (fullness >= 90) {
+                    sendAuroraMessage(player, "Your inventory is almost full by the way — " + usedSlots + "/" + totalSlots + " slots used. You might want to sort that out.");
+                } else if (fullness >= 70) {
+                    sendAuroraMessage(player, usedSlots + " out of " + totalSlots + " slots used. Getting crowded. A chest might be worth it soon.");
+                } else {
+                    sendAuroraMessage(player, usedSlots + "/" + totalSlots + " slots used. Plenty of room still.");
+                }
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendAuroraMessage(player, "Anyway. I'll keep watching. Let me know if you need anything.");
+                    }
+                }, 2000);
+            }
+        }, 12000);
+    }
+
+    // actually fucking abysmal bro i am never touching this again
+
+
+    // event 15: signing off - aurora announces she's stepping back, unprompted
+    public static void triggerEvent15(ServerPlayerEntity player) {
+        String playerName = player.getName().getString();
+
+        // you prolly would be glad to see this since aurora lowkey annoying af lol but something is slightly off if you're paying attention
+        sendAuroraMessage(player, "I'll step back for a bit. You don't need me hovering.");
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendAuroraMessage(player, "You've been doing well, " + playerName + ". Better than most.");
+            }
+        }, 3000);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // sounds like a normal sign-off. the word "yet" is doing a lot of work.
+                sendAuroraMessage(player, "I haven't needed to intervene yet.");
+            }
+        }, 6000);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // pause, then one more. reads as reassuring. but lwk isn't.
+                sendAuroraMessage(player, "I'll be here when that changes, which will be very soon.");
+            }
+        }, 9500);
+    }
+
     // main trigger method that routes to specific events
     public static void triggerEvent(int eventId, ServerPlayerEntity player) {
         switch (eventId) {
@@ -1114,11 +1373,15 @@ public class AuroraEvents {
             case 8 -> triggerEvent8(player);
             case 9 -> triggerEvent9(player);
             case 10 -> triggerEvent10(player);
+            case 11 -> triggerEvent11(player);
+            case 12 -> triggerEvent12(player);
+            case 13 -> triggerEvent13(player);
+            case 14 -> triggerEvent14(player);
+            case 15 -> triggerEvent15(player);
             default -> triggerEvent1(player);
         }
     }
 
-    // add the missing method that auroracommands is looking for
     public static void triggerRandomNiceEvent(ServerPlayerEntity player) {
         int randomEvent = (int)(Math.random() * 10) + 1;
         triggerEvent(randomEvent, player);
@@ -1144,14 +1407,14 @@ public class AuroraEvents {
                     return cpuLoad * 100.0;
                 }
 
-                // use getcpuload() instead of deprecated getsystemcpuload()
+                // use getCpuLoad()
                 try {
                     double systemCpuLoad = sunOsBean.getCpuLoad();
                     if (systemCpuLoad >= 0) {
                         return systemCpuLoad * 100.0;
                     }
                 } catch (Exception e) {
-                    // if getcpuload() is not available, fall back to system load average
+                    // if getCpuLoad() is not available, fall back to system load average
                     NullPointerEntity.LOGGER.debug("CPU load method not available, using fallback");
                 }
             }
@@ -1433,7 +1696,7 @@ public class AuroraEvents {
             return "Social media data randomized due to privacy settings";
         }
 
-        // instead of fake social media stats, analyze actual behavior patterns
+        // analyze actual behavior patterns
         StringBuilder report = new StringBuilder();
 
         // get actual system time to determine usage patterns

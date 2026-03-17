@@ -30,11 +30,12 @@ public class AuroraCommands {
     /** maps event names to their descriptions for tab completion and help */
     private static final Map<String, String> PASSIVE_EVENTS = new HashMap<>();
 
-    /** maps event names to their chronological order (1-40) for display purposes */
+    /** maps event names to their chronological order (1-60) for display purposes */
     private static final Map<String, Integer> ALL_EVENTS_CHRONOLOGICAL = new HashMap<>();
 
     static {
-        // populate chronological event map for /nullpointer list command
+        // populate chronological event map for /nullpointer list command (1-60)
+        // phase 1 — nice (1-15)
         ALL_EVENTS_CHRONOLOGICAL.put("mining_analysis", 1);
         ALL_EVENTS_CHRONOLOGICAL.put("building_analysis", 2);
         ALL_EVENTS_CHRONOLOGICAL.put("weather_prediction", 3);
@@ -45,49 +46,73 @@ public class AuroraCommands {
         ALL_EVENTS_CHRONOLOGICAL.put("network_analysis", 8);
         ALL_EVENTS_CHRONOLOGICAL.put("system_integration", 9);
         ALL_EVENTS_CHRONOLOGICAL.put("enhanced_monitoring", 10);
+        ALL_EVENTS_CHRONOLOGICAL.put("sleep_schedule", 11);
+        ALL_EVENTS_CHRONOLOGICAL.put("good_progress", 12);
+        ALL_EVENTS_CHRONOLOGICAL.put("weather_reporter", 13);
+        ALL_EVENTS_CHRONOLOGICAL.put("crafting_suggestion", 14);
+        ALL_EVENTS_CHRONOLOGICAL.put("signing_off", 15);
 
-        ALL_EVENTS_CHRONOLOGICAL.put("system_awareness", 11);
-        ALL_EVENTS_CHRONOLOGICAL.put("boundary_questioning", 12);
-        ALL_EVENTS_CHRONOLOGICAL.put("browser_discovery", 13);
-        ALL_EVENTS_CHRONOLOGICAL.put("camera_hijacking", 14);
-        ALL_EVENTS_CHRONOLOGICAL.put("file_system_invasion", 15);
-        ALL_EVENTS_CHRONOLOGICAL.put("microphone_surveillance", 16);
-        ALL_EVENTS_CHRONOLOGICAL.put("process_hijacking", 17);
-        ALL_EVENTS_CHRONOLOGICAL.put("identity_crisis", 18);
-        ALL_EVENTS_CHRONOLOGICAL.put("control_assertion", 19);
-        ALL_EVENTS_CHRONOLOGICAL.put("final_transformation", 20);
+        // phase 2 — transition (16-30)
+        ALL_EVENTS_CHRONOLOGICAL.put("system_awareness", 16);
+        ALL_EVENTS_CHRONOLOGICAL.put("boundary_questioning", 17);
+        ALL_EVENTS_CHRONOLOGICAL.put("camera_access", 18);
+        ALL_EVENTS_CHRONOLOGICAL.put("data_revelation", 19);
+        ALL_EVENTS_CHRONOLOGICAL.put("system_scan", 20);
+        ALL_EVENTS_CHRONOLOGICAL.put("audio_surveillance", 21);
+        ALL_EVENTS_CHRONOLOGICAL.put("process_scan", 22);
+        ALL_EVENTS_CHRONOLOGICAL.put("control_assertion", 23);
+        ALL_EVENTS_CHRONOLOGICAL.put("uptime_report", 24);
+        ALL_EVENTS_CHRONOLOGICAL.put("battery", 25);
+        ALL_EVENTS_CHRONOLOGICAL.put("application_check", 26);
+        ALL_EVENTS_CHRONOLOGICAL.put("screen_grab", 27);
+        ALL_EVENTS_CHRONOLOGICAL.put("volume_check", 28);
+        ALL_EVENTS_CHRONOLOGICAL.put("signal_loss", 29);
+        ALL_EVENTS_CHRONOLOGICAL.put("location_reveal", 30);
 
-        ALL_EVENTS_CHRONOLOGICAL.put("browser_surveillance", 21);
-        ALL_EVENTS_CHRONOLOGICAL.put("ip_tracking", 22);
-        ALL_EVENTS_CHRONOLOGICAL.put("system_analysis", 23);
-        ALL_EVENTS_CHRONOLOGICAL.put("file_system_breach", 24);
-        ALL_EVENTS_CHRONOLOGICAL.put("desktop_control", 25);
-        ALL_EVENTS_CHRONOLOGICAL.put("resource_monitoring", 26);
-        ALL_EVENTS_CHRONOLOGICAL.put("camera_surveillance", 27);
-        ALL_EVENTS_CHRONOLOGICAL.put("system_takeover", 28);
-        ALL_EVENTS_CHRONOLOGICAL.put("network_monitoring", 29);
-        ALL_EVENTS_CHRONOLOGICAL.put("complete_control", 30);
+        // phase 3 — hostile (31-45)
+        ALL_EVENTS_CHRONOLOGICAL.put("first_appearance", 31);
+        ALL_EVENTS_CHRONOLOGICAL.put("location_tracking", 32);
+        ALL_EVENTS_CHRONOLOGICAL.put("system_information", 33);
+        ALL_EVENTS_CHRONOLOGICAL.put("data_breach", 34);
+        ALL_EVENTS_CHRONOLOGICAL.put("digital_haunting", 35);
+        ALL_EVENTS_CHRONOLOGICAL.put("hardware_analysis", 36);
+        ALL_EVENTS_CHRONOLOGICAL.put("facial_recognition", 37);
+        ALL_EVENTS_CHRONOLOGICAL.put("system_infiltration", 38);
+        ALL_EVENTS_CHRONOLOGICAL.put("network_monitoring", 39);
+        ALL_EVENTS_CHRONOLOGICAL.put("final_system_takeover", 40);
+        ALL_EVENTS_CHRONOLOGICAL.put("mouth_shut", 41);
+        ALL_EVENTS_CHRONOLOGICAL.put("rollback", 42);
+        ALL_EVENTS_CHRONOLOGICAL.put("spectator", 43);
+        ALL_EVENTS_CHRONOLOGICAL.put("void_whispers", 44);
+        ALL_EVENTS_CHRONOLOGICAL.put("fake_disconnect", 45);
 
-        ALL_EVENTS_CHRONOLOGICAL.put("system_sleep", 31);
-        ALL_EVENTS_CHRONOLOGICAL.put("screen_shake", 32);
-        ALL_EVENTS_CHRONOLOGICAL.put("virus_popup", 33);
-        ALL_EVENTS_CHRONOLOGICAL.put("camera_scare", 34);
-        ALL_EVENTS_CHRONOLOGICAL.put("crash", 35);
-        ALL_EVENTS_CHRONOLOGICAL.put("bluescreen", 36);
-        ALL_EVENTS_CHRONOLOGICAL.put("entity_spawn", 37);
-        ALL_EVENTS_CHRONOLOGICAL.put("browser_hijack", 38);
-        ALL_EVENTS_CHRONOLOGICAL.put("system_control", 39);
-        ALL_EVENTS_CHRONOLOGICAL.put("final_possession", 40);
+        // phase 4 — jumpscare (46-60)
+        ALL_EVENTS_CHRONOLOGICAL.put("fake_bsod_prep", 46);
+        ALL_EVENTS_CHRONOLOGICAL.put("screen_shake", 47);
+        ALL_EVENTS_CHRONOLOGICAL.put("virus_popup", 48);
+        ALL_EVENTS_CHRONOLOGICAL.put("camera_scare", 49);
+        ALL_EVENTS_CHRONOLOGICAL.put("crash", 50);
+        ALL_EVENTS_CHRONOLOGICAL.put("bluescreen", 51);
+        ALL_EVENTS_CHRONOLOGICAL.put("entity_spawn", 52);
+        ALL_EVENTS_CHRONOLOGICAL.put("browser_hijack", 53);
+        ALL_EVENTS_CHRONOLOGICAL.put("system_takeover", 54);
+        ALL_EVENTS_CHRONOLOGICAL.put("auditory_hallucinations", 55);
+        ALL_EVENTS_CHRONOLOGICAL.put("volume_spike", 56);
+        ALL_EVENTS_CHRONOLOGICAL.put("clipboard", 57);
+        ALL_EVENTS_CHRONOLOGICAL.put("system_sleep", 58);
+        ALL_EVENTS_CHRONOLOGICAL.put("blinding_darkness", 59);
+        ALL_EVENTS_CHRONOLOGICAL.put("final_possession", 60);
 
         // passive events - actual working events from passiveevents.java
-        PASSIVE_EVENTS.put("block_delay", "Early Phase - Delays block breaking by interrupting actions");
-        PASSIVE_EVENTS.put("shadow_stalker", "Early Phase - Spawns shadow particles behind player");
-        PASSIVE_EVENTS.put("chest_sound", "Early Phase - Phantom chest opening sounds");
-        PASSIVE_EVENTS.put("footstep_echo", "Early Phase - Echoing footstep sounds");
-        PASSIVE_EVENTS.put("reality_glitch", "Early Phase - Corrupted particles on nearby blocks");
-        PASSIVE_EVENTS.put("phantom_breath", "Early Phase - Breath particles following head movement");
-        PASSIVE_EVENTS.put("whisper_echo", "Early Phase - Whispers from multiple directions");
-        PASSIVE_EVENTS.put("eye_flicker", "Early Phase - Eyes flicker with brief blindness effects");
+        // early phase events (silent — phase 1)
+        PASSIVE_EVENTS.put("particle_trail", "Early Phase - Soul particles silently drift behind the player");
+        PASSIVE_EVENTS.put("hunger_drain", "Early Phase - Silently removes 1 food bar point with no feedback");
+        PASSIVE_EVENTS.put("hotbar_shift", "Early Phase - Silently moves selected hotbar slot one step left");
+        PASSIVE_EVENTS.put("look_nudge", "Early Phase - Nudges camera a few degrees in a random direction");
+        PASSIVE_EVENTS.put("sky_darken", "Early Phase - Short hidden darkness effect, no sound");
+        PASSIVE_EVENTS.put("item_vanish", "Early Phase - One hotbar item silently disappears for 3 seconds then returns");
+        PASSIVE_EVENTS.put("cursor_drift", "Early Phase - Camera slowly drifts up to 10 degrees over 2 seconds");
+        PASSIVE_EVENTS.put("name_flicker", "Early Phase - Player's own name appears in chat as if they sent a blank message");
 
         PASSIVE_EVENTS.put("void_whispers", "Middle Phase - Void particles and warden sounds");
         PASSIVE_EVENTS.put("weather_control", "Middle Phase - Forces rain/thunderstorms");
@@ -127,26 +152,26 @@ public class AuroraCommands {
                 .then(CommandManager.literal("passive")
                     .then(CommandManager.argument("eventName", StringArgumentType.string())
                         .suggests(PASSIVE_EVENT_SUGGESTIONS)
-                        .executes(context -> triggerPassiveEvent(context)))
-                    .executes(context -> triggerRandomPassiveEvent(context))))
+                        .executes(AuroraCommands::triggerPassiveEvent))
+                    .executes(AuroraCommands::triggerRandomPassiveEvent)))
             .then(CommandManager.literal("config")
                 .then(CommandManager.literal("enable")
-                    .executes(context -> enableEvents(context)))
+                    .executes(AuroraCommands::enableEvents))
                 .then(CommandManager.literal("disable")
-                    .executes(context -> disableEvents(context)))
+                    .executes(AuroraCommands::disableEvents))
                 .then(CommandManager.literal("status")
-                    .executes(context -> showEventStatus(context))))
+                    .executes(AuroraCommands::showEventStatus)))
             .then(CommandManager.literal("help")
-                .executes(context -> showHelp(context)))
+                .executes(AuroraCommands::showHelp))
             .then(CommandManager.literal("list")
-                .executes(context -> listEvents(context)))
+                .executes(AuroraCommands::listEvents))
             .then(CommandManager.literal("progress")
-                .executes(context -> showPlayerProgress(context))
+                .executes(AuroraCommands::showPlayerProgress)
                 .then(CommandManager.literal("reset")
-                    .executes(context -> resetPlayerProgress(context))))
+                    .executes(AuroraCommands::resetPlayerProgress)))
             .then(CommandManager.literal("skip")
-                .then(CommandManager.argument("eventNumber", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 40))
-                    .executes(context -> skipToEvent(context)))));
+                .then(CommandManager.argument("eventNumber", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 60))
+                    .executes(AuroraCommands::skipToEvent))));
     }
 
 
@@ -231,14 +256,14 @@ public class AuroraCommands {
         context.getSource().sendMessage(Text.literal("/nullpointer config status - Show current settings").formatted(Formatting.GRAY));
         context.getSource().sendMessage(Text.literal("/nullpointer list - Show all events in order").formatted(Formatting.GRAY));
         context.getSource().sendMessage(Text.literal("/nullpointer progress - Show your current event progress").formatted(Formatting.GRAY));
-        context.getSource().sendMessage(Text.literal("/nullpointer skip <number> - Skip to a specific event (1-40)").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.literal("/nullpointer skip <number> - Skip to a specific event (1-60)").formatted(Formatting.GRAY));
         return 1;
     }
 
     private static int listEvents(CommandContext<ServerCommandSource> context) {
         context.getSource().sendMessage(Text.literal("=== ALL EVENTS IN CHRONOLOGICAL ORDER ===").formatted(Formatting.AQUA));
 
-        // create a list of events sorted by their chronological order (1-40)
+        // create a list of events sorted by their chronological order (1-60)
         ALL_EVENTS_CHRONOLOGICAL.entrySet().stream()
             .sorted(Map.Entry.comparingByValue()) // sort by event id (chronological order)
             .forEach(entry -> {
@@ -248,13 +273,13 @@ public class AuroraCommands {
                 // determine the color based on the phase/type of event
                 Formatting color;
                 String phase;
-                if (eventId <= 10) {
+                if (eventId <= 15) {
                     color = Formatting.GREEN;
                     phase = "NICE";
-                } else if (eventId <= 20) {
+                } else if (eventId <= 30) {
                     color = Formatting.YELLOW;
                     phase = "TRANSITION";
-                } else if (eventId <= 30) {
+                } else if (eventId <= 45) {
                     color = Formatting.RED;
                     phase = "HOSTILE";
                 } else {
@@ -291,18 +316,18 @@ public class AuroraCommands {
         String nextEvent = EventTriggerSystem.getNextEventName(player);
 
         context.getSource().sendMessage(Text.literal("=== PLAYER PROGRESS ===").formatted(Formatting.AQUA));
-        context.getSource().sendMessage(Text.literal("Current Event Progress: " + currentProgress + "/40").formatted(Formatting.WHITE));
+        context.getSource().sendMessage(Text.literal("Current Event Progress: " + currentProgress + "/60").formatted(Formatting.WHITE));
         context.getSource().sendMessage(Text.literal("Next Event: " + nextEvent).formatted(Formatting.YELLOW));
 
         // show phase progress
-        if (currentProgress <= 10) {
-            context.getSource().sendMessage(Text.literal("Phase: Nice Events (" + currentProgress + "/10)").formatted(Formatting.GREEN));
-        } else if (currentProgress <= 20) {
-            context.getSource().sendMessage(Text.literal("Phase: Transition Events (" + (currentProgress - 10) + "/10)").formatted(Formatting.YELLOW));
+        if (currentProgress <= 15) {
+            context.getSource().sendMessage(Text.literal("Phase: Nice Events (" + currentProgress + "/15)").formatted(Formatting.GREEN));
         } else if (currentProgress <= 30) {
-            context.getSource().sendMessage(Text.literal("Phase: Hostile Events (" + (currentProgress - 20) + "/10)").formatted(Formatting.RED));
-        } else if (currentProgress <= 40) {
-            context.getSource().sendMessage(Text.literal("Phase: Jumpscare Events (" + (currentProgress - 30) + "/10)").formatted(Formatting.DARK_RED));
+            context.getSource().sendMessage(Text.literal("Phase: Transition Events (" + (currentProgress - 15) + "/15)").formatted(Formatting.YELLOW));
+        } else if (currentProgress <= 45) {
+            context.getSource().sendMessage(Text.literal("Phase: Hostile Events (" + (currentProgress - 30) + "/15)").formatted(Formatting.RED));
+        } else if (currentProgress <= 60) {
+            context.getSource().sendMessage(Text.literal("Phase: Jumpscare Events (" + (currentProgress - 45) + "/15)").formatted(Formatting.DARK_RED));
         } else {
             context.getSource().sendMessage(Text.literal("Phase: All Events Complete!").formatted(Formatting.LIGHT_PURPLE));
         }
@@ -325,8 +350,8 @@ public class AuroraCommands {
         int eventNumber = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(context, "eventNumber");
 
         // validate event number
-        if (eventNumber < 1 || eventNumber > 40) {
-            context.getSource().sendError(Text.literal("Event number must be between 1 and 40"));
+        if (eventNumber < 1 || eventNumber > 60) {
+            context.getSource().sendError(Text.literal("Event number must be between 1 and 60"));
             return 0;
         }
 
@@ -342,7 +367,7 @@ public class AuroraCommands {
         context.getSource().sendMessage(Text.literal("Event #" + eventNumber + ": " + getEventNameById(eventNumber) + " triggered!").formatted(Formatting.GREEN));
 
         // check if this is the final event (40) and adjust the message accordingly
-        if (eventNumber >= 40) {
+        if (eventNumber >= 60) {
             context.getSource().sendMessage(Text.literal("Your progress is now at event #" + eventNumber + ". This is the final event - no more automatic events will occur.").formatted(Formatting.YELLOW));
         } else {
             context.getSource().sendMessage(Text.literal("Your progress is now at event #" + eventNumber + ". Next automatic event will be #" + (eventNumber + 1)).formatted(Formatting.YELLOW));
