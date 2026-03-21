@@ -19,6 +19,7 @@ public class PrivacyScreen extends Screen {
     private boolean privacyEnabled;
     private javax.sound.sampled.Mixer.Info[] availableMicrophones;
     private int selectedMicrophoneIndex = 0;
+    private int originalGuiScale = -999;
 
     /**
      * creates a new privacy configuration screen.
@@ -47,6 +48,15 @@ public class PrivacyScreen extends Screen {
 
     @Override
     protected void init() {
+        if (this.originalGuiScale == -999 && this.client != null) {
+            this.originalGuiScale = this.client.options.getGuiScale().getValue();
+        }
+
+        if (this.client != null && this.client.options.getGuiScale().getValue() != 3) {
+            this.client.options.getGuiScale().setValue(3);
+            return;
+        }
+
         super.init();
 
         if (this.client != null && this.client.mouse != null) {
@@ -228,7 +238,7 @@ public class PrivacyScreen extends Screen {
             if (availableMicrophones.length == 0) {
                 context.drawCenteredTextWithShadow(this.textRenderer, "No microphones detected! Audio events may be silent.", centerX, currentY, 0xFF5555);
             } else {
-                context.drawCenteredTextWithShadow(this.textRenderer, "Click the button above to cycle through available microphones.", centerX, currentY, 0xAAFFAA);
+                context.drawCenteredTextWithShadow(this.textRenderer, "Click the button below to cycle through available microphones.", centerX, currentY, 0xAAFFAA);
             }
             currentY += 60; // extra space before final instruction
 
@@ -261,6 +271,11 @@ public class PrivacyScreen extends Screen {
 
     @Override
     public void close() {
+        if (this.originalGuiScale != -999 && this.client != null && this.client.options.getGuiScale().getValue() != this.originalGuiScale) {
+            this.client.options.getGuiScale().setValue(this.originalGuiScale);
+            this.client.options.write();
+        }
+
         // ensure cursor is unlocked when closing
         if (this.client != null && this.client.mouse != null) {
             this.client.mouse.unlockCursor();
