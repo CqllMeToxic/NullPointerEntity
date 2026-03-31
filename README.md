@@ -4,7 +4,7 @@
 
 **I HIGHLY recommend playing this on the Vanilla launcher, Feather, or Lunar Client. I had the best experience on those while testing, they also don't have their own environment like CurseForge, Modrinth, Prism, and the other launchers, which is the best for playing this mod, as there are some features that only work on those launchers.**
 
-Drop a <3 if you enjoyed! :)
+Drop a ⭐️ if you enjoyed! :)
 
 ETA for v4.0.0: Probably a few months, theres a lot to do including supporting multiple languages that I do not speak, multiplayer compatibility, and microphone support so you can talk to the entities using your mic. Thank you for your patience and understanding <3
 
