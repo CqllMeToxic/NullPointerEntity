@@ -1,10 +1,12 @@
-<div align="center">
+**<div align="center">
 
 # NullPointerEntity
 
 **I HIGHLY recommend playing this on the Vanilla launcher, Feather, or Lunar Client. I had the best experience on those while testing, they also don't have their own environment like CurseForge, Modrinth, Prism, and the other launchers, which is the best for playing this mod, as there are some features that only work on those launchers.**
 
-Drop a ⭐️ if you enjoyed! :)
+Drop a <3 if you enjoyed! :)
+
+ETA for v4.0.0: Probably a few months, theres a lot to do including supporting multiple languages that I do not speak, multiplayer compatibility, and microphone support so you can talk to the entities using your mic. Thank you for your patience and understanding <3
 
 This is my first mod, I have not coded in Java in 5+ years, so please go easy on me if there are any bugs or issues. I will fix them as soon as I can. Thank you for understanding.
 
@@ -28,6 +30,10 @@ Thank you, **Pryzmm** (Creator of [Split Self](https://modrinth.com/mod/split-se
 
 # DISCLAIMER:
 **Do NOT play the mod with any packs that interfere with the rain texture.**
+
+**Your world will be at the end of the story.**
+
+**Make sure your world name does not have any commas. If it does, your progress won't save.**
 
 </div>
 
@@ -77,7 +83,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - If the `mods` folder doesn't exist, create it
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.0.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
     - Place it in your `.minecraft/mods` folder alongside Fabric API
 
 4. **Launch the Game**
@@ -106,7 +112,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install version **0.119.4+** for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click your profile → **"Open Folder"**
     - Place the mod file in the `mods` folder
 
@@ -133,7 +139,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install the latest version for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - In Modrinth, click your profile → **"Open folder"** → **"mods"**
     - Place the mod file in the `mods` folder
 
@@ -161,7 +167,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Search **"Fabric API"** and install version for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click instance → **"Minecraft Folder"**
     - Place the mod in the `mods` folder
 
@@ -189,7 +195,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Search **"Fabric API"** on Modrinth and install for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click instance → **"Minecraft Folder"** → **"mods"**
     - Place the mod file there
 
@@ -213,7 +219,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - From here, you can either drag and drop the mod, or you can click the little blue folder icon to open the mods folder.
 
 3. **Install Mods**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place the mod file in the mods folder or drag and drop it into the Lunar Client mods window
 
 4. **Launch**
@@ -231,7 +237,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Click on your profile settings → **"Open Mods Folder"**
 
 2. **Install Mods**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place file in the mods folder
 
 3. **Launch**
@@ -254,7 +260,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Right-click instance → **"Open Folder"**
     - Navigate to the `mods` folder (create if needed)
     - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4)
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place both files in the `mods` folder
 
 3. **Play**
@@ -280,7 +286,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install version 0.119.4+ for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Click instance → **"Mods"** → **"Add Mod"** → **"From File"**
     - Select the downloaded mod file
 
@@ -687,17 +693,17 @@ But if you're ready to see what happens when an AI assistant decides she's done 
 
 ## 🗺️ Roadmap
 
-- [❌] Implement additional chat keywords and responses
-- [❌] Add phase-specific ambient sounds
+- [✅] Implement additional chat keywords and responses
+- [✅] Add phase-specific ambient sounds
 - [WIP] Add more easter eggs and hidden dialogue
-- [❌] Optimize event timing and pacing
+- [✅] Optimize event timing and pacing
 - [❌] Add optional alternative endings based on player choices
-- [❌] Implement secret events triggered by specific actions
-- [❌] Improve compatibility with popular modpacks
-- [❌] Port to newer Minecraft versions (1.21.4+) (too buggy for now, will come in later updates, sorry </3)
-- [❌] Add Multiplayer mode
-- [❌] Add multiple language support
-- [❌] Integration with popular voice mod systems using Shriek
+- [✅] Implement secret events triggered by specific actions
+- [✅] Improve compatibility with popular modpacks
+- [WIP] Port to newer Minecraft versions (1.21.4+) (too buggy for now, will come in later updates, sorry </3)
+- [WIP] Add Multiplayer mode
+- [WIP] Add multiple language support
+- [WIP] Integration with popular voice mod systems using Shriek
 - [❌] Add functionality for the custom items
 - [❌] Add a second story line 👀
 
@@ -730,6 +736,29 @@ Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord!
   <img src="https://img.youtube.com/vi/AvXwgDV8APo/maxresdefault.jpg" />
 </a>
 
+
+
+**@InnerTai**:
+
+<a href="https://www.youtube.com/watch?v=uB6FsWzz8pU" target="_blank">
+  <img src="https://img.youtube.com/vi/uB6FsWzz8pU/maxresdefault.jpg" />
+</a>
+
+
+
+**@MisterRoyalty**:
+
+<a href="https://www.youtube.com/watch?v=FS_I3MfS6B4" target="_blank">
+  <img src="https://img.youtube.com/vi/FS_I3MfS6B4/maxresdefault.jpg" />
+</a>
+
+
+
+**@connor.craftt**:
+
+<a href="https://www.youtube.com/watch?v=ID0uN1qkZ3A" target="_blank">
+  <img src="https://img.youtube.com/vi/ID0uN1qkZ3A/maxresdefault.jpg" />
+</a>
 
 <div align="center">
 
