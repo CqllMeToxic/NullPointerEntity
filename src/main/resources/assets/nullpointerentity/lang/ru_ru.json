@@ -29,6 +29,8 @@
   "screen.nullpointerentity.privacy.microphone.fallback": "Микрофон #%s",
   "screen.nullpointerentity.privacy.microphone.current": "Микрофон: %s",
   "screen.nullpointerentity.privacy.final_instruction": "Переключите приватный режим и нажмите «Я понимаю», чтобы продолжить.",
+  "screen.nullpointerentity.shriek_download": "Download Shriek (Voice Recognition Mod)",
+  "screen.nullpointerentity.shriek_download.tooltip": "Open the Shriek download page (yes I copied Pryzmm)",
   "message.nullpointerentity.chat_prefix": "<NullPointerEntity> ",
   "message.nullpointerentity.chat_prefix.tight": "<NullPointerEntity>",
   "message.nullpointerentity.aurora_prefix": "<АВРОРА> ",
