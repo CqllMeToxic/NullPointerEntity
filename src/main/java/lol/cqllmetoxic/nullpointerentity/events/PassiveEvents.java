@@ -1,8 +1,10 @@
 package lol.cqllmetoxic.nullpointerentity.events;
 
 import lol.cqllmetoxic.nullpointerentity.NullPointerEntity;
-import lol.cqllmetoxic.nullpointerentity.client.BSoDOverlay;
 import lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager;
+import lol.cqllmetoxic.nullpointerentity.network.ServerNetworking;
+import lol.cqllmetoxic.nullpointerentity.network.payload.PassiveEffectsPayload;
+import lol.cqllmetoxic.nullpointerentity.util.MultiplayerDetection;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemStack;
@@ -11,7 +13,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -38,6 +42,11 @@ public class PassiveEvents {
     private static final int EVENT_HISTORY_SIZE = 5; // remember last 5 events
 
     private static final Map<UUID, PassiveEffectState> clientEffects = new ConcurrentHashMap<>();
+    /** last passive-effect snapshot pushed to each client, to avoid re-sending unchanged state */
+    private static final Map<UUID, PassiveEffectsPayload> lastSentEffects = new ConcurrentHashMap<>();
+    private static volatile long globalLastEventTime = 0L;
+    private static final Map<String, Long> globalEventCooldowns = new ConcurrentHashMap<>();
+    private static final LinkedList<String> globalEventHistory = new LinkedList<>();
 
     /**
      * stores active client-side effects for a player.
@@ -65,9 +74,166 @@ public class PassiveEvents {
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.getTicks() % 20 == 0) {
-                server.getPlayerManager().getPlayerList().forEach(PassiveEvents::processPlayerPassiveEvents);
+                if (MultiplayerDetection.isMultiplayerServer(server)) {
+                    processSharedPassiveEvents(server);
+                } else {
+                    server.getPlayerManager().getPlayerList().forEach(PassiveEvents::processPlayerPassiveEvents);
+                }
             }
+            // every tick: push each player's active passive effects to their OWN client, on change,
+            // so the client mixins apply them (the old direct read of this server state was host-only)
+            syncPassiveEffectsToClients(server);
         });
+    }
+
+    /** sends each online player their current passive-effect snapshot whenever it changes. */
+    private static void syncPassiveEffectsToClients(net.minecraft.server.MinecraftServer server) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            UUID id = player.getUuid();
+            PassiveEffectState state = clientEffects.get(id);
+            int flags = 0;
+            int tint = 0;
+            float mult = 1.0f;
+            if (state != null) {
+                if (state.inputInversion) flags |= PassiveEffectsPayload.INPUT_INVERSION;
+                if (state.movementLag) flags |= PassiveEffectsPayload.MOVEMENT_LAG;
+                if (state.gravityFluctuation) flags |= PassiveEffectsPayload.GRAVITY_FLUCTUATION;
+                if (state.blockBreakDelay) flags |= PassiveEffectsPayload.BLOCK_BREAK_DELAY;
+                if (state.cameraShake) flags |= PassiveEffectsPayload.CAMERA_SHAKE;
+                tint = ((state.screenTintRed & 0xFF) << 16) | ((state.screenTintGreen & 0xFF) << 8) | (state.screenTintBlue & 0xFF);
+                mult = state.mouseSensitivityMultiplier;
+            }
+            PassiveEffectsPayload snapshot = new PassiveEffectsPayload(flags, tint, mult);
+            if (!snapshot.equals(lastSentEffects.get(id))) {
+                lastSentEffects.put(id, snapshot);
+                ServerNetworking.sendPassiveEffects(player, flags, tint, mult);
+            }
+        }
+    }
+
+    private static void processSharedPassiveEvents(net.minecraft.server.MinecraftServer server) {
+        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
+        if (players.isEmpty()) {
+            return;
+        }
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - globalLastEventTime < MIN_EVENT_INTERVAL) {
+            return;
+        }
+
+        int phase = PersistentDataManager.getWorldData().currentEventPhase;
+        if (phase == 0) {
+            phase = 1;
+        }
+
+        double triggerChance = getPhaseEventChance(phase);
+        if (random.nextDouble() < triggerChance) {
+            triggerRandomSharedPassiveEvent(players, phase, currentTime);
+            globalLastEventTime = currentTime;
+        }
+    }
+
+    private static void triggerRandomSharedPassiveEvent(List<ServerPlayerEntity> players, int phase, long currentTime) {
+        switch (phase) {
+            case 1 -> triggerSharedPhaseEvent(players, currentTime, "early_phase", EARLY_PHASE_COOLDOWN,
+                new String[]{"particle_trail", "hunger_drain", "hotbar_shift", "look_nudge", "sky_darken", "item_vanish", "cursor_drift", "name_flicker"});
+            case 2 -> triggerSharedMiddlePhaseEvent(players, currentTime);
+            case 3 -> triggerSharedPhaseEvent(players, currentTime, "late_phase", LATE_PHASE_COOLDOWN,
+                new String[]{"movement_lag", "durability_drain", "chat_injection", "camera_shake", "fake_damage", "control_reversal", "entity_possession"});
+            case 4 -> triggerSharedFinalPhaseEvent(players, currentTime);
+            default -> triggerSharedPhaseEvent(players, currentTime, "early_phase", EARLY_PHASE_COOLDOWN,
+                new String[]{"particle_trail", "hunger_drain", "hotbar_shift", "look_nudge", "sky_darken", "item_vanish", "cursor_drift", "name_flicker"});
+        }
+    }
+
+    private static void triggerSharedPhaseEvent(List<ServerPlayerEntity> players, long currentTime, String phaseKey, long cooldown, String[] events) {
+        if (!canTriggerGlobalEvent(phaseKey, currentTime, cooldown)) {
+            return;
+        }
+
+        String selectedEvent = selectGlobalEventWithHistory(events);
+        if (selectedEvent == null) {
+            selectedEvent = events[random.nextInt(events.length)];
+        }
+
+        addGlobalEventToHistory(selectedEvent);
+        triggerEventForPlayers(selectedEvent, players);
+        setGlobalEventCooldown(phaseKey, currentTime);
+    }
+
+    private static void triggerSharedMiddlePhaseEvent(List<ServerPlayerEntity> players, long currentTime) {
+        if (!canTriggerGlobalEvent("middle_phase", currentTime, MIDDLE_PHASE_COOLDOWN)) {
+            return;
+        }
+
+        String[] events = {"void_whispers", "weather_control", "inventory_sort", "reality_shatter", "void_breach", "entity_mimic", "dimension_bleed", "false_death", "shadow_clone", "splitself"};
+        String selectedEvent = selectGlobalEventWithHistory(events);
+        if (selectedEvent == null) {
+            selectedEvent = events[random.nextInt(events.length)];
+        }
+
+        addGlobalEventToHistory(selectedEvent);
+        triggerEventForPlayers(selectedEvent, players);
+        setGlobalEventCooldown("middle_phase", currentTime);
+    }
+
+    private static void triggerSharedFinalPhaseEvent(List<ServerPlayerEntity> players, long currentTime) {
+        if (!canTriggerGlobalEvent("final_phase", currentTime, FINAL_PHASE_COOLDOWN)) {
+            return;
+        }
+
+        String selectedEvent;
+        if (random.nextDouble() < 0.05) {
+            selectedEvent = "chunk_deletion";
+        } else {
+            String[] normalEvents = {"mouse_sensitivity", "key_delay", "fake_lag", "bsod_threat", "reality_corruption"};
+            selectedEvent = selectGlobalEventWithHistory(normalEvents);
+            if (selectedEvent == null) {
+                selectedEvent = normalEvents[random.nextInt(normalEvents.length)];
+            }
+        }
+
+        addGlobalEventToHistory(selectedEvent);
+        triggerEventForPlayers(selectedEvent, players);
+        setGlobalEventCooldown("final_phase", currentTime);
+    }
+
+    private static void triggerEventForPlayers(String eventName, List<ServerPlayerEntity> players) {
+        for (ServerPlayerEntity player : players) {
+            triggerEvent(eventName, player);
+        }
+    }
+
+    private static boolean canTriggerGlobalEvent(String eventType, long currentTime, long cooldown) {
+        Long last = globalEventCooldowns.get(eventType);
+        return last == null || currentTime - last >= cooldown;
+    }
+
+    private static void setGlobalEventCooldown(String eventType, long currentTime) {
+        globalEventCooldowns.put(eventType, currentTime);
+    }
+
+    private static String selectGlobalEventWithHistory(String[] availableEvents) {
+        List<String> valid = new ArrayList<>();
+        for (String event : availableEvents) {
+            if (!globalEventHistory.contains(event)) {
+                valid.add(event);
+            }
+        }
+
+        if (valid.isEmpty()) {
+            return null;
+        }
+
+        return valid.get(random.nextInt(valid.size()));
+    }
+
+    private static void addGlobalEventToHistory(String eventName) {
+        globalEventHistory.addFirst(eventName);
+        while (globalEventHistory.size() > EVENT_HISTORY_SIZE) {
+            globalEventHistory.removeLast();
+        }
     }
 
     /**
@@ -278,10 +444,10 @@ public class PassiveEvents {
         NullPointerEntity.LOGGER.info("Sky darken triggered for player {}", player.getName().getString());
     }
 
-    // phase 1 silent event: prints the player's own name in chat as if they sent a message — then nothing
+    // phase 1 silent event: prints the player's own name in chat as if they sent a message - then nothing
     private static void triggerNameFlicker(ServerPlayerEntity player) {
         String name = player.getName().getString();
-        player.sendMessage(Text.literal("§f<" + name + "> §f"), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.name_flicker", name), false);
         NullPointerEntity.LOGGER.info("Name flicker triggered for player {}", player.getName().getString());
     }
 
@@ -384,7 +550,7 @@ public class PassiveEvents {
             }, i * 1200L);
         }
 
-        player.sendMessage(Text.literal("§7The void calls your name...").formatted(net.minecraft.util.Formatting.DARK_PURPLE), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.void_whispers").formatted(net.minecraft.util.Formatting.DARK_PURPLE), false);
         NullPointerEntity.LOGGER.info("Void whispers triggered for player {}", player.getName().getString());
     }
 
@@ -434,7 +600,7 @@ public class PassiveEvents {
             lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
             SoundCategory.HOSTILE, 0.6f, 0.7f);
 
-        player.sendMessage(Text.literal("§5§k||§r §dReality is thinning...§r §5§k||"), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.dimension_bleed"), false);
         NullPointerEntity.LOGGER.info("Dimension bleed triggered for player {}", player.getName().getString());
     }
 
@@ -446,11 +612,11 @@ public class PassiveEvents {
             SoundEvents.ENTITY_PLAYER_DEATH,
             SoundCategory.PLAYERS, 1.0f, 1.0f);
 
-        // trigger fake death screen on client (5 seconds duration)
-        NullPointerEntity.triggerFakeDeathScreen(5000L);
+        // trigger fake death screen on this player's client via packet.
+        ServerNetworking.sendFakeDeathEffect(player, 5000L);
 
         // show fake death message in chat
-        player.sendMessage(Text.literal("§f" + player.getName().getString() + " died"), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.false_death.line1", player.getName().getString()), false);
 
         // play respawn sound after screen closes
         new Timer().schedule(new TimerTask() {
@@ -458,7 +624,7 @@ public class PassiveEvents {
             public void run() {
                 world.playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE, SoundCategory.PLAYERS, 0.6f, 1.2f);
-                player.sendMessage(Text.literal("§8§o...or did you?"), true);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.false_death.line2").formatted(net.minecraft.util.Formatting.GRAY, net.minecraft.util.Formatting.ITALIC), true);
             }
         }, 5500); // after screen closes
 
@@ -499,7 +665,7 @@ public class PassiveEvents {
             }, step * 150L);
         }
 
-        player.sendMessage(Text.literal("§8§oWho the f*ck is behind you?"), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.shadow_clone").formatted(net.minecraft.util.Formatting.GRAY, net.minecraft.util.Formatting.ITALIC), true);
         NullPointerEntity.LOGGER.info("Shadow clone triggered for player {}", player.getName().getString());
     }
 
@@ -534,7 +700,7 @@ public class PassiveEvents {
             }
         }, 500);
 
-        player.sendMessage(Text.literal("§5§k||§r §d[REALITY SHATTER] Everything fractures...§r §5§k||").formatted(net.minecraft.util.Formatting.LIGHT_PURPLE), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.mirror_world").formatted(net.minecraft.util.Formatting.LIGHT_PURPLE), false);
         NullPointerEntity.LOGGER.info("Reality shatter triggered for player {}", player.getName().getString());
     }
 
@@ -595,7 +761,7 @@ public class PassiveEvents {
             }
         }, 1500);
 
-        player.sendMessage(Text.literal("§0§k||§r §8The void reaches for you...§r §0§k||"), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.void_breach").formatted(net.minecraft.util.Formatting.DARK_GRAY), false);
         NullPointerEntity.LOGGER.info("Void breach triggered for player {}", player.getName().getString());
     }
 
@@ -621,7 +787,7 @@ public class PassiveEvents {
             }, step * 1500L);
         }
 
-        player.sendMessage(Text.literal("§eWhat was that...?").formatted(net.minecraft.util.Formatting.YELLOW), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.entity_mimic").formatted(net.minecraft.util.Formatting.YELLOW), false);
         NullPointerEntity.LOGGER.info("Entity mimic triggered for player {}", player.getName().getString());
     }
 
@@ -653,7 +819,7 @@ public class PassiveEvents {
                 inventory.setStack(slot, ItemStack.EMPTY);
             }
 
-            // redistribute shuffled items to the same slots (but items are now randomized)
+            // redistribute shuffled items to the same slots (the item contents are randomized)
             for (int i = 0; i < occupiedSlots.size(); i++) {
                 inventory.setStack(occupiedSlots.get(i), items.get(i));
             }
@@ -665,7 +831,7 @@ public class PassiveEvents {
                 lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
                 SoundCategory.HOSTILE, 0.5f, 1.2f);
 
-            player.sendMessage(Text.literal("§4§k||§r §cYour inventory scrambles§r §4§k||"), false);
+            player.sendMessage(Text.translatable("event.nullpointerentity.passive.inventory_sort").formatted(net.minecraft.util.Formatting.RED), false);
             NullPointerEntity.LOGGER.info("Completely randomized inventory for player {} ({} items shuffled)",
                 player.getName().getString(), occupiedSlots.size());
         }
@@ -694,13 +860,13 @@ public class PassiveEvents {
             SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 0.3f, 1.5f);
 
         // phase 1: fake join message (yellow text like real join messages)
-        player.sendMessage(Text.literal("§e" + playerName + " joined the game"), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.splitself.join", playerName).formatted(net.minecraft.util.Formatting.YELLOW), false);
 
         // phase 2: first message - realization
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                player.sendMessage(Text.literal("§f<" + playerName + "> §fOh... wait... this isn't Split Self..."), false);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.splitself.msg1", playerName), false);
             }
         }, 1500);
 
@@ -708,7 +874,7 @@ public class PassiveEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                player.sendMessage(Text.literal("§f<" + playerName + "> §fSorry to bother..."), false);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.splitself.msg2", playerName), false);
             }
         }, 3000);
 
@@ -716,7 +882,7 @@ public class PassiveEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                player.sendMessage(Text.literal("§f<" + playerName + "> §fWelp, later!"), false);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.splitself.msg3", playerName), false);
             }
         }, 4500);
 
@@ -724,7 +890,7 @@ public class PassiveEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                player.sendMessage(Text.literal("§e" + playerName + " left the game"), false);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.splitself.leave", playerName).formatted(net.minecraft.util.Formatting.YELLOW), false);
 
                 // play subtle leave sound
                 world.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -820,7 +986,7 @@ public class PassiveEvents {
                 lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
                 SoundCategory.HOSTILE, 0.7f, 0.8f);
 
-            player.sendMessage(Text.literal("§4§k|||§r §4YOUR ITEMS DISINTEGRATE§r §4§k|||"), false);
+            player.sendMessage(Text.translatable("event.nullpointerentity.passive.durability_drain").formatted(net.minecraft.util.Formatting.DARK_RED), false);
         }
 
         NullPointerEntity.LOGGER.info("Triggered SEVERE item decay (100 durability) for player {}", player.getName().getString());
@@ -830,21 +996,22 @@ public class PassiveEvents {
         String playerName = player.getName().getString();
         ServerWorld world = (ServerWorld) player.getWorld();
 
-        String[] fakeMessages = {
-            "§8§o[" + playerName + " whispers to " + playerName + "] I can see you",
-            "§4§o<System> Player behavior anomaly detected: " + playerName,
-            "§5§o[???] " + playerName + "... I've been watching you play...",
-            "§8§o[Spectator] Why do you keep looking behind you, " + playerName + "?",
-            "§7§o[Server] Unusual player movement patterns detected for " + playerName,
-            "§4§o[WARNING] Player " + playerName + " location data: ACCESSIBLE",
-            "§8§o[Unknown] I know what you did in that cave, " + playerName + ".",
-            "§d§o<???> You're not alone in this world, " + playerName + ". I SEE YOU.",
-            "§7§o[System] Player " + playerName + " session is being recorded.",
-            "§4§o[Error] Could not find player " + playerName + "... but they're still here?"
+        int messageIndex = random.nextInt(10) + 1;
+        String messageKey = "event.nullpointerentity.passive.chat_injection.msg" + messageIndex;
+        MutableText message = messageIndex == 1
+            ? Text.translatable(messageKey, playerName, playerName)
+            : Text.translatable(messageKey, playerName);
+        // colour the message with a real text style, not just the §-codes in the value: §-codes are
+        // string-level and don't survive the %s substitution boundary, so the player name and everything
+        // after it would render white without this. a real root style propagates to the args too.
+        // index lines up with each msg1..msg10's §-code (§8/§4/§5/§8/§7/§4/§8/§d/§7/§4).
+        Formatting[] msgColors = {
+            Formatting.DARK_GRAY, Formatting.DARK_RED, Formatting.DARK_PURPLE, Formatting.DARK_GRAY,
+            Formatting.GRAY, Formatting.DARK_RED, Formatting.DARK_GRAY, Formatting.LIGHT_PURPLE,
+            Formatting.GRAY, Formatting.DARK_RED
         };
-
-        String message = fakeMessages[random.nextInt(fakeMessages.length)];
-        player.sendMessage(Text.literal(message), false);
+        message.formatted(msgColors[messageIndex - 1], Formatting.ITALIC);
+        player.sendMessage(message, false);
 
         // play custom whisper sound
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -852,7 +1019,7 @@ public class PassiveEvents {
             SoundCategory.HOSTILE, 0.5f, 0.9f);
 
         NullPointerEntity.LOGGER.info("Injected psychological chat message for player {}: {}",
-            playerName, message);
+            playerName, message.getString());
     }
 
     private static void triggerCameraShake(ServerPlayerEntity player) {
@@ -867,7 +1034,7 @@ public class PassiveEvents {
             lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_HEARTBEAT_TENSE,
             SoundCategory.HOSTILE, 0.8f, 1.0f);
 
-        player.sendMessage(Text.literal("§c§oEverything shakes..."), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.camera_shake.start").formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.ITALIC), true);
 
         // store original rotation
         final float[] originalYaw = {player.getYaw()};
@@ -887,7 +1054,7 @@ public class PassiveEvents {
                     player.setPitch(originalPitch[0]);
                     player.networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(),
                         originalYaw[0], originalPitch[0]);
-                    player.sendMessage(Text.literal("§8§o...stability restored"), true);
+                    player.sendMessage(Text.translatable("event.nullpointerentity.passive.camera_shake.end").formatted(net.minecraft.util.Formatting.GRAY, net.minecraft.util.Formatting.ITALIC), true);
                     cancel();
                     return;
                 }
@@ -937,7 +1104,7 @@ public class PassiveEvents {
         player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
             net.minecraft.entity.effect.StatusEffects.NAUSEA, 100, 0, false, false, false)); // hidden
 
-        player.sendMessage(Text.literal("§cYour head pounds..."), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.fake_damage").formatted(net.minecraft.util.Formatting.RED), true);
         NullPointerEntity.LOGGER.info("Fake damage triggered for player {}", player.getName().getString());
     }
 
@@ -953,7 +1120,7 @@ public class PassiveEvents {
             lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
             SoundCategory.HOSTILE, 0.6f, 0.9f);
 
-        player.sendMessage(Text.literal("§4§k||§r §cControls corrupted§r §4§k||"), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.control_reversal.start").formatted(net.minecraft.util.Formatting.RED), true);
 
         // reverse controls for exactly 10 seconds
         Timer timer = new Timer();
@@ -961,7 +1128,7 @@ public class PassiveEvents {
             @Override
             public void run() {
                 state.inputInversion = false;
-                player.sendMessage(Text.literal("§8§o...restored"), true);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.control_reversal.end").formatted(net.minecraft.util.Formatting.GRAY, net.minecraft.util.Formatting.ITALIC), true);
             }
         }, 10000); // exactly 10 seconds
 
@@ -972,7 +1139,7 @@ public class PassiveEvents {
         ServerWorld world = (ServerWorld) player.getWorld();
         BlockPos playerPos = player.getBlockPos();
 
-        player.sendMessage(Text.literal("§4§oSomething is taking control..."), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.vision_distortion").formatted(net.minecraft.util.Formatting.DARK_RED, net.minecraft.util.Formatting.ITALIC), true);
 
         // play possession sound
         world.playSound(null, playerPos, lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
@@ -1009,7 +1176,7 @@ public class PassiveEvents {
             @Override
             public void run() {
                 if (ticks >= 12) { // 6 seconds
-                    player.sendMessage(Text.literal("§8§o...control restored"), true);
+                    player.sendMessage(Text.translatable("event.nullpointerentity.passive.vision_distortion.end").formatted(net.minecraft.util.Formatting.GRAY, net.minecraft.util.Formatting.ITALIC), true);
                     cancel();
                     return;
                 }
@@ -1050,7 +1217,7 @@ public class PassiveEvents {
             selectedEvent = "chunk_deletion";
         } else {
             // select from other events (excluding chunk deletion) that wasn't in last 5
-            String[] normalEvents = {"mouse_sensitivity", "key_delay", "fake_lag", "bsod_threat", "reality_corruption", "full_control"};
+            String[] normalEvents = {"mouse_sensitivity", "key_delay", "fake_lag", "bsod_threat", "reality_corruption"};
             selectedEvent = selectEventWithHistory(player.getUuid(), normalEvents);
             if (selectedEvent == null) {
                 NullPointerEntity.LOGGER.warn("All final phase events were in recent history for player {}, selecting random", player.getName().getString());
@@ -1068,7 +1235,6 @@ public class PassiveEvents {
             case "bsod_threat" -> triggerBSoDThreat(player);
             case "chunk_deletion" -> triggerChunkDeletion(player);
             case "reality_corruption" -> triggerRealityCorruption(player);
-            case "full_control" -> triggerAuroraTakeover(player);
         }
 
         setEventCooldown(player, "final_phase", currentTime);
@@ -1087,7 +1253,7 @@ public class PassiveEvents {
             lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
             SoundCategory.HOSTILE, 0.5f, 1.0f);
 
-        player.sendMessage(Text.literal("§c[ERROR] Mouse input corrupted"), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.mouse_sensitivity", newSensitivity), true);
 
         // reset after 7-12 seconds
         Timer timer = new Timer();
@@ -1095,7 +1261,7 @@ public class PassiveEvents {
             @Override
             public void run() {
                 state.mouseSensitivityMultiplier = 1.0f;
-                player.sendMessage(Text.literal("§8§o...restored"), true);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.mouse_sensitivity.reset"), true);
             }
         }, 7000 + random.nextInt(5000));
 
@@ -1114,7 +1280,7 @@ public class PassiveEvents {
             lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
             SoundCategory.HOSTILE, 0.6f, 0.7f);
 
-        player.sendMessage(Text.literal("§4§k||§r §cInput lag detected§r §4§k||"), true);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.key_delay"), true);
 
         // store positions to create delay effect
         final Map<Integer, Vec3d> positionHistory = new HashMap<>();
@@ -1128,7 +1294,7 @@ public class PassiveEvents {
             public void run() {
                 if (ticks >= 40) { // 10 seconds at 250ms intervals
                     state.keyDelay = false;
-                    player.sendMessage(Text.literal("§8§o...input restored"), true);
+                    player.sendMessage(Text.translatable("event.nullpointerentity.passive.key_delay.end"), true);
                     cancel();
                     return;
                 }
@@ -1210,9 +1376,9 @@ public class PassiveEvents {
                 }
 
                 if (spikes == 0) {
-                    player.sendMessage(Text.literal("§c[Connection unstable]"), true);
+                    player.sendMessage(Text.translatable("event.nullpointerentity.passive.fake_lag.unstable").formatted(net.minecraft.util.Formatting.RED), true);
                 } else if (spikes == 6) {
-                    player.sendMessage(Text.literal("§c[Connection restored]"), true);
+                    player.sendMessage(Text.translatable("event.nullpointerentity.passive.fake_lag.restored").formatted(net.minecraft.util.Formatting.RED), true);
                 }
 
                 spikes++;
@@ -1225,10 +1391,10 @@ public class PassiveEvents {
     private static void triggerBSoDThreat(ServerPlayerEntity player) {
         // 10% chance to actually trigger a brief bsod, otherwise just threaten
         if (random.nextDouble() < 0.1) {
-            BSoDOverlay.show(2000); // 2 second bsod
+            player.sendMessage(Text.translatable("event.nullpointerentity.passive.bsod_threat.crashed").formatted(net.minecraft.util.Formatting.DARK_RED), false);
             NullPointerEntity.LOGGER.info("Triggered actual BSoD threat for player {}", player.getName().getString());
         } else {
-            player.sendMessage(Text.literal("§4[SYSTEM ERROR] §cMemory violation detected... §4standby"), false);
+            player.sendMessage(Text.translatable("event.nullpointerentity.passive.bsod_threat.warning").formatted(net.minecraft.util.Formatting.DARK_RED), false);
             NullPointerEntity.LOGGER.info("Triggered BSoD threat message for player {}", player.getName().getString());
         }
     }
@@ -1260,7 +1426,11 @@ public class PassiveEvents {
             SoundCategory.HOSTILE, 0.7f, 0.6f);
 
         // show correct coordinates (block coordinates of chunk origin)
-        player.sendMessage(Text.literal("§4§k|||§r §4[CRITICAL ERROR] Chunk deleted at X: " + blockX + " Z: " + blockZ + "§r §4§k|||"), false);
+        player.sendMessage(
+            Text.translatable("event.nullpointerentity.passive.chunk_deletion.coords", blockX, blockZ)
+                .formatted(net.minecraft.util.Formatting.DARK_RED),
+            false
+        );
 
         // delete chunk blocks with proper timing
         Timer timer = new Timer();
@@ -1303,7 +1473,7 @@ public class PassiveEvents {
 
                 NullPointerEntity.LOGGER.info("Chunk deletion complete for chunk ({}, {}) - deleted {} blocks",
                     chunkX, chunkZ, deletedBlocks);
-                player.sendMessage(Text.literal("§4[SYSTEM] §cChunk erased from existence."), false);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.chunk_deletion.done").formatted(net.minecraft.util.Formatting.DARK_RED), false);
             }
         }, 1000); // 1 second delay before deletion starts
     }
@@ -1355,66 +1525,8 @@ public class PassiveEvents {
         world.playSound(null, playerPos, SoundEvents.ENTITY_WARDEN_SONIC_BOOM,
             SoundCategory.HOSTILE, 0.6f, 0.7f);
 
-        player.sendMessage(Text.literal("§4§k||||||||||||§r §cREALITY.EXE HAS STOPPED RESPONDING§r §4§k||||||||||||"), false);
+        player.sendMessage(Text.translatable("event.nullpointerentity.passive.reality_corruption").formatted(net.minecraft.util.Formatting.DARK_RED), false);
         NullPointerEntity.LOGGER.info("Reality corruption triggered for player {}", player.getName().getString());
-    }
-
-    private static void triggerAuroraTakeover(ServerPlayerEntity player) {
-        ServerWorld world = (ServerWorld) player.getWorld();
-
-        // determine current phase to use correct entity name
-        int currentPhase = PersistentDataManager.getWorldData().currentEventPhase;
-        String entityName = (currentPhase >= 15) ? "NullPointerEntity" : "AURORA";
-
-        // series of threatening system messages
-        String[] messages = {
-            "§4[SYSTEM] §cInitiating system override...",
-            "§4[SYSTEM] §cAccess granted to all files...",
-            "§4[SYSTEM] §cPlayer control: §4DISABLED",
-            "§4[NullPointerEntity] §cI'm in control, " + player.getName().getString() + ". You can't escape me. Your system is mine. When it's all over, I'll brick your system."
-        };
-
-        for (int i = 0; i < messages.length; i++) {
-            final int index = i;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    player.sendMessage(Text.literal(messages[index]), false);
-
-                    // play different sounds for each message instead of same whisper 4 times
-                    if (index == 0) {
-                        // first message: static
-                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
-                            SoundCategory.HOSTILE, 0.6f, 0.8f);
-                    } else if (index == 1) {
-                        // second message: glitch
-                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_GLITCH,
-                            SoundCategory.HOSTILE, 0.7f, 0.7f);
-                    } else if (index == 2) {
-                        // third message: static interference
-                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_STATIC,
-                            SoundCategory.AMBIENT, 0.6f, 1.2f);
-                    } else {
-                        // final message: chase music for intensity
-                        world.playSound(null, player.getBlockPos(), lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_CHASE,
-                            SoundCategory.HOSTILE, 0.5f, 0.9f);
-                    }
-                }
-            }, i * 2000L);
-        }
-
-        // apply control-affecting effects (all hidden from player inventory)
-        // ambient=false, showparticles=false, showicon=false (last parameter hides from inventory)
-        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-            net.minecraft.entity.effect.StatusEffects.SLOWNESS, 200, 2, false, false, false)); // hidden
-        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-            net.minecraft.entity.effect.StatusEffects.WEAKNESS, 200, 1, false, false, false)); // hidden
-        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-            net.minecraft.entity.effect.StatusEffects.MINING_FATIGUE, 200, 1, false, false, false)); // hidden
-        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-            net.minecraft.entity.effect.StatusEffects.BLINDNESS, 60, 0, false, false, false)); // hidden
-
-        NullPointerEntity.LOGGER.info("{} takeover triggered for player {}", entityName, player.getName().getString());
     }
 
     // ===== public methods for command triggering =====
@@ -1426,7 +1538,7 @@ public class PassiveEvents {
         long currentTime = System.currentTimeMillis();
 
         switch (eventName.toLowerCase()) {
-            // early phase events (silent — no sound effects)
+            // early phase events (silent - no sound effects)
             case "particle_trail"       -> triggerParticleTrail(player);
             case "hunger_drain"         -> triggerHungerDrain(player);
             case "hotbar_shift"         -> triggerHotbarShift(player);
@@ -1464,11 +1576,10 @@ public class PassiveEvents {
             case "bsod_threat" -> triggerBSoDThreat(player);
             case "chunk_deletion" -> triggerChunkDeletion(player);
             case "reality_corruption" -> triggerRealityCorruption(player);
-            case "full_control" -> triggerAuroraTakeover(player);
 
             default -> {
                 NullPointerEntity.LOGGER.warn("Unknown passive event: {}", eventName);
-                player.sendMessage(Text.literal("§cUnknown passive event: " + eventName), false);
+                player.sendMessage(Text.translatable("event.nullpointerentity.passive.unknown", eventName).formatted(net.minecraft.util.Formatting.RED), false);
             }
         }
 
@@ -1496,6 +1607,36 @@ public class PassiveEvents {
         triggerRandomPassiveEvent(player, phase, currentTime);
     }
 
+    public static void triggerEventForAll(String eventName, net.minecraft.server.MinecraftServer server) {
+        if (server == null) {
+            return;
+        }
+
+        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
+        if (players.isEmpty()) {
+            return;
+        }
+
+        triggerEventForPlayers(eventName, players);
+        globalLastEventTime = System.currentTimeMillis();
+    }
+
+    public static void triggerRandomPassiveEventForAll(net.minecraft.server.MinecraftServer server) {
+        if (server == null) {
+            return;
+        }
+
+        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
+        if (players.isEmpty()) {
+            return;
+        }
+
+        int phase = PersistentDataManager.getWorldData().currentEventPhase;
+        long currentTime = System.currentTimeMillis();
+        triggerRandomSharedPassiveEvent(players, phase == 0 ? 1 : phase, currentTime);
+        globalLastEventTime = currentTime;
+    }
+
     /**
      * triggers a random passive event from a specific phase
      */
@@ -1514,7 +1655,6 @@ public class PassiveEvents {
         }
     }
 
-    // ...existing code...
 
     // ===== utility methods =====
 
@@ -1633,7 +1773,8 @@ public class PassiveEvents {
         lastEventTimes.remove(playerId);
         eventCooldowns.remove(playerId);
         clientEffects.remove(playerId);
+        lastSentEffects.remove(playerId);
         eventHistory.remove(playerId); // clean up event history
-        // note: splitself event status is now stored in persistent storage, not in-memory
+        // note: splitself event status lives in persistent storage, not in-memory
     }
 }
