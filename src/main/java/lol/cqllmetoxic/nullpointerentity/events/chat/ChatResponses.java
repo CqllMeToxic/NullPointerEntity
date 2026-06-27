@@ -277,7 +277,7 @@ public class ChatResponses {
     /**
      * get a contextual response that relates to the player's specific message
      */
-    public static String getContextualResponse(String playerMessage, String phase, String playerName) {
+    public static ChatPart getContextualResponse(String playerMessage, String phase, String playerName) {
         return ContextualResponseGenerator.generateContextualResponse(playerMessage, phase, playerName);
     }
 

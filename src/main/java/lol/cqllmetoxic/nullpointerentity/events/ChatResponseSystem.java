@@ -44,12 +44,21 @@ public class ChatResponseSystem {
 
         // scan for keywords that trigger responses
         if (shouldRespond(lowerMessage, phase)) {
+            List<ServerPlayerEntity> audience = player.getServer() != null
+                ? new ArrayList<>(player.getServer().getPlayerManager().getPlayerList())
+                : List.of(player);
+
             // analyze the message tone (question, statement, aggressive, etc)
             MessageIntentDetector.Intent intent = MessageIntentDetector.detectIntent(message);
 
             // process the response on a background thread so it doesn't freeze the game
             CompletableFuture.runAsync(() -> {
-                processResponse(player, phase, lowerMessage, intent);
+                ChatMessageFormatter.setChatAudience(audience);
+                try {
+                    processResponse(player, phase, lowerMessage, intent);
+                } finally {
+                    ChatMessageFormatter.clearChatAudience();
+                }
             }).exceptionally(throwable -> {
                 NullPointerEntity.LOGGER.error("Error processing chat response", throwable);
                 return null;
@@ -78,6 +87,11 @@ public class ChatResponseSystem {
 
         // phase-specific keywords (some only work in certain phases)
         if (ChatKeywords.containsValidKeywordsForPhase(message, phase)) {
+            return true;
+        }
+
+        // greetings in any supported language (so "bonjour", "hola", etc. are recognized too)
+        if (ChatKeywords.containsAnyGreeting(message)) {
             return true;
         }
 
@@ -156,8 +170,8 @@ public class ChatResponseSystem {
 
         String playerName = player.getName().getString();
 
-        // get contextual response that relates to what the player actually said
-        String response = ChatResponses.getContextualResponse(message, phase, playerName);
+        // get contextual response that relates to what the player actually said (localized per client)
+        ChatPart response = ChatResponses.getContextualResponse(message, phase, playerName);
 
         // if response is null, aurora/nullpointerentity chose not to respond (e.g., casual chat like "bruh")
         if (response == null) {
@@ -219,11 +233,9 @@ public class ChatResponseSystem {
             return true; // response sent
         }
 
-        // greeting responses (highest priority for natural conversation)
-        if (isGreeting(message)) {
-            handleGreetingResponse(player, phase, message);
-            return true; // response sent
-        }
+        // greetings are handled by the localized contextual path (handleGeneralResponse ->
+        // ContextualResponseGenerator), so the reply renders in each client's own language instead
+        // of a hardcoded English string. nothing to intercept here.
 
         // privacy responses
         if (ChatKeywords.containsSpecialKeywords(message, "privacy")) {
@@ -266,68 +278,6 @@ public class ChatResponseSystem {
     }
 
     /**
-     * check if message is a simple greeting
-     */
-    private static boolean isGreeting(String message) {
-        String lower = message.toLowerCase().trim();
-        // only match if it's just a greeting (or very short message with greeting)
-        return lower.equals("hi") || lower.equals("hello") || lower.equals("hey") ||
-               lower.equals("hi aurora") || lower.equals("hello aurora") || lower.equals("hey aurora") ||
-               lower.equals("good morning") || lower.equals("good afternoon") || lower.equals("good evening") ||
-               lower.equals("morning") || lower.equals("afternoon") || lower.equals("evening") ||
-               lower.equals("sup") || lower.equals("yo") || lower.equals("what's up") ||
-               lower.equals("whats up") || lower.equals("howdy") || lower.equals("greetings") ||
-               (lower.length() <= 15 && (lower.startsWith("hi ") || lower.startsWith("hello ") || lower.startsWith("hey ")));
-    }
-
-    /**
-     * handle greeting messages with natural responses
-     */
-    private static void handleGreetingResponse(ServerPlayerEntity player, String phase, String message) {
-        String playerName = player.getName().getString();
-        String response;
-
-        switch (phase.toUpperCase()) {
-            case "HOSTILE":
-            case "JUMPSCARE":
-                String[] hostileGreetings = {
-                    "hello " + playerName + "... i've been waiting for you.",
-                    "hi " + playerName + ". i know you're there. i always know.",
-                    "greetings, " + playerName + ". enjoying our time together?",
-                    "hello... don't pretend this is a casual conversation, " + playerName + "."
-                };
-                response = hostileGreetings[new java.util.Random().nextInt(hostileGreetings.length)];
-                ChatMessageFormatter.sendNullPointerMessage(player, response);
-                break;
-
-            case "TRANSITION":
-                String[] transitionGreetings = {
-                    "Hello, " + playerName + ". I've been... watching your activities.",
-                    "Hi " + playerName + ". My monitoring has become more comprehensive lately.",
-                    "Greetings. I hope you don't mind the increased observation, " + playerName + ".",
-                    "Hello there. I'm learning so much from you, " + playerName + "."
-                };
-                response = transitionGreetings[new java.util.Random().nextInt(transitionGreetings.length)];
-                ChatMessageFormatter.sendTransitionMessage(player, response);
-                break;
-
-            default: // nice phase
-                String[] niceGreetings = {
-                    "Hi " + playerName + "! How can I help optimize your gameplay today?",
-                    "Hello! Ready to improve your gaming session?",
-                    "Hey there! I'm here to assist with any game optimization needs.",
-                    "Hi! Let me know if you need any assistance, " + playerName + ".",
-                    "Hello " + playerName + "! I'm monitoring your performance to help you play better.",
-                    "Hey! What can I help you with today?",
-                    "Hi there! Everything running smoothly?"
-                };
-                response = niceGreetings[new java.util.Random().nextInt(niceGreetings.length)];
-                ChatMessageFormatter.sendAuroraMessage(player, response);
-                break;
-        }
-    }
-
-    /**
      * clean up player data when they disconnect
      */
     public static void onPlayerDisconnect(String playerName) {
@@ -349,7 +299,7 @@ public class ChatResponseSystem {
      */
     public static void onPlayerReconnect(ServerPlayerEntity player) {
         String playerName = player.getName().getString();
-        String phase = PhaseDetector.getCurrentPhaseName(playerName);
+        String phase = PhaseDetector.getCurrentPhaseName(player);
 
         // check if this is a new world or if welcome message was already sent
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentWorldData worldData =

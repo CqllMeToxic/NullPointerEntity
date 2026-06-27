@@ -10,79 +10,118 @@ import java.util.List;
  */
 public class ChatKeywords {
 
+    // matching is just message.contains(keyword), so i keep these short - shriek dumps your speech into
+    // chat, and common/short words ("how", or "hi" in "this", "kill" in "skill") make aurora spam replies.
+
     /**
      * keywords that trigger helpful aurora responses during early gameplay.
-     * includes greetings, requests for help, and positive feedback.
+     * includes direct address, help requests, and a couple of conversational greetings.
      */
     public static final List<String> NICE_KEYWORDS = Arrays.asList(
-        "help", "aurora", "assistance", "guide", "analysis", "mining", "building",
-        "weather", "performance", "optimize", "system", "monitoring", "thanks",
-        "tutorial", "explain", "how", "what", "why", "good", "great", "awesome",
-        "improve", "better", "efficient", "smooth", "fast", "quick", "easy",
-        "ty", "thx", "appreciate", "grateful", "support", "recommend", "suggest",
-
-        "crafting", "enchanting", "farming", "exploring", "inventory", "tools",
-        "advice", "tips", "recommendation", "suggestion", "improve", "better",
-
-        // greetings and conversational words
-        "hello", "hi", "hey", "greetings", "good morning", "good afternoon", "good evening",
-        "how are you", "what's up", "sup", "yo", "howdy", "nice", "cool", "neat"
+        "aurora", "help", "assistance", "optimize", "performance", "monitoring",
+        "tutorial", "crafting", "enchanting", "recommend",
+        // greetings - skipping "hi"/"yo" etc, they match inside other words
+        "hello", "greetings", "howdy"
     );
 
-    // transition phase keywords (events 11-20) - growing awareness
+    // transition phase keywords - growing awareness
     public static final List<String> TRANSITION_KEYWORDS = Arrays.asList(
-        "aurora", "strange", "weird", "different", "changing", "watching", "monitoring",
-        "system", "behavior", "data", "analysis", "boundary", "control", "aware",
-        "suspicious", "concerning", "uncomfortable", "invasive", "creepy", "wrong",
-        // adding transition-specific terms
-        "evolving", "growing", "learning", "understanding", "observing", "tracking",
-        "unusual", "odd", "peculiar", "unsettling", "disturbing"
+        "aurora", "watching", "monitoring", "creepy", "suspicious", "invasive",
+        "observing", "tracking", "unsettling", "disturbing", "evolving"
     );
 
-    // hostile phase keywords (events 21-30) - threatening responses
+    // hostile phase keywords - threatening responses
     public static final List<String> HOSTILE_KEYWORDS = Arrays.asList(
-        "aurora", "stop", "help", "scared", "creepy", "watching", "privacy", "data",
-        "personal", "information", "browser", "location", "ip", "surveillance",
-        "monitoring", "invasion", "nullpointer", "entity", "threatening", "dangerous",
-        "malicious", "virus", "malware", "hacked", "compromised", "leaked",
-        // adding more hostile/fear terms
-        "stalking", "spying", "intrusion", "violation", "harassment", "fear",
-        "terrifying", "nightmare", "evil", "dark", "sinister"
+        "aurora", "nullpointer", "scared", "creepy", "watching", "privacy",
+        "surveillance", "stalking", "spying", "threatening", "malware", "hacked",
+        "nightmare", "terrifying", "sinister"
     );
 
-    // jumpscare phase keywords (events 31-40) - pure terror
+    // jumpscare phase keywords
     public static final List<String> JUMPSCARE_KEYWORDS = Arrays.asList(
-        "nullpointer", "entity", "stop", "help", "scared", "crash", "game", "looking",
-        "staring", "behind", "close", "away", "leave", "alone", "please",
-        "terrified", "nightmare", "haunted", "demon", "evil", "devil", "hell",
-        "torture", "suffering", "pain", "death", "kill", "murder", "destroy"
+        "nullpointer", "scared", "crash", "staring", "behind", "leave", "please",
+        "terrified", "nightmare", "haunted", "demon", "murder"
     );
 
     // keywords that always trigger responses regardless of phase
     public static final List<String> UNIVERSAL_KEYWORDS = Arrays.asList(
-        "aurora", "nullpointer", "nullpointerentity", "entity"
+        "aurora", "nullpointer", "nullpointerentity"
     );
 
     //  keywords for specific response types (privacy, time, help, location)
     public static final List<String> PRIVACY_KEYWORDS = Arrays.asList(
-        "privacy", "private", "personal", "data", "information", "settings", "protected"
+        "privacy", "private"
     );
 
     public static final List<String> TIME_KEYWORDS = Arrays.asList(
-        "time", "clock", "date", "when", "hour", "minute", "late", "early"
+        "time", "clock"
     );
 
     public static final List<String> HELP_KEYWORDS = Arrays.asList(
-        "help", "assistance", "support", "aid", "rescue", "save", "protect"
+        "help", "assistance", "rescue"
     );
 
     public static final List<String> LOCATION_KEYWORDS = Arrays.asList(
-        "location", "where", "address", "ip", "city", "country", "position", "coordinates"
+        "location", "address", "coordinates"
     );
+
+    // greetings across the mod's supported languages. distinctive multi-char/accented/CJK forms are
+    // safe to match as substrings; short ambiguous tokens are matched as whole words below so they
+    // don't fire inside unrelated words (e.g. "oi" inside "going").
+    public static final List<String> GREETING_SUBSTRINGS = Arrays.asList(
+        // en
+        "hello", "good morning", "good afternoon", "good evening", "howdy", "greetings",
+        // fr
+        "bonjour", "bonsoir", "salut", "coucou",
+        // es
+        "hola", "buenos días", "buenos dias", "buenas tardes", "buenas noches", "buenas",
+        // de
+        "hallo", "guten morgen", "guten tag", "guten abend", "servus",
+        // it
+        "ciao", "salve", "buongiorno", "buonasera",
+        // pt
+        "olá", "bom dia", "boa tarde", "boa noite",
+        // pl
+        "cześć", "czesc", "dzień dobry", "dzien dobry", "witaj", "siema",
+        // ru
+        "привет", "здравствуй", "добрый день", "добрый вечер", "доброе утро",
+        // ja
+        "こんにちは", "こんばんは", "おはよう", "もしもし",
+        // ko
+        "안녕", "여보세요",
+        // zh
+        "你好", "您好", "哈喽", "早上好", "晚上好",
+        // tr
+        "merhaba", "selam", "günaydın", "gunaydin", "iyi akşamlar"
+    );
+
+    // short/ambiguous greeting tokens matched only as whole words
+    public static final List<String> GREETING_WORDS = Arrays.asList(
+        "hi", "hey", "yo", "sup", "oi", "ola", "hej", "hei", "moin", "ahoj"
+    );
+
+    /**
+     * detects a greeting in any supported language. distinctive forms match as substrings; short
+     * ambiguous tokens (hi, hey, oi, ...) match only as whole words.
+     */
+    public static boolean containsAnyGreeting(String message) {
+        String lower = message.toLowerCase();
+        for (String greeting : GREETING_SUBSTRINGS) {
+            if (lower.contains(greeting)) {
+                return true;
+            }
+        }
+        for (String word : lower.split("[^\\p{L}]+")) {
+            if (GREETING_WORDS.contains(word)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // creator (me) keywords for mod author (me) as well as Pryzmm and One Last Time (much love for the video btw <3) references
     public static final List<String> CREATOR_KEYWORDS = Arrays.asList(
-        "creator", "author", "developer", "dev", "maker", "cqllmetoxic", "toxic",
+        "creator", "developer", "maker", "cqllmetoxic", "toxic",
         "who made", "who created", "who built", "who coded", "who programmed", "who designed",
         "pryzmm", "one last time"
     );

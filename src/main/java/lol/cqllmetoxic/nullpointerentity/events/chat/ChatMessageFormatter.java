@@ -1,20 +1,53 @@
 package lol.cqllmetoxic.nullpointerentity.events.chat;
 
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * handles message formatting for different entities (aurora vs nullpointerentity)
  */
 public class ChatMessageFormatter {
+    private static final ThreadLocal<List<ServerPlayerEntity>> CHAT_AUDIENCE = new ThreadLocal<>();
+
+    public static void setChatAudience(Collection<ServerPlayerEntity> audience) {
+        CHAT_AUDIENCE.set(new ArrayList<>(audience));
+    }
+
+    public static void clearChatAudience() {
+        CHAT_AUDIENCE.remove();
+    }
+
+    public static List<ServerPlayerEntity> resolveRecipients(ServerPlayerEntity fallbackPlayer) {
+        List<ServerPlayerEntity> audience = CHAT_AUDIENCE.get();
+        if (audience == null || audience.isEmpty()) {
+            if (fallbackPlayer != null && fallbackPlayer.getServer() != null) {
+                return new ArrayList<>(fallbackPlayer.getServer().getPlayerManager().getPlayerList());
+            }
+            return fallbackPlayer != null ? List.of(fallbackPlayer) : List.of();
+        }
+        return new ArrayList<>(audience);
+    }
+
+    private static void sendToRecipients(List<ServerPlayerEntity> recipients, Text message, boolean actionBar) {
+        for (ServerPlayerEntity recipient : recipients) {
+            if (recipient != null) {
+                recipient.sendMessage(message, actionBar);
+            }
+        }
+    }
 
     /**
      * send a message from aurora with aqua name formatting
      */
     public static void sendAuroraMessage(ServerPlayerEntity player, String message) {
         String playerName = player.getName().getString();
-        String phase = PhaseDetector.getCurrentPhaseName(playerName);
+        String phase = PhaseDetector.getCurrentPhaseName(player);
 
         // build message components separately to control flow
         StringBuilder finalMessage = new StringBuilder();
@@ -72,16 +105,67 @@ public class ChatMessageFormatter {
         } else {
             // send immediately for short messages - phase-based aurora color
             Formatting auroraColor = phase.equals("TRANSITION") ? Formatting.YELLOW : Formatting.AQUA;
-            Text auroraMessage = Text.literal("<AURORA> ").formatted(auroraColor)
+            Text auroraMessage = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(auroraColor)
                 .append(Text.literal(enhancedMessage).formatted(Formatting.WHITE));
-            player.sendMessage(auroraMessage, false);
+            sendToRecipients(resolveRecipients(player), auroraMessage, false);
         }
 
         // track the response for conversation history
         ConversationTracker.recordEntityResponse(playerName, "AURORA", enhancedMessage);
 
         // send follow-up messages if emotionally appropriate
-        scheduleFollowUpIfNeeded(player, "AURORA", phase);
+        scheduleFollowUpIfNeeded(player, "AURORA", phase, resolveRecipients(player));
+    }
+
+    // ---- localized (per-client) chat -------------------------------------------------------------
+    // send a translation key + args and let each client render it in its OWN language. the String
+    // overloads above are the old english server-side ones - i kept them around for the non-chat
+    // callers. heads up: the enhancer pipeline (memory/profile/emotional/...) doesn't run on this
+    // path yet, so you just get the base reply until i get around to porting those over to ChatPart.
+
+    public static void sendAuroraMessage(ServerPlayerEntity player, ChatPart part) {
+        sendLocalized(player, "AURORA", part);
+    }
+
+    public static void sendNullPointerMessage(ServerPlayerEntity player, ChatPart part) {
+        sendLocalized(player, "NULLPOINTER", part);
+    }
+
+    private static void sendLocalized(ServerPlayerEntity player, String entity, ChatPart part) {
+        String playerName = player.getName().getString();
+        String phase = PhaseDetector.getCurrentPhaseName(player);
+        boolean npe = entity.equals("NULLPOINTER");
+
+        // immersive enhancers (memory / profile / emotional / real-machine awareness), each a
+        // translatable part appended after the base reply; capped at 2 to avoid word salad.
+        java.util.List<ChatPart> enhancers = new java.util.ArrayList<>();
+        enhancers.addAll(MemoryPersistence.generateMemoryParts(playerName, phase));
+        enhancers.addAll(PsychologicalProfiler.generateProfileParts(playerName, phase, entity));
+        ChatPart activity = RealTimeContextGenerator.generateActivityPart(player, phase);
+        if (activity != null && Math.random() < 0.5) enhancers.add(activity);
+        ChatPart emotional = EmotionalStateTracker.getEmotionalModifierPart(playerName);
+        if (emotional != null && Math.random() < 0.4) enhancers.add(emotional);
+        ChatPart systemAware = SystemAwarenessInjector.generateSystemAwarePart(playerName, phase);
+        if (systemAware != null && Math.random() < 0.3) enhancers.add(systemAware);
+        if (enhancers.size() > 2) enhancers = enhancers.subList(0, 2);
+
+        Formatting bodyColor = npe ? Formatting.RED : Formatting.WHITE;
+        Formatting nameColor = npe ? Formatting.DARK_RED : (phase.equals("TRANSITION") ? Formatting.YELLOW : Formatting.AQUA);
+        String prefixKey = npe ? "message.nullpointerentity.chat_prefix" : "message.nullpointerentity.aurora_prefix";
+
+        MutableText message = Text.translatable(prefixKey).formatted(nameColor)
+            .append(part.toText().formatted(bodyColor));
+        int estLen = part.estimatedLength();
+        for (ChatPart enhancer : enhancers) {
+            message.append(Text.literal(" ")).append(enhancer.toText().formatted(bodyColor));
+            estLen += 1 + enhancer.estimatedLength();
+        }
+
+        if (estLen > 50) {
+            TypingSimulator.sendTextWithTyping(player, entity, message, estLen, phase);
+        } else {
+            sendToRecipients(resolveRecipients(player), message, false);
+        }
     }
 
     /**
@@ -89,7 +173,7 @@ public class ChatMessageFormatter {
      */
     public static void sendNullPointerMessage(ServerPlayerEntity player, String message) {
         String playerName = player.getName().getString();
-        String phase = PhaseDetector.getCurrentPhaseName(playerName);
+        String phase = PhaseDetector.getCurrentPhaseName(player);
 
         // phase restriction: nullpointerentity should only speak during hostile and jumpscare phases
         if (!phase.equals("HOSTILE") && !phase.equals("JUMPSCARE")) {
@@ -138,16 +222,16 @@ public class ChatMessageFormatter {
         ConversationTracker.recordEntityResponse(playerName, "NULLPOINTER", enhancedMessage);
 
         // nullpointer is more likely to send follow-ups
-        scheduleFollowUpIfNeeded(player, "NULLPOINTER", phase);
+        scheduleFollowUpIfNeeded(player, "NULLPOINTER", phase, resolveRecipients(player));
     }
 
     /**
      * send a system message (for debugging or special notifications)
      */
     public static void sendSystemMessage(ServerPlayerEntity player, String message) {
-        Text systemMessage = Text.literal("[System] ").formatted(Formatting.GRAY)
+        Text systemMessage = Text.translatable("message.nullpointerentity.system_prefix").formatted(Formatting.GRAY)
             .append(Text.literal(message).formatted(Formatting.WHITE));
-        player.sendMessage(systemMessage, false);
+        sendToRecipients(resolveRecipients(player), systemMessage, false);
     }
 
     /**
@@ -161,16 +245,16 @@ public class ChatMessageFormatter {
             .append(Text.literal("A").formatted(Formatting.DARK_RED))
             .append(Text.literal("> ").formatted(Formatting.AQUA))
             .append(Text.literal(message).formatted(Formatting.WHITE));
-        player.sendMessage(glitchedMessage, false);
+        sendToRecipients(resolveRecipients(player), glitchedMessage, false);
     }
 
     /**
      * send a whisper-style message (darker, more ominous)
      */
     public static void sendWhisperMessage(ServerPlayerEntity player, String message) {
-        Text whisperMessage = Text.literal("*whispers* ").formatted(Formatting.DARK_GRAY)
+        Text whisperMessage = Text.translatable("message.nullpointerentity.whisper_prefix").formatted(Formatting.DARK_GRAY)
             .append(Text.literal(message).formatted(Formatting.GRAY));
-        player.sendMessage(whisperMessage, false);
+        sendToRecipients(resolveRecipients(player), whisperMessage, false);
     }
 
     /**
@@ -182,7 +266,7 @@ public class ChatMessageFormatter {
 
         Text emphasizedMessage = Text.literal("<" + entity + "> ").formatted(nameColor, Formatting.BOLD)
             .append(Text.literal(message).formatted(messageColor));
-        player.sendMessage(emphasizedMessage, false);
+        sendToRecipients(resolveRecipients(player), emphasizedMessage, false);
     }
 
     /**
@@ -240,7 +324,7 @@ public class ChatMessageFormatter {
     /**
      * schedule follow-up messages if emotionally appropriate
      */
-    private static void scheduleFollowUpIfNeeded(ServerPlayerEntity player, String entity, String phase) {
+    private static void scheduleFollowUpIfNeeded(ServerPlayerEntity player, String entity, String phase, List<ServerPlayerEntity> audience) {
         String playerName = player.getName().getString();
 
         if (EmotionalStateTracker.shouldSendFollowUp(playerName)) {
@@ -250,11 +334,13 @@ public class ChatMessageFormatter {
                 public void run() {
                     String followUpMessage = EmotionalStateTracker.generateFollowUpMessage(playerName, phase);
                     if (!followUpMessage.isEmpty()) {
+                        setChatAudience(audience);
                         if (entity.equals("NULLPOINTER")) {
                             TypingSimulator.sendContextualMessageWithTyping(player, entity, followUpMessage, phase, false);
                         } else {
                             TypingSimulator.sendContextualMessageWithTyping(player, entity, followUpMessage, phase, false);
                         }
+                        clearChatAudience();
                         ConversationTracker.recordEntityResponse(playerName, entity, followUpMessage);
                     }
                     followUpTimer.cancel();
@@ -268,7 +354,7 @@ public class ChatMessageFormatter {
      */
     public static void sendTransitionMessage(ServerPlayerEntity player, String message) {
         String playerName = player.getName().getString();
-        String phase = PhaseDetector.getCurrentPhaseName(playerName);
+        String phase = PhaseDetector.getCurrentPhaseName(player);
 
         // immersive feature: add persistent memory context for transition
         String memoryContext = MemoryPersistence.generateMemoryResponse(playerName, phase, message);
@@ -297,15 +383,15 @@ public class ChatMessageFormatter {
             TypingSimulator.sendMessageWithTyping(player, "AURORA", enhancedMessage, phase);
         } else {
             // send immediately with yellow formatting for transition phase
-            Text transitionMessage = Text.literal("<AURORA> ").formatted(Formatting.YELLOW)
+            Text transitionMessage = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(Formatting.YELLOW)
                 .append(Text.literal(enhancedMessage).formatted(Formatting.WHITE));
-            player.sendMessage(transitionMessage, false);
+            sendToRecipients(resolveRecipients(player), transitionMessage, false);
         }
 
         // track the response for conversation history
         ConversationTracker.recordEntityResponse(playerName, "AURORA", enhancedMessage);
 
         // send follow-up messages if appropriate for transition phase
-        scheduleFollowUpIfNeeded(player, "AURORA", phase);
+        scheduleFollowUpIfNeeded(player, "AURORA", phase, resolveRecipients(player));
     }
 }
