@@ -28,6 +28,12 @@ repositories {
 		name = "JitPack"
 		url = "https://jitpack.io"
 	}
+
+	// Modrinth Maven for Shriek + Architectury API
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+	}
     // Not implemented yet, will be in a future update (I couldn't figure it out :( )
 
 
@@ -60,6 +66,10 @@ dependencies {
 	// Webcam Capture library for camera overlay
 	implementation 'com.github.sarxos:webcam-capture:0.3.12'
 	include 'com.github.sarxos:webcam-capture:0.3.12'
+
+	// Shriek speech-to-text + Architectury API
+	modImplementation "maven.modrinth:shriek:1.1.2+fabric"
+	modImplementation "maven.modrinth:architectury-api:13.0.2+fabric"
 }
 
 processResources {
