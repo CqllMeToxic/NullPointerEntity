@@ -92,3 +92,13 @@ config/nullpointerentity_privacy.properties
 *.secret
 *.private
 config/private/
+
+# python (scripts/helpers)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# reference material
+shriek-wiki/
