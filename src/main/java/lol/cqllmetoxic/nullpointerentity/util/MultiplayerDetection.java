@@ -1,12 +1,15 @@
 package lol.cqllmetoxic.nullpointerentity.util;
 
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 /**
  * detects whether the player is in singleplayer or multiplayer.
- * the mod disables itself in multiplayer.
+ * the mod gates its system-invasive features in multiplayer via the session policy
+ * (see {@link lol.cqllmetoxic.nullpointerentity.network.MultiplayerPolicy} and
+ * {@code ServerNetworking.resolvePolicy}) rather than disabling outright.
  */
 public class MultiplayerDetection {
 
@@ -34,14 +37,28 @@ public class MultiplayerDetection {
      * @return true if connected to multiplayer server
      */
     public static boolean isMultiplayerClient() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null) return false;
-
-        if (client.getServer() == null) {
-            return true;
+        if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
+            return false;
         }
 
-        return !client.getServer().isSingleplayer();
+        // use reflection to avoid hard-linking client-only classes on dedicated servers.
+        try {
+            Class<?> minecraftClientClass = Class.forName("net.minecraft.client.MinecraftClient");
+            Object client = minecraftClientClass.getMethod("getInstance").invoke(null);
+            if (client == null) {
+                return false;
+            }
+
+            Object integratedServer = minecraftClientClass.getMethod("getServer").invoke(client);
+            if (integratedServer == null) {
+                // not in a world yet (title screen) - treat as singleplayer for privacy screen purposes
+                return false;
+            }
+
+            return !(Boolean) integratedServer.getClass().getMethod("isSingleplayer").invoke(integratedServer);
+        } catch (Exception ignored) {
+            return true;
+        }
     }
 
     /**
@@ -53,26 +70,6 @@ public class MultiplayerDetection {
     public static boolean isPlayerInMultiplayer(ServerPlayerEntity player) {
         if (player == null || player.getServer() == null) return false;
         return isMultiplayerServer(player.getServer());
-    }
-
-    /**
-     * determines if the mod should disable itself for this server.
-     *
-     * @param server the server instance
-     * @return true if mod should be disabled (multiplayer detected)
-     */
-    public static boolean shouldDisableMod(MinecraftServer server) {
-        return isMultiplayerServer(server);
-    }
-
-    /**
-     * determines if the mod should disable itself for a specific player.
-     *
-     * @param player the player to check
-     * @return true if mod should be disabled for this player
-     */
-    public static boolean shouldDisableModForPlayer(ServerPlayerEntity player) {
-        return isPlayerInMultiplayer(player);
     }
 
     /**
