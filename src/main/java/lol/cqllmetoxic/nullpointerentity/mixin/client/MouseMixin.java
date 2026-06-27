@@ -1,6 +1,6 @@
 package lol.cqllmetoxic.nullpointerentity.mixin.client;
 
-import lol.cqllmetoxic.nullpointerentity.events.PassiveEvents;
+import lol.cqllmetoxic.nullpointerentity.client.ClientPassiveEffects;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,10 +21,10 @@ public class MouseMixin {
     private double modifyMouseX(double deltaX) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            float multiplier = PassiveEvents.getMouseSensitivityMultiplier(client.player.getUuid());
+            float multiplier = ClientPassiveEffects.getMouseSensitivityMultiplier();
             double modified = deltaX * multiplier;
 
-            if (PassiveEvents.hasInputInversion(client.player.getUuid())) {
+            if (ClientPassiveEffects.hasInputInversion()) {
                 modified = -modified;
             }
 
@@ -41,10 +41,10 @@ public class MouseMixin {
     private double modifyMouseY(double deltaY) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            float multiplier = PassiveEvents.getMouseSensitivityMultiplier(client.player.getUuid());
+            float multiplier = ClientPassiveEffects.getMouseSensitivityMultiplier();
             double modified = deltaY * multiplier;
 
-            if (PassiveEvents.hasInputInversion(client.player.getUuid())) {
+            if (ClientPassiveEffects.hasInputInversion()) {
                 modified = -modified;
             }
 

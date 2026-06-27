@@ -1,6 +1,6 @@
 package lol.cqllmetoxic.nullpointerentity.mixin.client;
 
-import lol.cqllmetoxic.nullpointerentity.events.PassiveEvents;
+import lol.cqllmetoxic.nullpointerentity.client.ClientPassiveEffects;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
@@ -32,7 +32,7 @@ public class KeyBindingMixin {
         if (client.player == null) return;
 
         // only modify if input inversion is active
-        if (!PassiveEvents.hasInputInversion(client.player.getUuid())) return;
+        if (!ClientPassiveEffects.hasInputInversion()) return;
 
         KeyBinding self = (KeyBinding) (Object) this;
         GameOptions options = client.options;

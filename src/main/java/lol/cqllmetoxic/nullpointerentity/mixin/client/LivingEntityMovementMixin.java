@@ -1,6 +1,6 @@
 package lol.cqllmetoxic.nullpointerentity.mixin.client;
 
-import lol.cqllmetoxic.nullpointerentity.events.PassiveEvents;
+import lol.cqllmetoxic.nullpointerentity.client.ClientPassiveEffects;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Vec3d;
@@ -26,7 +26,7 @@ public class LivingEntityMovementMixin {
         // only apply to client players
         if (!(entity instanceof ClientPlayerEntity player)) return;
 
-        if (PassiveEvents.hasMovementLag(player.getUuid())) {
+        if (ClientPassiveEffects.hasMovementLag()) {
             // reduce movement by modifying velocity
             Vec3d velocity = player.getVelocity();
             player.setVelocity(velocity.multiply(0.6, 1.0, 0.6)); // only reduce horizontal movement
@@ -41,7 +41,7 @@ public class LivingEntityMovementMixin {
         // only apply to client players
         if (!(entity instanceof ClientPlayerEntity player)) return;
 
-        if (PassiveEvents.hasGravityFluctuation(player.getUuid())) {
+        if (ClientPassiveEffects.hasGravityFluctuation()) {
             // reduce gravity effect (slower falling)
             Vec3d velocity = player.getVelocity();
             if (velocity.y < -0.1) { // only when falling with significant speed

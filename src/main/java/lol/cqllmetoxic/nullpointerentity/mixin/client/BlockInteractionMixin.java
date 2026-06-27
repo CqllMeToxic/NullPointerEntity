@@ -1,6 +1,6 @@
 package lol.cqllmetoxic.nullpointerentity.mixin.client;
 
-import lol.cqllmetoxic.nullpointerentity.events.PassiveEvents;
+import lol.cqllmetoxic.nullpointerentity.client.ClientPassiveEffects;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -21,9 +21,7 @@ public class BlockInteractionMixin {
      */
     @Inject(method = "getBlockBreakingSpeed(Lnet/minecraft/block/BlockState;)F", at = @At("RETURN"), cancellable = true)
     private void modifyBlockBreakingSpeed(BlockState block, CallbackInfoReturnable<Float> cir) {
-        PlayerEntity player = (PlayerEntity) (Object) this;
-
-        if (PassiveEvents.hasBlockBreakDelay(player.getUuid())) {
+        if (ClientPassiveEffects.hasBlockBreakDelay()) {
             // reduce breaking speed by 70%
             cir.setReturnValue(cir.getReturnValue() * 0.3f);
         }

@@ -1,6 +1,6 @@
 package lol.cqllmetoxic.nullpointerentity.mixin.client;
 
-import lol.cqllmetoxic.nullpointerentity.events.PassiveEvents;
+import lol.cqllmetoxic.nullpointerentity.client.ClientPassiveEffects;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,7 @@ public class MovementMixin {
     private void modifyMovementInput(CallbackInfo ci) {
         ClientPlayerEntity player = (ClientPlayerEntity) (Object) this;
 
-        if (PassiveEvents.hasInputInversion(player.getUuid())) {
+        if (ClientPassiveEffects.hasInputInversion()) {
             // apply input inversion by modifying velocity directly
             Vec3d velocity = player.getVelocity();
             // only invert horizontal movement, reduce intensity to avoid jitter
@@ -40,13 +40,13 @@ public class MovementMixin {
         boolean modified = false;
 
         // apply movement lag
-        if (PassiveEvents.hasMovementLag(player.getUuid())) {
+        if (ClientPassiveEffects.hasMovementLag()) {
             velocity = velocity.multiply(0.6, 1.0, 0.6); // reduce horizontal movement
             modified = true;
         }
 
         // apply gravity fluctuation
-        if (PassiveEvents.hasGravityFluctuation(player.getUuid())) {
+        if (ClientPassiveEffects.hasGravityFluctuation()) {
             if (velocity.y < -0.1) { // only when falling with significant speed
                 velocity = new Vec3d(velocity.x, velocity.y * 0.75, velocity.z);
                 modified = true;

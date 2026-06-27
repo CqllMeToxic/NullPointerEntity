@@ -1,6 +1,6 @@
 package lol.cqllmetoxic.nullpointerentity.mixin.client;
 
-import lol.cqllmetoxic.nullpointerentity.events.PassiveEvents;
+import lol.cqllmetoxic.nullpointerentity.client.ClientPassiveEffects;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.Camera;
@@ -27,7 +27,7 @@ public class RenderMixin {
     @Inject(method = "renderWorld", at = @At("HEAD"))
     private void applyCameraShake(RenderTickCounter tickCounter, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null && PassiveEvents.hasCameraShake(client.player.getUuid())) {
+        if (client.player != null && ClientPassiveEffects.hasCameraShake()) {
             Camera camera = client.gameRenderer.getCamera();
             // apply random shake to camera position
             float shakeIntensity = 0.1f;
@@ -45,9 +45,9 @@ public class RenderMixin {
     private void applyScreenTint(RenderTickCounter tickCounter, boolean tick, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            int redTint = PassiveEvents.getScreenTintRed(client.player.getUuid());
-            int greenTint = PassiveEvents.getScreenTintGreen(client.player.getUuid());
-            int blueTint = PassiveEvents.getScreenTintBlue(client.player.getUuid());
+            int redTint = ClientPassiveEffects.getScreenTintRed();
+            int greenTint = ClientPassiveEffects.getScreenTintGreen();
+            int blueTint = ClientPassiveEffects.getScreenTintBlue();
 
             if (redTint > 0 || greenTint > 0 || blueTint > 0) {
                 // apply screen overlay with tint color

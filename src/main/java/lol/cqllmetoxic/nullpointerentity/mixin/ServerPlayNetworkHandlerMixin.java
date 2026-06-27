@@ -2,8 +2,14 @@ package lol.cqllmetoxic.nullpointerentity.mixin;
 
 import lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager;
 import lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData;
-import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
+import lol.cqllmetoxic.nullpointerentity.events.GlobalFreezeController;
 import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket;
+import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -20,13 +26,13 @@ public class ServerPlayNetworkHandlerMixin {
 
     @Shadow public ServerPlayerEntity player;
 
-    @Inject(method = "onChatMessage", at = @At("HEAD"), cancellable = true)
-    private void onChatMessage(ChatMessageC2SPacket packet, CallbackInfo ci) {
-        if (shouldSuppressChat()) {
-            ci.cancel();
-            sendSuppressedMessage();
-        }
-    }
+    // regular chat isn't suppressed here: cancelling onChatMessage at HEAD skips vanilla's chat
+    // acknowledgment/signature processing, which desyncs the 1.21 "last seen messages" chain and kicks
+    // the player with disconnect.chat_validation_failed the next time they chat (e.g. when event 41's
+    // silence lifts). suppression happens via ServerMessageEvents.ALLOW_CHAT_MESSAGE (registered in
+    // NullPointerEntity), which fires after vanilla has validated + acked the message, so the chain stays
+    // intact. command-sourced messages (/msg, /tell, ...) carry no signature chain in 1.21, so cancelling
+    // those at HEAD below is fine.
 
     @Inject(method = "onCommandExecution", at = @At("HEAD"), cancellable = true)
     private void onCommandExecution(CommandExecutionC2SPacket packet, CallbackInfo ci) {
@@ -38,6 +44,48 @@ public class ServerPlayNetworkHandlerMixin {
         }
     }
 
+    @Inject(method = "onPlayerMove", at = @At("HEAD"), cancellable = true)
+    private void onPlayerMove(PlayerMoveC2SPacket packet, CallbackInfo ci) {
+        if (shouldBlockForFreeze()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "onPlayerAction", at = @At("HEAD"), cancellable = true)
+    private void onPlayerAction(PlayerActionC2SPacket packet, CallbackInfo ci) {
+        if (shouldBlockForFreeze()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "onPlayerInteractBlock", at = @At("HEAD"), cancellable = true)
+    private void onPlayerInteractBlock(PlayerInteractBlockC2SPacket packet, CallbackInfo ci) {
+        if (shouldBlockForFreeze()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "onPlayerInteractItem", at = @At("HEAD"), cancellable = true)
+    private void onPlayerInteractItem(PlayerInteractItemC2SPacket packet, CallbackInfo ci) {
+        if (shouldBlockForFreeze()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "onPlayerInteractEntity", at = @At("HEAD"), cancellable = true)
+    private void onPlayerInteractEntity(PlayerInteractEntityC2SPacket packet, CallbackInfo ci) {
+        if (shouldBlockForFreeze()) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "onHandSwing", at = @At("HEAD"), cancellable = true)
+    private void onHandSwing(HandSwingC2SPacket packet, CallbackInfo ci) {
+        if (shouldBlockForFreeze()) {
+            ci.cancel();
+        }
+    }
+
     @Unique
     private boolean shouldSuppressChat() {
         if (player == null) return false;
@@ -46,9 +94,14 @@ public class ServerPlayNetworkHandlerMixin {
     }
 
     @Unique
+    private boolean shouldBlockForFreeze() {
+        return player != null && GlobalFreezeController.isFrozen();
+    }
+
+    @Unique
     private void sendSuppressedMessage() {
         if (player != null) {
-            player.sendMessage(Text.literal("shh...").formatted(Formatting.RED, Formatting.ITALIC), true);
+            player.sendMessage(Text.translatable("message.nullpointerentity.chat_suppressed").formatted(Formatting.RED, Formatting.ITALIC), true);
         }
     }
 }
