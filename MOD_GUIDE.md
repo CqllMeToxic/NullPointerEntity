@@ -123,6 +123,25 @@ Shows which Minecraft launcher you're using (Vanilla, Prism, CurseForge, etc.)
 
 ---
 
+### Voice Chat Commands
+
+These only do anything if you have the optional [Shriek](https://modrinth.com/mod/shriek) speech-to-text mod installed (plus Architectury). See [Talking with Your Voice](#-talking-with-your-voice) below.
+
+#### `/nullpointer voicechat`
+Shows whether voice chat integration is currently enabled.
+
+#### `/nullpointer voicechat true` / `false`
+Enables or disables voice chat integration. Enabled by default (when Shriek is present).
+
+#### `/nullpointer pushtotalk`
+Shows the current push-to-talk setting.
+
+#### `/nullpointer pushtotalk true` / `false`
+- `true` (default) — AURORA only "hears" your mic while you hold Shriek's voice keybind (rebindable in **Options → Controls**).
+- `false` — the mic is always listening (Shriek's default behavior).
+
+---
+
 ## 💻 What Can Happen to Your PC?
 
 The mod creates various "system interactions" to make it feel like the entity is breaking out of the game. Here's what can actually happen:
@@ -163,7 +182,36 @@ The mod creates various "system interactions" to make it feel like the entity is
 - ❌ Does **NOT** modify or delete your files
 - ❌ Does **NOT** install anything on your system
 - ❌ Does **NOT** access passwords or sensitive accounts
-- ❌ Does **NOT** work in multiplayer
+- ❌ Does **NOT** read one player's machine on another player's behalf (in multiplayer, every per-machine effect runs locally on each client)
+- ❌ Does **NOT** perform OS-level actions on a headless dedicated server
+
+## 🌐 Multiplayer
+
+As of v4.0.0 the mod works in multiplayer (LAN worlds and dedicated servers), not just singleplayer. There are only two real differences from singleplayer:
+
+1. **One shared story for the whole world.** Instead of every player having their own copy of the 60 events, there's a single storyline for the save. Events fire for **everyone online at the same time**, and progress advances on a shared timer. Players who join partway through are **caught up instantly** to the world's current point (you'll see a short "story sync" message instead of replaying earlier events).
+2. **Per-machine effects run on each player's own computer.** When an event touches your system (reading data, dropping a file, opening your webcam, reading your clipboard, sleeping your PC), the server asks **your own client** to run that part locally, against **your** computer, governed by **your** Privacy Mode. Data never travels back to the server, and one player's machine is never read on another's behalf. The forced "crash your game" beats are also sent per-client, so a dedicated server is never terminated for everyone.
+
+**How to play it:**
+- **Open to LAN:** start a singleplayer world with the mod → pause → **Open to LAN** → others join via Multiplayer/Direct Connect. A host playing alone still counts as singleplayer; it becomes "multiplayer" once a second player connects.
+- **Dedicated server:** put the mod (+ Fabric Loader + Fabric API) in the server's `mods/` folder. The server is headless, so it never performs OS-level actions; the chat narrative and per-machine effects run on the players' machines.
+
+**Good to know:**
+- **Install the mod on clients too** — vanilla clients can join and see the chat narrative, but only players with the mod get the visual/per-machine effects.
+- **Each player's own Privacy Mode is used**, and it updates live (no reconnect needed).
+- **Privacy Mode OFF only exposes the machine you're sitting at**, not anyone else's.
+- **Commands act on the shared story** — `/nullpointer skip`, `trigger`, and the passive-event commands move the **world's** progression, advancing it for everyone at once.
+- **Avoid commas in the world folder name** (same as singleplayer — a comma breaks the save file).
+
+For a full technical breakdown, see [MULTIPLAYER.md](MULTIPLAYER.md).
+
+---
+
+## 🌍 Languages
+
+The mod is fully translated into **12 languages**: English, German, Spanish, French, Italian, Japanese, Korean, Polish, Brazilian Portuguese, Russian, Turkish, and Simplified Chinese. It follows your Minecraft language setting automatically — no configuration needed. Translations are machine-assisted, so if something reads oddly in your language, please open an issue or PR on GitHub.
+
+---
 
 ## 📜 Story Events
 
@@ -285,7 +333,7 @@ These are background effects that can trigger randomly or be manually activated.
 ## 🛡️ Safety Tips
 
 1. **Enable Privacy Mode** if you're uncomfortable with real data being accessed
-2. **Play in Singleplayer Only** - The mod automatically disables in multiplayer
+2. **Singleplayer is the intended experience**, but multiplayer is supported too — in multiplayer, each player's own Privacy Mode governs their own machine (see the [Multiplayer](#-multiplayer) section)
 3. **Use `/nullpointer config disable`** if you need to pause the mod for whatever reason (or just log out lol)
 4. *Check `/nullpointer progress`** to see where you are in the story
 
@@ -306,6 +354,27 @@ AURORA and NullPointerEntity respond to your chat messages. Try talking to them:
 - **And many more!**
 
 The entities will remember your conversations and reference past interactions. They become more aware and unsettling as the story progresses.
+
+---
+
+## 🎤 Talking with Your Voice
+
+As of v4.0.0 you can talk to AURORA out loud instead of typing — if you install the optional [Shriek](https://modrinth.com/mod/shriek) speech-to-text mod (it needs [Architectury](https://modrinth.com/mod/architectury-api) too). Shriek uses local [Vosk](https://alphacephei.com/vosk/) models, so your voice is processed **on your own machine** and never uploaded.
+
+**Setup:**
+1. Install Shriek + Architectury alongside NullPointerEntity (all in your `mods` folder).
+2. Launch the game. The first time, Shriek downloads a Vosk speech model for your selected in-game language.
+3. That's it — AURORA now reacts to what you say, the same way she reacts to typed chat.
+
+**Push-to-talk vs. always-listening:**
+- By default, **push-to-talk** is on: AURORA only hears you while you hold Shriek's voice keybind (set it in **Options → Controls**).
+- Prefer hands-free? Run `/nullpointer pushtotalk false` to make the mic always listen.
+- Toggle the whole feature with `/nullpointer voicechat true|false`.
+
+**Notes:**
+- The mod works completely fine **without** Shriek — you just type in chat instead.
+- The speech model follows your Minecraft language. Vosk isn't perfect; you may need to raise your mic volume or repeat phrases. Larger, more accurate models exist at the cost of storage.
+- This is separate from the **audio surveillance** events, which record short mic clips for immersion regardless of whether Shriek is installed.
 
 ---
 

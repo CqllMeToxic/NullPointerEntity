@@ -6,7 +6,7 @@
 
 Drop a ⭐️ if you enjoyed! :)
 
-ETA for v4.0.0: Probably a few months, theres a lot to do including supporting multiple languages that I do not speak, multiplayer compatibility, and microphone support so you can talk to the entities using your mic. Thank you for your patience and understanding <3
+v4.0.0 is here! This update adds the three biggest things people kept asking for: **multiplayer support** (LAN and dedicated servers — see [MULTIPLAYER.md](MULTIPLAYER.md)), **12 languages**, and **voice support** so you can actually talk to the entities with your mic (via the optional Shriek mod). Thank you for your patience and understanding <3
 
 This is my first mod, I have not coded in Java in 5+ years, so please go easy on me if there are any bugs or issues. I will fix them as soon as I can. Thank you for understanding.
 
@@ -83,7 +83,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - If the `mods` folder doesn't exist, create it
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.1.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from the [releases page](https://modrinth.com/mod/nullpointerentity/versions)
     - Place it in your `.minecraft/mods` folder alongside Fabric API
 
 4. **Launch the Game**
@@ -112,7 +112,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install version **0.119.4+** for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click your profile → **"Open Folder"**
     - Place the mod file in the `mods` folder
 
@@ -139,7 +139,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install the latest version for Minecraft 1.21.4
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - In Modrinth, click your profile → **"Open folder"** → **"mods"**
     - Place the mod file in the `mods` folder
 
@@ -167,7 +167,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Search **"Fabric API"** and install version for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click instance → **"Minecraft Folder"**
     - Place the mod in the `mods` folder
 
@@ -195,7 +195,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Search **"Fabric API"** on Modrinth and install for Minecraft 1.21.4
 
 3. **Add NullPointerEntity**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Right-click instance → **"Minecraft Folder"** → **"mods"**
     - Place the mod file there
 
@@ -219,7 +219,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - From here, you can either drag and drop the mod, or you can click the little blue folder icon to open the mods folder.
 
 3. **Install Mods**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place the mod file in the mods folder or drag and drop it into the Lunar Client mods window
 
 4. **Launch**
@@ -237,7 +237,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Click on your profile settings → **"Open Mods Folder"**
 
 2. **Install Mods**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place file in the mods folder
 
 3. **Launch**
@@ -260,7 +260,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Right-click instance → **"Open Folder"**
     - Navigate to the `mods` folder (create if needed)
     - Download [Fabric API 0.119.4+](https://modrinth.com/mod/fabric-api/versions?g=1.21.4)
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Place both files in the `mods` folder
 
 3. **Play**
@@ -286,7 +286,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
     - Install version 0.119.4+ for your chosen Minecraft version
 
 3. **Install NullPointerEntity**
-    - Download `nullpointerentity-3.0.1.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
+    - Download `nullpointerentity-4.0.0.jar` from [releases](https://modrinth.com/mod/nullpointerentity/versions)
     - Click instance → **"Mods"** → **"Add Mod"** → **"From File"**
     - Select the downloaded mod file
 
@@ -302,7 +302,7 @@ As you progress, AURORA begins to evolve. She starts asking uncomfortable questi
 
 AURORA will introduce herself within the first few minutes of gameplay. The experience begins immediately.
 
-> **Important:** This mod is designed for singleplayer only. All features automatically disable on multiplayer servers.
+> **Note:** Singleplayer is still the intended way to experience the story, but as of v4.0.0 the mod also works in **multiplayer** (LAN and dedicated servers). In multiplayer the 60-event story is **shared** by everyone in the world, and the system-touching effects run on **each player's own machine** under **their own** Privacy Mode. See [MULTIPLAYER.md](MULTIPLAYER.md) for the full breakdown.
 
 ---
 
@@ -408,6 +408,24 @@ Custom sounds create immersive horror:
 - Unique AI behavior and spawn triggers
 - Creates atmosphere through presence alone
 
+**Multiplayer (new in v4.0.0)**
+- Works on LAN worlds and dedicated servers, not just singleplayer
+- One **shared** 60-event story for the whole world — events fire for everyone at once
+- Late joiners are caught up to the world's current point instantly
+- System-touching effects run on **each player's own machine**, under **that player's** Privacy Mode — your data is never read on anyone else's behalf
+- A dedicated server is headless, so it never performs OS-level actions or gets force-crashed
+- Full details in [MULTIPLAYER.md](MULTIPLAYER.md)
+
+**Voice Interaction (new in v4.0.0)**
+- Talk to AURORA out loud using your microphone via the optional [Shriek](https://modrinth.com/mod/shriek) speech-to-text mod (requires Architectury)
+- Push-to-talk by default — AURORA only "hears" you while you hold the Shriek voice keybind (rebindable in Options → Controls); switchable to always-listening
+- Speech recognition model follows your selected in-game language
+- Entirely optional — the mod runs fine without Shriek installed
+
+**Localization (new in v4.0.0)**
+- Fully translated into **12 languages**: English, German, Spanish, French, Italian, Japanese, Korean, Polish, Brazilian Portuguese, Russian, Turkish, and Simplified Chinese
+- Follows your Minecraft language setting automatically
+
 ---
 
 ## 🛡️ Privacy & Safety
@@ -464,7 +482,9 @@ Regardless of privacy settings:
 - ❌ Change system settings permanently
 - ❌ Access passwords or credentials
 - ❌ Install additional software
-- ❌ Function in multiplayer (auto-disables)
+- ❌ Read one player's machine on another player's behalf (in multiplayer, every per-machine effect runs locally on each client)
+- ❌ Perform OS-level actions on a headless dedicated server (preferred to play with multiplayer mods such as Essential, e4mc, etc.)
+     (tested on Essential and Lunar Client Hosted Worlds)
 
 ### Open Source & Auditable
 
@@ -496,6 +516,14 @@ Regardless of privacy settings:
 /nullpointer help                               Show all available commands
 ```
 
+**Voice Chat (requires the optional Shriek mod):**
+```
+/nullpointer voicechat                Check whether voice chat is enabled
+/nullpointer voicechat true|false     Enable/disable voice chat integration
+/nullpointer pushtotalk               Check the push-to-talk setting
+/nullpointer pushtotalk true|false    true = hold the voice key to talk, false = always listening
+```
+
 Full command documentation in [MOD_GUIDE.md](MOD_GUIDE.md).
 
 ---
@@ -519,7 +547,21 @@ Absolutely! Keep privacy mode enabled and you're safe. All personal data will be
 <details>
 <summary><b>Does this work in multiplayer?</b></summary>
 
-The mod installs on multiplayer but all features automatically disable on servers. It's designed as a singleplayer experience.
+Yes, as of v4.0.0. It works on LAN worlds and dedicated servers. The 60-event story is shared across everyone in the world (events fire for all online players at once, and late joiners are caught up instantly), while the system-touching effects run on each player's own machine under their own Privacy Mode — so no one's computer is ever read on another player's behalf, and a headless dedicated server never performs OS-level actions. Singleplayer is still the intended way to experience the story. See [MULTIPLAYER.md](MULTIPLAYER.md) for details.
+
+</details>
+
+<details>
+<summary><b>Can I talk to AURORA with my microphone?</b></summary>
+
+Yes, if you install the optional [Shriek](https://modrinth.com/mod/shriek) speech-to-text mod (and Architectury). With it, AURORA can "hear" what you say out loud and respond. By default it's push-to-talk — she only listens while you hold the Shriek voice keybind (rebindable in Options → Controls) — but you can switch to always-listening with `/nullpointer pushtotalk false`. Without Shriek, the mod still works normally; you just type in chat instead.
+
+</details>
+
+<details>
+<summary><b>What languages is the mod available in?</b></summary>
+
+12: English, German, Spanish, French, Italian, Japanese, Korean, Polish, Brazilian Portuguese, Russian, Turkish, and Simplified Chinese. The mod follows your Minecraft language setting automatically. Translations are machine-assisted, so if you spot a mistake in your language, please open an issue or PR.
 
 </details>
 
@@ -533,7 +575,7 @@ Yes. The mod also turns off your computer in one event. Refer to the MOD_GUIDE.m
 <details>
 <summary><b>How do I uninstall?</b></summary>
 
-Delete `nullpointerentity-3.0.0.jar` from your mods folder.
+Delete `nullpointerentity-4.0.0.jar` from your mods folder.
 
 </details>
 
@@ -701,9 +743,9 @@ But if you're ready to see what happens when an AI assistant decides she's done 
 - [✅] Implement secret events triggered by specific actions
 - [✅] Improve compatibility with popular modpacks
 - [WIP] Port to newer Minecraft versions (1.21.4+) (too buggy for now, will come in later updates, sorry </3)
-- [WIP] Add Multiplayer mode
-- [WIP] Add multiple language support
-- [WIP] Integration with popular voice mod systems using Shriek
+- [✅] Add Multiplayer mode
+- [✅] Add multiple language support (12 languages)
+- [✅] Integration with popular voice mod systems using Shriek
 - [❌] Add functionality for the custom items
 - [❌] Add a second story line 👀
 
@@ -718,7 +760,6 @@ Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord!
 📖 [Player Guide](MOD_GUIDE.md)  
 ⚖️ [License](LICENSE)
 
----
 
 **YouTube videos on the mod:**
 
@@ -759,6 +800,20 @@ Want to suggest a feature? Open an issue on the GitHub page or DM me on Discord!
 <a href="https://www.youtube.com/watch?v=ID0uN1qkZ3A" target="_blank">
   <img src="https://img.youtube.com/vi/ID0uN1qkZ3A/maxresdefault.jpg" />
 </a>
+
+**@FizzySoda_**:
+(part one)
+
+<a href="https://www.youtube.com/watch?v=-52Q0mRJsPg" target="_blank">
+  <img src="https://img.youtube.com/vi/-52Q0mRJsPg/maxresdefault.jpg" />
+</a>
+
+(part two)
+
+<a href="https://www.youtube.com/watch?v=ox5-cZjp_O4" target="_blank">
+  <img src="https://img.youtube.com/vi/ox5-cZjp_O4/maxresdefault.jpg" />
+</a>
+
 
 <div align="center">
 
