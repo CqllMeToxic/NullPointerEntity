@@ -1,7 +1,7 @@
 package lol.cqllmetoxic.nullpointerentity.entity;
 
 import lol.cqllmetoxic.nullpointerentity.NullPointerEntity;
-import lol.cqllmetoxic.nullpointerentity.client.RedRainRenderer;
+import lol.cqllmetoxic.nullpointerentity.network.ServerNetworking;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -34,8 +34,8 @@ public class NullPointerEntityEnvironment {
             // start raining and thundering immediately
             world.setWeather(0, 12000, true, true); // rain for 10 minutes, with thunder
 
-            // activate red rain renderer on client side
-            RedRainRenderer.setRedRainActive(true);
+            // activate the red-rain overlay on the target player's OWN client (was host-only before)
+            ServerNetworking.sendRedRain(targetPlayer, true);
 
             NullPointerEntity.LOGGER.info("Hostile environment activated - rain and thunder started");
             
@@ -182,8 +182,12 @@ public class NullPointerEntityEnvironment {
                 currentEffectTimer = null;
             }
 
-            // deactivate red rain renderer
-            RedRainRenderer.setRedRainActive(false);
+            // deactivate the red-rain overlay on every online player's own client
+            if (world.getServer() != null) {
+                for (ServerPlayerEntity p : world.getServer().getPlayerManager().getPlayerList()) {
+                    ServerNetworking.sendRedRain(p, false);
+                }
+            }
 
             // clear the weather
             world.setWeather(6000, 0, false, false);

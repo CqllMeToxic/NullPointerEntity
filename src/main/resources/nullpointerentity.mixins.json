@@ -7,13 +7,14 @@
   ],
   "client": [
     "client.BlockInteractionMixin",
-    "client.InGameHudMixin",
     "client.KeyboardMixin",
+    "client.KeyBindingAccessor",
     "client.KeyBindingMixin",
     "client.MouseMixin",
     "client.MovementMixin",
     "client.RenderMixin",
-    "client.LivingEntityMovementMixin"
+    "client.LivingEntityMovementMixin",
+    "client.TitleScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
