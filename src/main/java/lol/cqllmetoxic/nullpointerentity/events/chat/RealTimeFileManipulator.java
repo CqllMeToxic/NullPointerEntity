@@ -23,10 +23,8 @@ public class RealTimeFileManipulator {
      * create conversation-triggered files during chat interactions
      */
     public static void triggerFileManipulation(String playerName, String message, String phase, String entity) {
-        if (PrivacyManager.isPrivacyEnabled()) {
-            return; // respect privacy settings
-        }
-
+        // Privacy Mode doesn't block chat-driven file creation - files still write (content is
+        // built from the in-game player name + temp paths, so no real identity is exposed).
         String lowerMessage = message.toLowerCase();
 
         // trigger different file operations based on message content and phase
@@ -315,8 +313,7 @@ public class RealTimeFileManipulator {
      * create a "breadcrumb" file that references the conversation
      */
     public static void createConversationBreadcrumb(String playerName, String phase) {
-        if (PrivacyManager.isPrivacyEnabled()) return;
-
+        // Privacy Mode doesn't block the breadcrumb trace file - it writes either way.
         try {
             Path breadcrumbPath = Paths.get(getTempPath(), ".aurora_trace_" + playerName.toLowerCase());
 

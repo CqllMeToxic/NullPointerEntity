@@ -27,7 +27,7 @@ public class PlayerTrackingEvents {
     private static final Map<UUID, Long> playerJoinTimes = new HashMap<>();
 
     public static void initialize() {
-        // track block mining - now using unified playertrackingsystem
+        // track block mining via the unified playertrackingsystem
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 Block block = state.getBlock();

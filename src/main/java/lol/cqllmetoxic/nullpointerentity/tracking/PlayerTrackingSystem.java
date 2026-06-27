@@ -288,7 +288,7 @@ public class PlayerTrackingSystem {
     }
 
     /**
-     * Updates placement tracking using vanilla stats deltas so all placed block items are counted.
+     * updates placement tracking using vanilla stats deltas so all placed block items are counted.
      */
     public static void refreshBlockPlacementTracking(ServerPlayerEntity player) {
         String playerName = player.getName().getString();
@@ -300,7 +300,7 @@ public class PlayerTrackingSystem {
 
         long currentPlacedTotal = getCurrentPlacedBlockStatTotal(player);
 
-        // Stats can reset between worlds/saves; resync baseline without applying a negative delta.
+        // stats can reset between worlds/saves; resync baseline without applying a negative delta.
         if (currentPlacedTotal < data.lastRecordedPlacedStatTotal) {
             data.lastRecordedPlacedStatTotal = currentPlacedTotal;
             return;
@@ -319,7 +319,7 @@ public class PlayerTrackingSystem {
         ServerStatHandler stats = player.getStatHandler();
         long total = 0;
 
-        // Sum all block-item uses; this tracks real placement behavior better than a short hardcoded item list.
+        // sum all block-item uses; tracks real placement behaviour better than a short hardcoded item list.
         for (Item item : Registries.ITEM) {
             if (item instanceof net.minecraft.item.BlockItem) {
                 total += stats.getStat(Stats.USED.getOrCreateStat(item));

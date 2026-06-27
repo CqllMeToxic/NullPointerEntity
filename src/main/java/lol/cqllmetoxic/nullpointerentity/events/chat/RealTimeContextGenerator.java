@@ -33,6 +33,43 @@ public class RealTimeContextGenerator {
                                         inventoryContext, timeContext, phase, playerName);
     }
 
+    /**
+     * localized variant: a single translatable "live activity" part (or null). activity type is
+     * detected via {@code instanceof} (locale-safe), and the held-item name + location render
+     * localized on the client. NOTE: this intentionally collapses the old per-tier / per-item-category
+     * item comments (which matched on the English display-name string, breaking under other locales)
+     * into one per-phase "holding" line with the item name as an arg; inventory / game-time context
+     * are dropped here. restoring per-item flavor would need a registry-id-based dispatch.
+     */
+    public static ChatPart generateActivityPart(ServerPlayerEntity player, String phase) {
+        String ph = switch (phase) {
+            case "NICE" -> "nice";
+            case "TRANSITION" -> "transition";
+            case "HOSTILE" -> "hostile";
+            case "JUMPSCARE" -> "jumpscare";
+            default -> null;
+        };
+        if (ph == null) return null;
+        String b = "message.nullpointerentity.chat.rtc.add." + ph + ".";
+
+        ItemStack hand = player.getMainHandStack();
+        if (!hand.isEmpty()) {
+            if (hand.getItem() instanceof PickaxeItem) return new ChatPart(b + "mining", locationText(player));
+            if (isFood(hand)) return new ChatPart(b + "eat", hand.getName());
+            return new ChatPart(b + "holding", hand.getName());
+        }
+        if (player.isSneaking()) return new ChatPart(b + "sneaking");
+        if (player.isSprinting()) return new ChatPart(b + "running");
+        return new ChatPart(b + "generic");
+    }
+
+    private static net.minecraft.text.Text locationText(ServerPlayerEntity player) {
+        int y = player.getBlockPos().getY();
+        String s = y < 0 ? "depths" : y < 16 ? "deep_underground" : y < 40 ? "underground"
+            : y < 60 ? "caves" : y < 100 ? "surface" : y < 150 ? "up_high" : "very_high";
+        return net.minecraft.text.Text.translatable("message.nullpointerentity.chat.rtc.loc." + s);
+    }
+
     private static String getCurrentActivity(ServerPlayerEntity player, PlayerTrackingSystem.PlayerData data) {
         ItemStack mainHand = player.getMainHandStack();
 
