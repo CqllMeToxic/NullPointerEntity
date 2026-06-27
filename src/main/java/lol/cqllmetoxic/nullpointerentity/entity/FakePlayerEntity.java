@@ -28,6 +28,8 @@ import java.util.TimerTask;
  */
 public class FakePlayerEntity extends MobEntity {
     private ServerPlayerEntity targetPlayer;
+    /** every player that shares this single entity (when they're within 100 blocks of each other) */
+    private final List<ServerPlayerEntity> sharedTargets = new ArrayList<>();
     private int existenceTimer = 0;
     private boolean hasBeenSeen = false;
     private int lookingTimer = 0;
@@ -47,7 +49,7 @@ public class FakePlayerEntity extends MobEntity {
         super(entityType, world);
 
         // make it look and behave like a player
-        this.setCustomName(Text.literal("NullPointerEntity").formatted(Formatting.DARK_RED));
+        this.setCustomName(Text.translatable("screen.nullpointerentity.brand").formatted(Formatting.DARK_RED));
         this.setCustomNameVisible(false);
         this.setInvulnerable(true);
         this.setSilent(false); // allow sounds for spawn effect
@@ -67,6 +69,8 @@ public class FakePlayerEntity extends MobEntity {
 
     public void setTargetPlayer(ServerPlayerEntity player) {
         this.targetPlayer = player;
+        sharedTargets.clear();
+        sharedTargets.add(player);
 
         // update persistent data when player is targeted
         PersistentDataManager.PersistentPlayerData data = PersistentDataManager.getPlayerData(player.getUuid());
@@ -75,11 +79,59 @@ public class FakePlayerEntity extends MobEntity {
         PersistentDataManager.updatePlayerData(player.getUuid(), data);
     }
 
+    /**
+     * registers an additional player who shares this one entity (used when a second player is within
+     * 100 blocks of the player it spawned for, so both interact with the same entity).
+     */
+    public void addTargetPlayer(ServerPlayerEntity player) {
+        if (player == null || sharedTargets.contains(player)) {
+            return;
+        }
+        sharedTargets.add(player);
+
+        PersistentDataManager.PersistentPlayerData data = PersistentDataManager.getPlayerData(player.getUuid());
+        data.timesEncounteredEntity++;
+        data.lastInteractionTime = System.currentTimeMillis();
+        PersistentDataManager.updatePlayerData(player.getUuid(), data);
+    }
+
+    /**
+     * chooses which shared player the entity reacts to this tick: whoever is looking at it (the
+     * nearest such), otherwise the nearest player. returns null when no shared player is still valid.
+     * for the normal single-player case this just returns that one player.
+     */
+    private ServerPlayerEntity selectActiveTarget() {
+        sharedTargets.removeIf(p -> p == null || !p.isAlive() || p.isDisconnected() || p.getWorld() != this.getWorld());
+
+        ServerPlayerEntity looking = null;
+        double lookingDist = Double.MAX_VALUE;
+        ServerPlayerEntity nearest = null;
+        double nearestDist = Double.MAX_VALUE;
+        for (ServerPlayerEntity p : sharedTargets) {
+            double d = p.squaredDistanceTo(this);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = p;
+            }
+            if (isPlayerLookingAtEntity(p) && d < lookingDist) {
+                lookingDist = d;
+                looking = p;
+            }
+        }
+        return looking != null ? looking : nearest;
+    }
+
     @Override
     public void tick() {
         super.tick();
 
-        if (this.getWorld().isClient || targetPlayer == null || !targetPlayer.isAlive()) {
+        if (this.getWorld().isClient) {
+            return;
+        }
+
+        // pick which shared player to react to this tick (identical to before for a single player)
+        targetPlayer = selectActiveTarget();
+        if (targetPlayer == null) {
             return;
         }
 
@@ -233,13 +285,13 @@ public class FakePlayerEntity extends MobEntity {
             lookingTimer++;
 
             if (lookingTimer > 60 && data.warningLevel == 0) {
-                sendNullPointerMessage(targetPlayer, "stop staring at me.");
+                sendNullPointerKey(targetPlayer, "message.nullpointerentity.fakeplayer.stare1");
                 data.warningLevel = 1;
                 PersistentDataManager.updatePlayerData(targetPlayer.getUuid(), data);
             }
 
             if (lookingTimer > 140 && data.warningLevel == 1) {
-                sendNullPointerMessage(targetPlayer, "I SAID STOP LOOKING.");
+                sendNullPointerKey(targetPlayer, "message.nullpointerentity.fakeplayer.stare2");
                 data.warningLevel = 2;
                 PersistentDataManager.updatePlayerData(targetPlayer.getUuid(), data);
             }
@@ -286,30 +338,20 @@ public class FakePlayerEntity extends MobEntity {
     private void handleProximityEffects(ServerPlayerEntity player, PersistentDataManager.PersistentPlayerData data, double distance) {
         proximityWarningTimer++;
 
-        // much longer intervals between proximity warnings - now every 10 seconds instead of 3
+        // proximity warnings fire on a long interval - every 10 seconds
         if (proximityWarningTimer > 200 && data.warningLevel < 3) {
-            String[] proximityWarnings = {
-                "don't come any closer.",
-                "stay back.",
-                "i'm warning you.",
-                "you're making me uncomfortable.",
-                "back away. now."
-            };
-
-            int warningIndex = Math.min(data.warningLevel, proximityWarnings.length - 1);
-            sendNullPointerMessage(player, proximityWarnings[warningIndex]);
+            int warningIndex = Math.min(data.warningLevel, 4);
+            sendNullPointerKey(player, "message.nullpointerentity.fakeplayer.proximity." + (warningIndex + 1));
             data.warningLevel++;
             proximityWarningTimer = 0;
             PersistentDataManager.updatePlayerData(player.getUuid(), data);
         }
 
-        // only trigger final warning when very close (3 blocks instead of 6)
+        // only trigger final warning when very close (within 3 blocks)
         if (distance < 9.0 && data.hasSeenNullPointerEntity && proximityWarningTimer > 100) {
-            String message = data.hasBeenCrashed ?
-                "you came back for more punishment." :
-                "you didn't listen. now you'll pay.";
-
-            sendNullPointerMessage(player, message);
+            sendNullPointerKey(player, data.hasBeenCrashed
+                ? "message.nullpointerentity.fakeplayer.final.crashed"
+                : "message.nullpointerentity.fakeplayer.final.first");
             data.shouldReceiveReturnMessage = true;
             proximityWarningTimer = 0; // reset timer to prevent spam
             PersistentDataManager.updatePlayerData(player.getUuid(), data);
@@ -333,38 +375,11 @@ public class FakePlayerEntity extends MobEntity {
     }
 
     private void revealPlayerInfo(ServerPlayerEntity player) {
-        // get real location data asynchronously and reveal comprehensive information
-        lol.cqllmetoxic.nullpointerentity.monitoring.LocationTracker.getUserPublicIPAsync().thenCompose(ip -> {
-            // send ip immediately
-            sendNullPointerMessage(player, "your IP address: " + ip);
-
-            return lol.cqllmetoxic.nullpointerentity.monitoring.LocationTracker.getLocationFromIPAsync(ip);
-        }).thenAccept(locationInfo -> {
-            // show comprehensive location information in a clean, non-redundant way
-            sendNullPointerMessage(player, "location: " + locationInfo.city + ", " + locationInfo.region + " " + locationInfo.zipCode);
-            sendNullPointerMessage(player, "internet provider: " + locationInfo.isp);
-            sendNullPointerMessage(player, "organization: " + locationInfo.organization);
-        }).exceptionally(throwable -> {
-            // fallback if location lookup fails
-            String fakeIP = generateRealisticIP();
-            sendNullPointerMessage(player, "your IP address: " + fakeIP);
-            sendNullPointerMessage(player, "Hmm... maybe not. Seems like your ISP has good protection, but I still see you.");
-            return null;
-        });
-
-        // show other player information immediately
-        sendNullPointerMessage(player, "playing as: " + player.getName().getString());
-        sendNullPointerMessage(player, "system user: " + lol.cqllmetoxic.nullpointerentity.NullPointerEntity.WINDOWS_USERNAME);
-    }
-
-    private String generateRealisticIP() {
-        int[] octets = new int[4];
-        octets[0] = 73 + (int)(Math.random() * 10);
-        octets[1] = 150 + (int)(Math.random() * 50);
-        octets[2] = (int)(Math.random() * 255);
-        octets[3] = 1 + (int)(Math.random() * 254);
-
-        return String.format("%d.%d.%d.%d", octets[0], octets[1], octets[2], octets[3]);
+        // per-machine: the IP / location / username reveal runs on the player's OWN client, so each
+        // player sees their own info (privacy-faked) instead of the host's IP/location/username.
+        // reading LocationTracker / getDisplayUsername here would have leaked the HOST's data to
+        // everyone. see ClientEventExecutor#runFakePlayerReveal.
+        lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendRunEvent(player, 70);
     }
 
     private void crashPlayer(ServerPlayerEntity player) {
@@ -375,23 +390,23 @@ public class FakePlayerEntity extends MobEntity {
         PersistentDataManager.updatePlayerData(player.getUuid(), data);
 
         // escalate messages based on crash history
-        String[] messages = data.timesEncounteredEntity > 3 ?
-            new String[]{"you keep coming back...", "you never learn.", "this is the last time."} :
-            new String[]{"you shouldn't have looked...", "now you'll pay the price.", "goodbye, " + player.getName().getString() + "."};
+        String[] msgKeys = data.timesEncounteredEntity > 3 ?
+            new String[]{"message.nullpointerentity.fakeplayer.crash.repeat.1", "message.nullpointerentity.fakeplayer.crash.repeat.2", "message.nullpointerentity.fakeplayer.crash.repeat.3"} :
+            new String[]{"message.nullpointerentity.fakeplayer.crash.first.1", "message.nullpointerentity.fakeplayer.crash.first.2", "message.nullpointerentity.fakeplayer.crash.first.3"};
 
-        sendNullPointerMessage(player, messages[0]);
+        sendNullPointerKey(player, msgKeys[0]);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, messages[1]);
+                sendNullPointerKey(player, msgKeys[1]);
             }
         }, 1000);
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendNullPointerMessage(player, messages[2]);
+                sendNullPointerKey(player, msgKeys[2], player.getName().getString());
 
                 // play crash sounds - static + glitch for maximum horror
                 if (FakePlayerEntity.this.getWorld() instanceof ServerWorld serverWorld) {
@@ -406,16 +421,12 @@ public class FakePlayerEntity extends MobEntity {
                 // trigger the jumpscare flash before crashing
                 triggerClientJumpscareFlash();
 
-                // wait for flash and sounds to be heard, then crash
+                // wait for flash and sounds to be heard, then crash the player's OWN client
+                // (never System.exit here - on a dedicated server that would kill the shared server)
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        // force crash the game after the jumpscare flash and sounds
-                        try {
-                            System.exit(-1);
-                        } catch (Exception e) {
-                            throw new RuntimeException("NullPointerEntity has terminated your session.");
-                        }
+                        lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendCrashGame(player);
                     }
                 }, 800); // wait 800ms for sounds and flash to be experienced
             }
@@ -423,16 +434,21 @@ public class FakePlayerEntity extends MobEntity {
     }
 
     private void triggerClientJumpscareFlash() {
-        // this will be called from server side to trigger client-side flash
+        // flash the target player's OWN screen via a packet (was a host-only static client call)
         if (targetPlayer != null && this.getWorld() instanceof ServerWorld) {
-            // send custom packet to client to trigger jumpscare flash
-            // for now, we'll use a creative workaround with client-side detection
-            lol.cqllmetoxic.nullpointerentity.NullPointerEntityClient.triggerJumpscareFlash();
+            lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendJumpscareFlash(targetPlayer);
         }
     }
 
     private void sendNullPointerMessage(ServerPlayerEntity player, String message) {
-        player.sendMessage(Text.literal("<NullPointerEntity> " + message).formatted(Formatting.DARK_RED), false);
+        player.sendMessage(Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+            .append(Text.literal(message).formatted(Formatting.DARK_RED)), false);
+    }
+
+    /** nullpointerentity line by translation key, so each client renders its own locale. */
+    private void sendNullPointerKey(ServerPlayerEntity player, String key, Object... args) {
+        player.sendMessage(Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+            .append(Text.translatable(key, args).formatted(Formatting.DARK_RED)), false);
     }
 
     @Override

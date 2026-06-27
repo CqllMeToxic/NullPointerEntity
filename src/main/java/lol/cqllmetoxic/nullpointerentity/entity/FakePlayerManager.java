@@ -34,6 +34,10 @@ public class FakePlayerManager {
     private static final Map<String, Map<UUID, Long>> worldSpawnTimes = new ConcurrentHashMap<>();
     /** cooldown between spawns - 5 minutes */
     private static final long SPAWN_COOLDOWN = 300000;
+    /** entities spawned within this window of each other count as the "same event firing" for sharing */
+    private static final long SHARED_SPAWN_WINDOW_MS = 3000;
+    /** max distance (blocks) between two players for them to share one entity */
+    private static final double SHARED_ENTITY_RANGE = 100.0;
 
     /** stores each player's previous yaw value for rotation comparison */
     private static final Map<UUID, Float> playerLastYaw = new ConcurrentHashMap<>();
@@ -79,6 +83,20 @@ public class FakePlayerManager {
         // remove existing fake player for this target in this world
         removeFakePlayer(playerUuid, worldId);
 
+        // shared-entity check: if another player within 100 blocks already had an entity spawned in
+        // this same event firing, both share that single entity instead of spawning a second one.
+        FakePlayerEntity shared = findShareableEntity(targetPlayer, worldPlayers, worldTimes);
+        if (shared != null) {
+            shared.addTargetPlayer(targetPlayer);
+            worldPlayers.put(playerUuid, shared);
+            worldTimes.put(playerUuid, System.currentTimeMillis());
+            PersistentDataManager.setFakePlayerSpawned(true);
+            scheduleInitialMessage(targetPlayer);
+            NullPointerEntity.LOGGER.info("Sharing one NullPointerEntity with {} (another player is within {} blocks)",
+                targetPlayer.getName().getString(), (int) SHARED_ENTITY_RANGE);
+            return;
+        }
+
         ServerWorld world = (ServerWorld) targetPlayer.getWorld();
 
         // find spawn position behind the player
@@ -116,6 +134,39 @@ public class FakePlayerManager {
         }
     }
 
+
+    /**
+     * finds an already-spawned entity that {@code player} should share instead of spawning a new one:
+     * one belonging to another online player in the same world, within {@link #SHARED_ENTITY_RANGE}
+     * blocks, whose entity spawned in the same event firing (within {@link #SHARED_SPAWN_WINDOW_MS}).
+     * returns null when no such entity exists (so a fresh one is spawned, as before).
+     */
+    private static FakePlayerEntity findShareableEntity(ServerPlayerEntity player,
+            Map<UUID, FakePlayerEntity> worldPlayers, Map<UUID, Long> worldTimes) {
+        MinecraftServer server = player.getServer();
+        if (server == null) {
+            return null;
+        }
+        long now = System.currentTimeMillis();
+        for (Map.Entry<UUID, FakePlayerEntity> entry : worldPlayers.entrySet()) {
+            FakePlayerEntity entity = entry.getValue();
+            if (entity == null || entity.isRemoved() || !entity.isAlive()) {
+                continue;
+            }
+            Long spawnedAt = worldTimes.get(entry.getKey());
+            if (spawnedAt == null || now - spawnedAt > SHARED_SPAWN_WINDOW_MS) {
+                continue; // belongs to an earlier event firing, not this one
+            }
+            ServerPlayerEntity owner = server.getPlayerManager().getPlayer(entry.getKey());
+            if (owner == null || owner == player || owner.getWorld() != player.getWorld()) {
+                continue;
+            }
+            if (owner.distanceTo(player) <= SHARED_ENTITY_RANGE) {
+                return entity;
+            }
+        }
+        return null;
+    }
 
     // find spawn location behind the player
     private static BlockPos findSpawnLocationBehindPlayer(ServerWorld world, ServerPlayerEntity player) {
@@ -174,7 +225,8 @@ public class FakePlayerManager {
         Map<UUID, FakePlayerEntity> worldPlayers = worldFakePlayers.get(worldId);
         if (worldPlayers != null) {
             FakePlayerEntity fakePlayer = worldPlayers.remove(targetPlayerUuid);
-            if (fakePlayer != null && !fakePlayer.isRemoved()) {
+            // only discard the entity if no other player still shares it
+            if (fakePlayer != null && !fakePlayer.isRemoved() && !worldPlayers.containsValue(fakePlayer)) {
                 fakePlayer.discard();
                 NullPointerEntity.LOGGER.debug("Removed fake player for {} from world {}", targetPlayerUuid, worldId);
             }
@@ -282,36 +334,50 @@ public class FakePlayerManager {
         Vec3d lookDirection = targetPlayer.getRotationVec(1.0f);
         Vec3d spawnPos = playerPos.add(lookDirection.multiply(3.0));
 
-        try {
-            // create the temporary fake player entity
-            FakePlayerEntity fakePlayer = new FakePlayerEntity(ModEntities.FAKE_PLAYER_ENTITY, world);
-            fakePlayer.setPosition(spawnPos.x, spawnPos.y, spawnPos.z);
-            fakePlayer.setTargetPlayer(targetPlayer);
+        // do the dedup check + spawn on the server thread: this gets called from a timer thread, and in
+        // the shared multiplayer story event 31 fires for every player, so two people standing next to
+        // each other would otherwise each spawn a NullPointerEntity. running it on the server thread also
+        // keeps the nearby-entity query thread-safe.
+        world.getServer().execute(() -> {
+            net.minecraft.util.math.Box near = targetPlayer.getBoundingBox().expand(SHARED_ENTITY_RANGE);
+            if (!world.getEntitiesByClass(FakePlayerEntity.class, near, e -> !e.isRemoved()).isEmpty()) {
+                NullPointerEntity.LOGGER.info("Skipping temporary NullPointerEntity for {} — one already exists nearby",
+                    targetPlayer.getName().getString());
+                return;
+            }
+            try {
+                // create the temporary fake player entity
+                FakePlayerEntity fakePlayer = new FakePlayerEntity(ModEntities.FAKE_PLAYER_ENTITY, world);
+                fakePlayer.setPosition(spawnPos.x, spawnPos.y, spawnPos.z);
+                fakePlayer.setTargetPlayer(targetPlayer);
 
-            // set custom name to show "nullpointerentity" instead of the entity type
-            fakePlayer.setCustomName(Text.literal("NullPointerEntity").formatted(Formatting.DARK_RED));
-            fakePlayer.setCustomNameVisible(true);
+                // set custom name to show "nullpointerentity" instead of the entity type
+                fakePlayer.setCustomName(Text.translatable("screen.nullpointerentity.brand").formatted(Formatting.DARK_RED));
+                fakePlayer.setCustomNameVisible(true);
 
-            // spawn the entity
-            world.spawnEntity(fakePlayer);
+                // spawn the entity
+                world.spawnEntity(fakePlayer);
 
-            NullPointerEntity.LOGGER.info("Spawned temporary NullPointerEntity for {} at position {} for {} ticks",
-                targetPlayer.getName().getString(), spawnPos, durationTicks);
+                NullPointerEntity.LOGGER.info("Spawned temporary NullPointerEntity for {} at position {} for {} ticks",
+                    targetPlayer.getName().getString(), spawnPos, durationTicks);
 
-            // schedule removal after the specified duration
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    if (fakePlayer != null && !fakePlayer.isRemoved()) {
-                        fakePlayer.discard();
-                        NullPointerEntity.LOGGER.info("Removed temporary NullPointerEntity for {}",
-                            targetPlayer.getName().getString());
+                // schedule removal after the specified duration (on the server thread)
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        world.getServer().execute(() -> {
+                            if (!fakePlayer.isRemoved()) {
+                                fakePlayer.discard();
+                                NullPointerEntity.LOGGER.info("Removed temporary NullPointerEntity for {}",
+                                    targetPlayer.getName().getString());
+                            }
+                        });
                     }
-                }
-            }, durationTicks * 50); // convert ticks to milliseconds (20 ticks = 1 second = 1000ms)
+                }, durationTicks * 50); // convert ticks to milliseconds (20 ticks = 1 second = 1000ms)
 
-        } catch (Exception e) {
-            NullPointerEntity.LOGGER.error("Failed to spawn temporary NullPointerEntity: {}", e.getMessage());
-        }
+            } catch (Exception e) {
+                NullPointerEntity.LOGGER.error("Failed to spawn temporary NullPointerEntity: {}", e.getMessage());
+            }
+        });
     }
 }

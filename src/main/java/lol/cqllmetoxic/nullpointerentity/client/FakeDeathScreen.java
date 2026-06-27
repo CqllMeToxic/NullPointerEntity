@@ -104,12 +104,12 @@ public class FakeDeathScreen extends Screen {
             String playerName = this.client != null && this.client.player != null
                 ? this.client.player.getName().getString()
                 : "Player";
-            Text causeText = Text.literal(playerName + " was killed");
+            Text causeText = Text.translatable("screen.nullpointerentity.death.cause", playerName);
             context.drawCenteredTextWithShadow(this.textRenderer, causeText,
                 this.width / 2, this.height / 4 + 10, 0xFFFFFF);
 
             // draw score (always 0 for creepiness)
-            Text scoreText = Text.literal("Score: §e0");
+            Text scoreText = Text.translatable("screen.nullpointerentity.death.score");
             context.drawCenteredTextWithShadow(this.textRenderer, scoreText,
                 this.width / 2, this.height / 4 + 30, 0xFFFFFF);
         }
@@ -119,21 +119,21 @@ public class FakeDeathScreen extends Screen {
             int countdown = 3 - (int)(elapsed / 1000);
             if (countdown > 0) {
                 context.drawCenteredTextWithShadow(this.textRenderer,
-                    Text.literal("Respawning in " + countdown + "..."),
+                    Text.translatable("screen.nullpointerentity.death.respawning", countdown),
                     this.width / 2, this.height / 4 + 125, 0xAAAAAA);
             }
         } else if (elapsed >= 3000 && elapsed < 3500) {
             // show error message after countdown
             context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("§c§lERROR: Respawn failed"),
+                Text.translatable("screen.nullpointerentity.death.error.respawn_failed"),
                 this.width / 2, this.height / 4 + 125, 0xFF0000);
         }
 
         // corrupt buttons after 2 seconds
         if (elapsed > 2000) {
             if (elapsed % 800 < 400) {
-                respawnButton.setMessage(Text.literal("§4§k|||§r §cERROR§r §4§k|||"));
-                titleButton.setMessage(Text.literal("§4§k|||§r §cERROR§r §4§k|||"));
+                respawnButton.setMessage(Text.translatable("screen.nullpointerentity.death.error.glitch"));
+                titleButton.setMessage(Text.translatable("screen.nullpointerentity.death.error.glitch"));
             } else {
                 respawnButton.setMessage(Text.translatable("deathScreen.respawn"));
                 titleButton.setMessage(Text.translatable("deathScreen.titleScreen"));
@@ -147,14 +147,14 @@ public class FakeDeathScreen extends Screen {
     private void onRespawnClick() {
         // fake button - show error message
         if (client != null && client.player != null) {
-            client.player.sendMessage(Text.literal("§c§lERROR: Death not found"), false);
+            client.player.sendMessage(Text.translatable("screen.nullpointerentity.death.error.death_not_found"), false);
         }
     }
 
     private void onTitleScreenClick() {
         // fake button - show error message
         if (client != null && client.player != null) {
-            client.player.sendMessage(Text.literal("§c§lERROR: Connection lost"), false);
+            client.player.sendMessage(Text.translatable("screen.nullpointerentity.death.error.connection_lost"), false);
         }
     }
 
