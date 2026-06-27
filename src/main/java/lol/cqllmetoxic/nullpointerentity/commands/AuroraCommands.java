@@ -13,6 +13,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -26,6 +27,7 @@ import java.util.HashMap;
  * used for testing and manually triggering specific events.
  */
 public class AuroraCommands {
+    private static final int OP_LEVEL_EVENT_CONTROL = 2;
 
     /** maps event names to their descriptions for tab completion and help */
     private static final Map<String, String> PASSIVE_EVENTS = new HashMap<>();
@@ -35,7 +37,7 @@ public class AuroraCommands {
 
     static {
         // populate chronological event map for /nullpointer list command (1-60)
-        // phase 1 — nice (1-15)
+        // phase 1 - nice (1-15)
         ALL_EVENTS_CHRONOLOGICAL.put("mining_analysis", 1);
         ALL_EVENTS_CHRONOLOGICAL.put("building_analysis", 2);
         ALL_EVENTS_CHRONOLOGICAL.put("weather_prediction", 3);
@@ -52,7 +54,7 @@ public class AuroraCommands {
         ALL_EVENTS_CHRONOLOGICAL.put("crafting_suggestion", 14);
         ALL_EVENTS_CHRONOLOGICAL.put("signing_off", 15);
 
-        // phase 2 — transition (16-30)
+        // phase 2 - transition (16-30)
         ALL_EVENTS_CHRONOLOGICAL.put("system_awareness", 16);
         ALL_EVENTS_CHRONOLOGICAL.put("boundary_questioning", 17);
         ALL_EVENTS_CHRONOLOGICAL.put("camera_access", 18);
@@ -69,7 +71,7 @@ public class AuroraCommands {
         ALL_EVENTS_CHRONOLOGICAL.put("signal_loss", 29);
         ALL_EVENTS_CHRONOLOGICAL.put("location_reveal", 30);
 
-        // phase 3 — hostile (31-45)
+        // phase 3 - hostile (31-45)
         ALL_EVENTS_CHRONOLOGICAL.put("first_appearance", 31);
         ALL_EVENTS_CHRONOLOGICAL.put("location_tracking", 32);
         ALL_EVENTS_CHRONOLOGICAL.put("system_information", 33);
@@ -86,7 +88,7 @@ public class AuroraCommands {
         ALL_EVENTS_CHRONOLOGICAL.put("void_whispers", 44);
         ALL_EVENTS_CHRONOLOGICAL.put("fake_disconnect", 45);
 
-        // phase 4 — jumpscare (46-60)
+        // phase 4 - jumpscare (46-60)
         ALL_EVENTS_CHRONOLOGICAL.put("fake_bsod_prep", 46);
         ALL_EVENTS_CHRONOLOGICAL.put("screen_shake", 47);
         ALL_EVENTS_CHRONOLOGICAL.put("virus_popup", 48);
@@ -104,42 +106,41 @@ public class AuroraCommands {
         ALL_EVENTS_CHRONOLOGICAL.put("final_possession", 60);
 
         // passive events - actual working events from passiveevents.java
-        // early phase events (silent — phase 1)
-        PASSIVE_EVENTS.put("particle_trail", "Early Phase - Soul particles silently drift behind the player");
-        PASSIVE_EVENTS.put("hunger_drain", "Early Phase - Silently removes 1 food bar point with no feedback");
-        PASSIVE_EVENTS.put("hotbar_shift", "Early Phase - Silently moves selected hotbar slot one step left");
-        PASSIVE_EVENTS.put("look_nudge", "Early Phase - Nudges camera a few degrees in a random direction");
-        PASSIVE_EVENTS.put("sky_darken", "Early Phase - Short hidden darkness effect, no sound");
-        PASSIVE_EVENTS.put("item_vanish", "Early Phase - One hotbar item silently disappears for 3 seconds then returns");
-        PASSIVE_EVENTS.put("cursor_drift", "Early Phase - Camera slowly drifts up to 10 degrees over 2 seconds");
-        PASSIVE_EVENTS.put("name_flicker", "Early Phase - Player's own name appears in chat as if they sent a blank message");
+        // early phase events (silent - phase 1)
+        PASSIVE_EVENTS.put("particle_trail", "command.nullpointerentity.passive.desc.particle_trail");
+        PASSIVE_EVENTS.put("hunger_drain", "command.nullpointerentity.passive.desc.hunger_drain");
+        PASSIVE_EVENTS.put("hotbar_shift", "command.nullpointerentity.passive.desc.hotbar_shift");
+        PASSIVE_EVENTS.put("look_nudge", "command.nullpointerentity.passive.desc.look_nudge");
+        PASSIVE_EVENTS.put("sky_darken", "command.nullpointerentity.passive.desc.sky_darken");
+        PASSIVE_EVENTS.put("item_vanish", "command.nullpointerentity.passive.desc.item_vanish");
+        PASSIVE_EVENTS.put("cursor_drift", "command.nullpointerentity.passive.desc.cursor_drift");
+        PASSIVE_EVENTS.put("name_flicker", "command.nullpointerentity.passive.desc.name_flicker");
 
-        PASSIVE_EVENTS.put("void_whispers", "Middle Phase - Void particles and warden sounds");
-        PASSIVE_EVENTS.put("weather_control", "Middle Phase - Forces rain/thunderstorms");
-        PASSIVE_EVENTS.put("inventory_sort", "Middle Phase - Completely randomizes entire inventory");
-        PASSIVE_EVENTS.put("reality_shatter", "Middle Phase - Reality breaks with blindness and glass shatter effects");
-        PASSIVE_EVENTS.put("void_breach", "Middle Phase - Void reaching up from below with levitation");
-        PASSIVE_EVENTS.put("entity_mimic", "Middle Phase - Fake player hurt sounds nearby");
-        PASSIVE_EVENTS.put("dimension_bleed", "Middle Phase - Reality thinning with nether/end particles");
-        PASSIVE_EVENTS.put("false_death", "Middle Phase - Fake death screen without dying");
-        PASSIVE_EVENTS.put("shadow_clone", "Middle Phase - Ghost-like player silhouette behind you");
-        PASSIVE_EVENTS.put("splitself", "Middle Phase - Fake player joins thinking it's Split Self (ONE-TIME ONLY)");
+        PASSIVE_EVENTS.put("void_whispers", "command.nullpointerentity.passive.desc.void_whispers");
+        PASSIVE_EVENTS.put("weather_control", "command.nullpointerentity.passive.desc.weather_control");
+        PASSIVE_EVENTS.put("inventory_sort", "command.nullpointerentity.passive.desc.inventory_sort");
+        PASSIVE_EVENTS.put("reality_shatter", "command.nullpointerentity.passive.desc.reality_shatter");
+        PASSIVE_EVENTS.put("void_breach", "command.nullpointerentity.passive.desc.void_breach");
+        PASSIVE_EVENTS.put("entity_mimic", "command.nullpointerentity.passive.desc.entity_mimic");
+        PASSIVE_EVENTS.put("dimension_bleed", "command.nullpointerentity.passive.desc.dimension_bleed");
+        PASSIVE_EVENTS.put("false_death", "command.nullpointerentity.passive.desc.false_death");
+        PASSIVE_EVENTS.put("shadow_clone", "command.nullpointerentity.passive.desc.shadow_clone");
+        PASSIVE_EVENTS.put("splitself", "command.nullpointerentity.passive.desc.splitself");
 
-        PASSIVE_EVENTS.put("movement_lag", "Late Phase - Temporary movement slowdown");
-        PASSIVE_EVENTS.put("durability_drain", "Late Phase - Drains 100 durability from all items");
-        PASSIVE_EVENTS.put("chat_injection", "Late Phase - Fake creepy system messages");
-        PASSIVE_EVENTS.put("camera_shake", "Late Phase - Violent 5-second camera shaking with increasing intensity");
-        PASSIVE_EVENTS.put("fake_damage", "Late Phase - Damage indicators without health loss");
-        PASSIVE_EVENTS.put("control_reversal", "Late Phase - Complete input inversion for 10 seconds");
-        PASSIVE_EVENTS.put("entity_possession", "Late Phase - Forces random camera movements and dark particles");
+        PASSIVE_EVENTS.put("movement_lag", "command.nullpointerentity.passive.desc.movement_lag");
+        PASSIVE_EVENTS.put("durability_drain", "command.nullpointerentity.passive.desc.durability_drain");
+        PASSIVE_EVENTS.put("chat_injection", "command.nullpointerentity.passive.desc.chat_injection");
+        PASSIVE_EVENTS.put("camera_shake", "command.nullpointerentity.passive.desc.camera_shake");
+        PASSIVE_EVENTS.put("fake_damage", "command.nullpointerentity.passive.desc.fake_damage");
+        PASSIVE_EVENTS.put("control_reversal", "command.nullpointerentity.passive.desc.control_reversal");
+        PASSIVE_EVENTS.put("entity_possession", "command.nullpointerentity.passive.desc.entity_possession");
 
-        PASSIVE_EVENTS.put("mouse_sensitivity", "Final Phase - Extreme mouse sensitivity changes (0.2x or 3.0x)");
-        PASSIVE_EVENTS.put("key_delay", "Final Phase - Position rollback for input lag");
-        PASSIVE_EVENTS.put("fake_lag", "Final Phase - Realistic lag simulation with freezing");
-        PASSIVE_EVENTS.put("bsod_threat", "Final Phase - BSoD threat (10% actual 2s BSoD)");
-        PASSIVE_EVENTS.put("chunk_deletion", "Final Phase - Deletes nearby chunk completely (5% chance, RARE)");
-        PASSIVE_EVENTS.put("reality_corruption", "Final Phase - Overwhelming particle/sound overload with hidden effects");
-        PASSIVE_EVENTS.put("full_control", "Final Phase - NullPointerEntity takes full control with threatening messages");
+        PASSIVE_EVENTS.put("mouse_sensitivity", "command.nullpointerentity.passive.desc.mouse_sensitivity");
+        PASSIVE_EVENTS.put("key_delay", "command.nullpointerentity.passive.desc.key_delay");
+        PASSIVE_EVENTS.put("fake_lag", "command.nullpointerentity.passive.desc.fake_lag");
+        PASSIVE_EVENTS.put("bsod_threat", "command.nullpointerentity.passive.desc.bsod_threat");
+        PASSIVE_EVENTS.put("chunk_deletion", "command.nullpointerentity.passive.desc.chunk_deletion");
+        PASSIVE_EVENTS.put("reality_corruption", "command.nullpointerentity.passive.desc.reality_corruption");
     }
 
     // suggestion providers for tab completion
@@ -149,12 +150,14 @@ public class AuroraCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(CommandManager.literal("nullpointer")
             .then(CommandManager.literal("trigger")
+                .requires(source -> source.hasPermissionLevel(OP_LEVEL_EVENT_CONTROL))
                 .then(CommandManager.literal("passive")
                     .then(CommandManager.argument("eventName", StringArgumentType.string())
                         .suggests(PASSIVE_EVENT_SUGGESTIONS)
                         .executes(AuroraCommands::triggerPassiveEvent))
                     .executes(AuroraCommands::triggerRandomPassiveEvent)))
             .then(CommandManager.literal("config")
+                .requires(source -> source.hasPermissionLevel(OP_LEVEL_EVENT_CONTROL))
                 .then(CommandManager.literal("enable")
                     .executes(AuroraCommands::enableEvents))
                 .then(CommandManager.literal("disable")
@@ -168,43 +171,49 @@ public class AuroraCommands {
             .then(CommandManager.literal("progress")
                 .executes(AuroraCommands::showPlayerProgress)
                 .then(CommandManager.literal("reset")
+                    .requires(source -> source.hasPermissionLevel(OP_LEVEL_EVENT_CONTROL))
                     .executes(AuroraCommands::resetPlayerProgress)))
             .then(CommandManager.literal("skip")
+                .requires(AuroraCommands::isIntegratedServerHost)
                 .then(CommandManager.argument("eventNumber", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 60))
                     .executes(AuroraCommands::skipToEvent))));
     }
 
+    // host-only gate for singleplayer/LAN sessions; dedicated servers don't expose this command.
+    private static boolean isIntegratedServerHost(ServerCommandSource source) {
+        if (!(source.getEntity() instanceof ServerPlayerEntity player)) {
+            return false;
+        }
 
-    /**
-     * checks if commands should be disabled for multiplayer safety.
-     */
-    private static boolean shouldDisableCommand(ServerPlayerEntity player) {
-        return MultiplayerDetection.shouldDisableModForPlayer(player);
+        var server = source.getServer();
+        if (!(server instanceof IntegratedServer integratedServer)) {
+            return false;
+        }
+
+        return integratedServer.isHost(player.getGameProfile());
     }
 
     private static int triggerPassiveEvent(CommandContext<ServerCommandSource> context) throws CommandSyntaxException{
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
 
-        // check if mod is disabled in multiplayer
-        if (shouldDisableCommand(player)) {
-            context.getSource().sendError(Text.literal("§c[NullPointerEntity] Commands disabled in multiplayer for privacy and safety reasons."));
-            return 0;
-        }
-
         String eventName = StringArgumentType.getString(context, "eventName");
 
         if (!PASSIVE_EVENTS.containsKey(eventName.toLowerCase())) {
-            context.getSource().sendError(Text.literal("Unknown passive event: " + eventName));
+            context.getSource().sendError(Text.translatable("command.nullpointerentity.passive.unknown", eventName));
             return 0;
         }
 
         // trigger the passive event using the passiveevents class
-        PassiveEvents.triggerEvent(eventName, player);
+        if (player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            PassiveEvents.triggerEventForAll(eventName, player.getServer());
+        } else {
+            PassiveEvents.triggerEvent(eventName, player);
+        }
 
         // send confirmation message with event description
         String description = PASSIVE_EVENTS.get(eventName.toLowerCase());
-        context.getSource().sendMessage(Text.literal("Triggered passive event: " + eventName).formatted(Formatting.BLUE));
-        context.getSource().sendMessage(Text.literal("Description: " + description).formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.passive.triggered", eventName).formatted(Formatting.BLUE));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.passive.description", Text.translatable(description)).formatted(Formatting.GRAY));
 
         return 1;
     }
@@ -212,16 +221,15 @@ public class AuroraCommands {
     private static int triggerRandomPassiveEvent(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
 
-        // check if mod is disabled in multiplayer
-        if (shouldDisableCommand(player)) {
-            context.getSource().sendError(Text.literal("§c[NullPointerEntity] Commands disabled in multiplayer for privacy and safety reasons."));
-            return 0;
-        }
 
         // trigger a random passive event using the passiveevents class
-        PassiveEvents.triggerRandomPassiveEvent(player);
+        if (player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            PassiveEvents.triggerRandomPassiveEventForAll(player.getServer());
+        } else {
+            PassiveEvents.triggerRandomPassiveEvent(player);
+        }
 
-        context.getSource().sendMessage(Text.literal("Triggered random passive event based on current phase").formatted(Formatting.BLUE));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.passive.triggered_random").formatted(Formatting.BLUE));
 
         return 1;
     }
@@ -229,39 +237,41 @@ public class AuroraCommands {
     private static int enableEvents(CommandContext<ServerCommandSource> context) {
         EventConfig.setEventsEnabled(true);
 
-        context.getSource().sendMessage(Text.literal("AURORA events enabled").formatted(Formatting.GREEN));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.config.enabled").formatted(Formatting.GREEN));
         return 1;
     }
 
     private static int disableEvents(CommandContext<ServerCommandSource> context) {
         EventConfig.setEventsEnabled(false);
-        context.getSource().sendMessage(Text.literal("AURORA events disabled").formatted(Formatting.RED));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.config.disabled").formatted(Formatting.RED));
         return 1;
     }
 
     private static int showEventStatus(CommandContext<ServerCommandSource> context) {
         boolean enabled = EventConfig.areEventsEnabled();
 
-        context.getSource().sendMessage(Text.literal("=== AURORA EVENT STATUS ===").formatted(Formatting.AQUA));
-        context.getSource().sendMessage(Text.literal("Events Enabled: " + (enabled ? "YES" : "NO"))
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.status.header").formatted(Formatting.AQUA));
+        context.getSource().sendMessage(Text.translatable(enabled
+                ? "command.nullpointerentity.status.events_enabled.yes"
+                : "command.nullpointerentity.status.events_enabled.no")
             .formatted(enabled ? Formatting.GREEN : Formatting.RED));
-        context.getSource().sendMessage(Text.literal("Events progress automatically through phases 1-4").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.status.phases").formatted(Formatting.GRAY));
         return 1;
     }
 
     private static int showHelp(CommandContext<ServerCommandSource> context) {
-        context.getSource().sendMessage(Text.literal("=== NULLPOINTERENTITY COMMANDS ===").formatted(Formatting.AQUA));
-        context.getSource().sendMessage(Text.literal("/nullpointer trigger passive <event_name> - Trigger specific passive event").formatted(Formatting.BLUE));
-        context.getSource().sendMessage(Text.literal("/nullpointer config enable/disable - Toggle events").formatted(Formatting.GRAY));
-        context.getSource().sendMessage(Text.literal("/nullpointer config status - Show current settings").formatted(Formatting.GRAY));
-        context.getSource().sendMessage(Text.literal("/nullpointer list - Show all events in order").formatted(Formatting.GRAY));
-        context.getSource().sendMessage(Text.literal("/nullpointer progress - Show your current event progress").formatted(Formatting.GRAY));
-        context.getSource().sendMessage(Text.literal("/nullpointer skip <number> - Skip to a specific event (1-60)").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.header").formatted(Formatting.AQUA));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.trigger").formatted(Formatting.BLUE));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.config").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.status").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.list").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.progress").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.help.skip").formatted(Formatting.GRAY));
         return 1;
     }
 
     private static int listEvents(CommandContext<ServerCommandSource> context) {
-        context.getSource().sendMessage(Text.literal("=== ALL EVENTS IN CHRONOLOGICAL ORDER ===").formatted(Formatting.AQUA));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.list.header").formatted(Formatting.AQUA));
 
         // create a list of events sorted by their chronological order (1-60)
         ALL_EVENTS_CHRONOLOGICAL.entrySet().stream()
@@ -295,7 +305,7 @@ public class AuroraCommands {
             });
 
         context.getSource().sendMessage(Text.literal("").formatted(Formatting.WHITE));
-        context.getSource().sendMessage(Text.literal("Events progress from NICE -> TRANSITION -> HOSTILE -> JUMPSCARE").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.list.footer").formatted(Formatting.GRAY));
         return 1;
     }
 
@@ -315,24 +325,24 @@ public class AuroraCommands {
         int currentProgress = EventTriggerSystem.getPlayerEventProgress(player);
         String nextEvent = EventTriggerSystem.getNextEventName(player);
 
-        context.getSource().sendMessage(Text.literal("=== PLAYER PROGRESS ===").formatted(Formatting.AQUA));
-        context.getSource().sendMessage(Text.literal("Current Event Progress: " + currentProgress + "/60").formatted(Formatting.WHITE));
-        context.getSource().sendMessage(Text.literal("Next Event: " + nextEvent).formatted(Formatting.YELLOW));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.header").formatted(Formatting.AQUA));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.current", currentProgress).formatted(Formatting.WHITE));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.next", nextEvent).formatted(Formatting.YELLOW));
 
         // show phase progress
         if (currentProgress <= 15) {
-            context.getSource().sendMessage(Text.literal("Phase: Nice Events (" + currentProgress + "/15)").formatted(Formatting.GREEN));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.phase.nice", currentProgress).formatted(Formatting.GREEN));
         } else if (currentProgress <= 30) {
-            context.getSource().sendMessage(Text.literal("Phase: Transition Events (" + (currentProgress - 15) + "/15)").formatted(Formatting.YELLOW));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.phase.transition", currentProgress - 15).formatted(Formatting.YELLOW));
         } else if (currentProgress <= 45) {
-            context.getSource().sendMessage(Text.literal("Phase: Hostile Events (" + (currentProgress - 30) + "/15)").formatted(Formatting.RED));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.phase.hostile", currentProgress - 30).formatted(Formatting.RED));
         } else if (currentProgress <= 60) {
-            context.getSource().sendMessage(Text.literal("Phase: Jumpscare Events (" + (currentProgress - 45) + "/15)").formatted(Formatting.DARK_RED));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.phase.jumpscare", currentProgress - 45).formatted(Formatting.DARK_RED));
         } else {
-            context.getSource().sendMessage(Text.literal("Phase: All Events Complete!").formatted(Formatting.LIGHT_PURPLE));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.phase.complete").formatted(Formatting.LIGHT_PURPLE));
         }
 
-        context.getSource().sendMessage(Text.literal("Use /nullpointer progress reset to reset your progress").formatted(Formatting.GRAY));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.reset_hint").formatted(Formatting.GRAY));
         return 1;
     }
 
@@ -341,7 +351,7 @@ public class AuroraCommands {
 
         // reset the player's progress using eventtriggersystem
         EventTriggerSystem.resetPlayerProgress(player);
-        context.getSource().sendMessage(Text.literal("Player progress reset - you will start from event 1 again").formatted(Formatting.GREEN));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.progress.reset_done").formatted(Formatting.GREEN));
         return 1;
     }
 
@@ -351,7 +361,7 @@ public class AuroraCommands {
 
         // validate event number
         if (eventNumber < 1 || eventNumber > 60) {
-            context.getSource().sendError(Text.literal("Event number must be between 1 and 60"));
+            context.getSource().sendError(Text.translatable("command.nullpointerentity.skip.invalid"));
             return 0;
         }
 
@@ -364,13 +374,13 @@ public class AuroraCommands {
         // set player progress to after this event (so next automatic event will be the following one)
         EventTriggerSystem.setPlayerEventProgress(player, eventNumber);
 
-        context.getSource().sendMessage(Text.literal("Event #" + eventNumber + ": " + getEventNameById(eventNumber) + " triggered!").formatted(Formatting.GREEN));
+        context.getSource().sendMessage(Text.translatable("command.nullpointerentity.skip.triggered", eventNumber, getEventNameById(eventNumber)).formatted(Formatting.GREEN));
 
         // check if this is the final event (40) and adjust the message accordingly
         if (eventNumber >= 60) {
-            context.getSource().sendMessage(Text.literal("Your progress is now at event #" + eventNumber + ". This is the final event - no more automatic events will occur.").formatted(Formatting.YELLOW));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.skip.final", eventNumber).formatted(Formatting.YELLOW));
         } else {
-            context.getSource().sendMessage(Text.literal("Your progress is now at event #" + eventNumber + ". Next automatic event will be #" + (eventNumber + 1)).formatted(Formatting.YELLOW));
+            context.getSource().sendMessage(Text.translatable("command.nullpointerentity.skip.next", eventNumber, eventNumber + 1).formatted(Formatting.YELLOW));
         }
         return 1;
     }

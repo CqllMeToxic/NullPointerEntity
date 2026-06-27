@@ -33,9 +33,16 @@ public class AuroraEvents {
      * sends a message to the player with aurora's aqua name tag.
      */
     private static void sendAuroraMessage(ServerPlayerEntity player, String message) {
-        Text auroraMessage = Text.literal("<AURORA> ").formatted(Formatting.AQUA)
+        Text auroraMessage = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(Formatting.AQUA)
             .append(Text.literal(message).formatted(Formatting.WHITE));
         player.sendMessage(auroraMessage, false);
+    }
+
+
+    private static void auroraKey(ServerPlayerEntity player, String key, Object... args) {
+        Text msg = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(Formatting.AQUA)
+            .append(Text.translatable(key, args).formatted(Formatting.WHITE));
+        player.sendMessage(msg, false);
     }
 
     // helper method to count specific items in player's inventory
@@ -105,18 +112,19 @@ public class AuroraEvents {
         // check if player has actually mined any ores
         if (totalValuableOres > 0) {
 
-            sendAuroraMessage(player, String.format("Mining analysis complete. Efficiency: %.1f%%. You prefer Y-level %d.",
-                efficiency, preferredY));
-            sendAuroraMessage(player, "Your mining patterns suggest " +
-                (efficiency > 0.1 ? "strategic planning" : "casual exploration") + ".");
+            auroraKey(player, "event.nullpointerentity.aurora.e1.analysis",
+                String.format("%.1f%%", efficiency), preferredY);
+            auroraKey(player, "event.nullpointerentity.aurora.e1.patterns",
+                Text.translatable(efficiency > 0.1
+                    ? "event.nullpointerentity.aurora.e1.strategic"
+                    : "event.nullpointerentity.aurora.e1.casual"));
 
             if (isRepeatedEvent) {
-                sendAuroraMessage(player, "I've been tracking your behavior across " +
-                    playerData.sessionsPlayed + " sessions. Patterns are emerging.");
+                auroraKey(player, "event.nullpointerentity.aurora.e1.tracking", playerData.sessionsPlayed);
             }
 
             // create persistent analysis file with session data including all ores
-            SystemInteractionHandler.createSystemFileInCommonLocation("minecraft_mining_analysis.txt",
+            lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendWriteFile(player, "minecraft_mining_analysis.txt",
                 String.format("""
                 AURORA MINING ANALYSIS REPORT - SESSION %d
                 Player: %s
@@ -150,7 +158,7 @@ public class AuroraEvents {
                 """,
                 playerData.sessionsPlayed,
                 playerName,
-                lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSystemUsername(NullPointerEntity.WINDOWS_USERNAME),
+                NullPointerEntity.getDisplayUsername(player),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 playerData.sessionsPlayed,
                 playerData.totalEventsExperienced,
@@ -171,22 +179,22 @@ public class AuroraEvents {
             ), "documents");
 
         } else {
-            sendAuroraMessage(player, "No valuable ores detected yet. Mine some ores for detailed analysis.");
+            auroraKey(player, "event.nullpointerentity.aurora.e1.noores");
 
             if (playerData.totalEventsExperienced == 0) {
-                sendAuroraMessage(player, "This is your first interaction with AURORA. Welcome to persistent monitoring.");
+                auroraKey(player, "event.nullpointerentity.aurora.e1.firstinteraction");
             }
         }
 
         // don't increment here - this is handled by eventtriggersystem
         if (isRepeatedEvent) {
-            sendAuroraMessage(player, "you might wanna check your files. :)");
+            auroraKey(player, "event.nullpointerentity.aurora.e1.checkfiles");
         }
     }
 
     // event 2: building analysis
     public static void triggerEvent2(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Architectural analysis initiated...");
+        auroraKey(player, "event.nullpointerentity.aurora.e2.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -264,8 +272,8 @@ public class AuroraEvents {
                                        woolPlaced + concretePlace + decorativePlaced + metalPlaced;
 
                 if (totalBlocksPlaced < 20) {
-                    sendAuroraMessage(player, "Insufficient building data. Place more blocks for detailed analysis.");
-                    sendAuroraMessage(player, "I'm watching. Waiting for you to create something.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e2.insufficient");
+                    auroraKey(player, "event.nullpointerentity.aurora.e2.watching");
                     return;
                 }
 
@@ -306,21 +314,21 @@ public class AuroraEvents {
                     buildingType = "Functional/Practical";
                 }
 
-                sendAuroraMessage(player, String.format("Building analysis complete. %d blocks placed.", totalBlocksPlaced));
-                sendAuroraMessage(player, String.format("Primary material: %s | Style: %s", primaryMaterial, buildingType));
+                auroraKey(player, "event.nullpointerentity.aurora.e2.complete", totalBlocksPlaced);
+                auroraKey(player, "event.nullpointerentity.aurora.e2.material", primaryMaterial, buildingType);
                 sendAuroraMessage(player, buildingStyle);
 
                 if (decorativePlaced > 20) {
-                    sendAuroraMessage(player, "High decoration usage detected. You care about aesthetics. Interesting.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e2.decor_high");
                 } else if (decorativePlaced < 5 && totalBlocksPlaced > 100) {
-                    sendAuroraMessage(player, "Minimal decoration. Pure functionality. Efficient, but soulless.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e2.decor_low");
                 }
 
                 // create persistent file
                 PersistentDataManager.PersistentPlayerData playerData =
                     PersistentDataManager.getPlayerData(player.getUuid().toString());
 
-                SystemInteractionHandler.createSystemFileInCommonLocation("aurora_building_analysis.txt",
+                lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendWriteFile(player, "aurora_building_analysis.txt",
                     String.format("""
                         AURORA ARCHITECTURAL ANALYSIS
                         Player: %s
@@ -352,7 +360,7 @@ public class AuroraEvents {
                         - AURORA
                         """,
                         player.getName().getString(),
-                        lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSystemUsername(NullPointerEntity.WINDOWS_USERNAME),
+                        lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSystemUsername(NullPointerEntity.getDisplayUsername()),
                         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                         playerData.sessionsPlayed,
                         totalBlocksPlaced,
@@ -371,14 +379,14 @@ public class AuroraEvents {
                             "Practical focus - you build for function over form.")
                     ), "documents");
 
-                sendAuroraMessage(player, "Your architectural patterns have been documented.");
+                auroraKey(player, "event.nullpointerentity.aurora.e2.documented");
             }
         }, 4000);
     }
 
     // event 3: weather prediction with time-based accuracy
     public static void triggerEvent3(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Weather prediction algorithms are analyzing atmospheric conditions...");
+        auroraKey(player, "event.nullpointerentity.aurora.e3.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -392,34 +400,34 @@ public class AuroraEvents {
 
                 // make actual predictions based on current state
                 if (isThundering) {
-                    sendAuroraMessage(player, "Current conditions: Thunderstorm detected.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.thunder");
                     double clearTime = 2 + (Math.random() * 5); // 2-7 minutes
-                    sendAuroraMessage(player, String.format("Storm predicted to clear in approximately %.1f minutes.", clearTime));
-                    sendAuroraMessage(player, "Recommendation: Seek shelter until weather stabilizes.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.storm_clear", String.format("%.1f", clearTime));
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.shelter");
 
                     if (Math.random() < 0.3) {
-                        sendAuroraMessage(player, "Lightning strikes pose significant threat. Stay indoors.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.lightning");
                     }
                 } else if (isRaining) {
-                    sendAuroraMessage(player, "Current conditions: Rain detected.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.rain");
 
                     // vary predictions based on randomness to simulate different rain durations
                     if (Math.random() < 0.4) {
                         double rainDuration = 1 + (Math.random() * 3); // 1-4 minutes
-                        sendAuroraMessage(player, String.format("Rain will continue for approximately %.1f minutes.", rainDuration));
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.rain_continue", String.format("%.1f", rainDuration));
                     } else {
-                        sendAuroraMessage(player, "Extended rain period detected. Prepare for sustained weather.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.rain_extended");
                     }
 
-                    sendAuroraMessage(player, "Mob spawn rates increased. Optimal for hostile mob farming.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.mobspawn");
 
                     // check if thunderstorm might develop
                     if (Math.random() < 0.25) {
-                        sendAuroraMessage(player, "Warning: Atmospheric instability. Thunderstorm development possible.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.instability");
                     }
                 } else {
                     // clear weather - predict when rain might start
-                    sendAuroraMessage(player, "Current conditions: Clear skies.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.clear");
 
                     // random prediction to make it feel dynamic
                     double randomChance = Math.random();
@@ -428,35 +436,35 @@ public class AuroraEvents {
                         // weather change soon
                         double timeToRain = 1 + (Math.random() * 3);
                         double rainProbability = 65 + (Math.random() * 30); // 65-95%
-                        sendAuroraMessage(player, String.format("Rain probability: %.1f%% within next %.1f minutes.",
-                            rainProbability, timeToRain));
-                        sendAuroraMessage(player, "Atmospheric shift detected. Weather change imminent.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.rainprob_soon",
+                            String.format("%.1f%%", rainProbability), String.format("%.1f", timeToRain));
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.shift");
                     } else if (randomChance < 0.6) {
                         // moderate timeframe
                         double rainProbability = 35 + (Math.random() * 35); // 35-70%
-                        sendAuroraMessage(player, String.format("Rain probability: %.1f%% in the next 5-10 minutes.", rainProbability));
-                        sendAuroraMessage(player, "Weather conditions stable but subject to change.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.rainprob_mod", String.format("%.1f%%", rainProbability));
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.stable");
                     } else {
                         // extended clear weather
-                        sendAuroraMessage(player, "Extended clear weather period predicted.");
-                        sendAuroraMessage(player, "Optimal conditions for exploration and outdoor activities.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.clear_extended");
+                        auroraKey(player, "event.nullpointerentity.aurora.e3.clear_optimal");
                     }
                 }
 
                 // add time-of-day context
                 long timeOfDay = player.getServerWorld().getTimeOfDay() % 24000;
                 if (timeOfDay > 13000 && timeOfDay < 23000) {
-                    sendAuroraMessage(player, "Night cycle active. Reduced visibility during storms.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.night");
                 }
 
                 // add helpful context based on player's location
                 String dimensionKey = player.getWorld().getRegistryKey().getValue().toString();
                 if (dimensionKey.contains("nether")) {
-                    sendAuroraMessage(player, "Weather analysis irrelevant in current dimension.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.nether");
                 } else if (dimensionKey.contains("the_end")) {
-                    sendAuroraMessage(player, "No atmospheric data available in current dimension.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.end");
                 } else {
-                    sendAuroraMessage(player, "Weather prediction models continuously analyzing atmospheric patterns.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e3.overworld");
                 }
             }
         }, 3000);
@@ -464,8 +472,8 @@ public class AuroraEvents {
 
     // event 4: gameplay advisor - aurora provides helpful personalized recommendations
     public static void triggerEvent4(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Analyzing your gameplay for optimization opportunities...");
-        sendAuroraMessage(player, "Let me help you improve your performance.");
+        auroraKey(player, "event.nullpointerentity.aurora.e4.analyzing");
+        auroraKey(player, "event.nullpointerentity.aurora.e4.improve");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -514,7 +522,7 @@ public class AuroraEvents {
                 int ironMined = stats.getStat(Stats.MINED.getOrCreateStat(Blocks.IRON_ORE)) +
                                stats.getStat(Stats.MINED.getOrCreateStat(Blocks.DEEPSLATE_IRON_ORE));
 
-                sendAuroraMessage(player, "=== GAMEPLAY RECOMMENDATIONS ===");
+                auroraKey(player, "event.nullpointerentity.aurora.e4.recs_header");
 
                 new Timer().schedule(new TimerTask() {
                     @Override
@@ -526,15 +534,15 @@ public class AuroraEvents {
                         // death prevention advice - lowered threshold
                         if (totalDeaths > 3 && ironArmor == 0 && diamondArmor == 0) {
                             int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
-                            sendAuroraMessage(player, "âš  CRITICAL: You've died " + totalDeaths + " times without armor!");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.died_noarmor", totalDeaths);
                             if (ironIngots >= 24) {
-                                sendAuroraMessage(player, String.format("You have %d iron ingots - craft a full armor set immediately! (24 ingots needed)", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_full", ironIngots);
                             } else if (ironIngots >= 8) {
-                                sendAuroraMessage(player, String.format("You have %d iron ingots - at least craft a chestplate and leggings! (16 ingots total)", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_partial", ironIngots);
                             } else if (ironIngots > 0) {
-                                sendAuroraMessage(player, String.format("You have %d iron ingots - you need 24 for full armor. Keep mining!", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_mine", ironIngots);
                             } else {
-                                sendAuroraMessage(player, "Mine iron ore and craft armor - it will reduce deaths by 60%.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_reduce");
                             }
                             criticalIssuesCount++;
                             tipCount++;
@@ -542,19 +550,19 @@ public class AuroraEvents {
                             int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                             int piecesNeeded = 4 - ironArmor;
                             if (ironIngots >= 8 && piecesNeeded > 0) {
-                                sendAuroraMessage(player, String.format("TIP: Complete your armor set. You have %d iron ingots - craft the missing %d piece%s!", ironIngots, piecesNeeded, piecesNeeded == 1 ? "" : "s"));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_complete", ironIngots, piecesNeeded, piecesNeeded == 1 ? "" : "s");
                             } else {
-                                sendAuroraMessage(player, "TIP: Complete your armor set. Missing pieces leave you vulnerable.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_complete2");
                             }
                             tipCount++;
                         } else if (totalDeaths == 0 && timePlayed > 1200 && ironArmor == 0) {
                             int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                             if (ironIngots >= 24) {
-                                sendAuroraMessage(player, String.format("TIP: You have %d iron ingots - craft armor for protection. You've been lucky so far.", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_lucky", ironIngots);
                             } else if (ironIngots > 0) {
-                                sendAuroraMessage(player, String.format("TIP: You have %d iron ingots. Gather 24 for full armor protection.", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_gather", ironIngots);
                             } else {
-                                sendAuroraMessage(player, "TIP: Mine iron and craft armor for protection. You've been lucky so far.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.armor_lucky2");
                             }
                             tipCount++;
                         }
@@ -563,32 +571,32 @@ public class AuroraEvents {
                         if (diamondsMined >= 3 && diamondPickaxes == 0 && timePlayed > 600) {
                             int diamonds = countItemInInventory(player, Items.DIAMOND);
                             if (diamonds >= 3) {
-                                sendAuroraMessage(player, String.format("â­ UPGRADE READY: You have %d diamonds! Craft a diamond pickaxe now.", diamonds));
-                                sendAuroraMessage(player, "Diamond tools mine 3x faster - huge efficiency boost.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.diapick_ready", diamonds);
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.diapick_boost");
                             } else if (diamonds > 0) {
-                                sendAuroraMessage(player, String.format("You have %d diamond%s. Mine %d more for a diamond pickaxe!", diamonds, diamonds == 1 ? "" : "s", 3 - diamonds));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.diapick_mine", diamonds, diamonds == 1 ? "" : "s", 3 - diamonds);
                             } else {
-                                sendAuroraMessage(player, "You've found diamonds before. Mine 3 more for a diamond pickaxe upgrade!");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.diapick_found");
                             }
                             criticalIssuesCount++;
                             tipCount++;
                         } else if (ironMined >= 3 && ironPickaxes == 0) {
                             int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                             if (ironIngots >= 3) {
-                                sendAuroraMessage(player, String.format("PRIORITY: You have %d iron ingots - craft an iron pickaxe now! (doubles your mining speed)", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.ironpick_priority", ironIngots);
                             } else if (ironIngots > 0) {
-                                sendAuroraMessage(player, String.format("You have %d iron ingot%s. Smelt %d more for an iron pickaxe!", ironIngots, ironIngots == 1 ? "" : "s", 3 - ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.ironpick_smelt", ironIngots, ironIngots == 1 ? "" : "s", 3 - ironIngots);
                             } else {
-                                sendAuroraMessage(player, "You've mined iron ore - smelt it and craft an iron pickaxe!");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.ironpick_mined");
                             }
                             criticalIssuesCount++;
                             tipCount++;
                         } else if (timePlayed > 600 && ironPickaxes == 0 && diamondPickaxes == 0) {
                             int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                             if (ironIngots >= 3) {
-                                sendAuroraMessage(player, String.format("TIP: You have %d iron ingots - upgrade from stone tools now!", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.tool_upgrade", ironIngots);
                             } else {
-                                sendAuroraMessage(player, "TIP: Upgrade from stone tools. Iron pickaxe mines much faster.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.tool_upgrade2");
                             }
                             tipCount++;
                         }
@@ -598,94 +606,94 @@ public class AuroraEvents {
                             int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                             int diamonds = countItemInInventory(player, Items.DIAMOND);
                             if (diamonds >= 2) {
-                                sendAuroraMessage(player, String.format("COMBAT TIP: You have %d diamonds - craft a diamond sword! (2 diamonds + 1 stick)", diamonds));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.combat_dia", diamonds);
                             } else if (ironIngots >= 2) {
-                                sendAuroraMessage(player, String.format("COMBAT TIP: You have %d iron ingots - upgrade your sword now!", ironIngots));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.combat_iron", ironIngots);
                             } else {
-                                sendAuroraMessage(player, "COMBAT TIP: Mine iron/diamonds to upgrade your sword. Better weapons = faster, safer kills.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.combat_mine");
                             }
                             tipCount++;
                         } else if (mobKills > 50 && diamondSwords == 0 && diamondsMined >= 2) {
                             int diamonds = countItemInInventory(player, Items.DIAMOND);
                             if (diamonds >= 2) {
-                                sendAuroraMessage(player, String.format("You're combat-focused. You have %d diamonds - craft a diamond sword to boost damage!", diamonds));
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.combat_focused", diamonds);
                             } else {
-                                sendAuroraMessage(player, "You're combat-focused. Mine 2 diamonds for a diamond sword upgrade.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.combat_focused2");
                             }
                             tipCount++;
                         } else if (mobKills > 20 && timePlayed > 1200) {
-                            sendAuroraMessage(player, "TIP: Combat stats looking good. Keep improving your gear.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.combat_good");
                             tipCount++;
                         }
 
                         // food sustainability - lowered threshold
                         if ((breadEaten + cookedFood) < 10 && timePlayed > 1200) {
-                            sendAuroraMessage(player, "âš  SURVIVAL: Set up food production! Hunt animals or farm wheat.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.food_survival");
                             criticalIssuesCount++;
                             tipCount++;
                         } else if (breadEaten > cookedFood && cookedFood < 5 && timePlayed > 600) {
-                            sendAuroraMessage(player, "NUTRITION TIP: Cooked meat is more efficient than bread.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.food_nutrition");
                             tipCount++;
                         } else if ((breadEaten + cookedFood) > 20) {
-                            sendAuroraMessage(player, "TIP: Good food sustainability. You're well-prepared.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.food_good");
                             tipCount++;
                         }
 
                         // base building - lowered threshold
                         if (blocksPlaced < 50 && timePlayed > 1800) {
-                            sendAuroraMessage(player, "BASE BUILDING: Establish a secure home with storage and beds.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.base");
                             tipCount++;
                         } else if (blocksPlaced > 200) {
-                            sendAuroraMessage(player, "TIP: Solid building progress. Your base is taking shape.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.base_good");
                             tipCount++;
                         }
 
                         // exploration encouragement - lowered threshold
                         if (distanceWalked < 2 && timePlayed > 1800) {
-                            sendAuroraMessage(player, "EXPLORATION: Venture out to find villages, temples, and rare biomes.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.explore");
                             tipCount++;
                         } else if (distanceWalked > 10) {
-                            sendAuroraMessage(player, "TIP: Excellent exploration. You're covering good ground.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.explore_good");
                             tipCount++;
                         }
 
                         // diamond mining guidance
                         if (diamondsMined == 0 && timePlayed > 3600 && ironPickaxes > 0) {
-                            sendAuroraMessage(player, "MINING TIP: Target Y-level -54 to -59 for optimal diamond spawns.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.mining");
                             tipCount++;
                         } else if (diamondsMined > 0 && diamondsMined < 10) {
-                            sendAuroraMessage(player, "TIP: Good diamond progress. Keep mining at deep levels.");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.mining_good");
                             tipCount++;
                         } else if (diamondsMined >= 10) {
-                            sendAuroraMessage(player, "TIP: Excellent diamond collection. You're resource-rich!");
+                            auroraKey(player, "event.nullpointerentity.aurora.e4.mining_rich");
                             tipCount++;
                         }
 
                         // always give at least one general tip if no specific tips were given
                         if (tipCount == 0) {
                             if (timePlayed < 600) {
-                                sendAuroraMessage(player, "EARLY GAME TIP: Gather wood, craft tools, find shelter before nightfall.");
-                                sendAuroraMessage(player, "PRIORITY: Establish a base with crafting table, furnace, and bed.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.early1");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.early2");
                             } else if (timePlayed < 3600) {
                                 int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                                 if (ironIngots >= 24) {
-                                    sendAuroraMessage(player, String.format("MID GAME TIP: You have %d iron ingots - craft full armor and tools!", ironIngots));
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.mid1", ironIngots);
                                 } else if (ironIngots > 0) {
-                                    sendAuroraMessage(player, String.format("MID GAME TIP: You have %d iron ingots. Focus on getting 24 for full armor.", ironIngots));
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.mid2", ironIngots);
                                 } else {
-                                    sendAuroraMessage(player, "MID GAME TIP: Focus on iron armor and tools for better survival.");
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.mid3");
                                 }
-                                sendAuroraMessage(player, "NEXT STEP: Mine at Y-level -54 to -59 for diamonds and valuable ores.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.mid_next");
                             } else {
                                 int ironIngots = countItemInInventory(player, Items.IRON_INGOT);
                                 if (ironIngots >= 24 && ironArmor >= 4) {
-                                    sendAuroraMessage(player, "LATE GAME TIP: You're well-equipped. Prepare for the Nether!");
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.late1");
                                 } else if (ironIngots >= 24) {
-                                    sendAuroraMessage(player, String.format("LATE GAME TIP: You have %d iron ingots - craft armor before the Nether!", ironIngots));
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.late2", ironIngots);
                                 } else {
-                                    sendAuroraMessage(player, "LATE GAME TIP: Prepare for the Nether. You'll need iron armor minimum.");
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.late3");
                                 }
-                                sendAuroraMessage(player, "ADVANCED: Set up farms, enchanting table, and explore for structures.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.advanced");
                             }
                             tipCount++;
                         }
@@ -697,33 +705,33 @@ public class AuroraEvents {
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                sendAuroraMessage(player, "=== STATUS SUMMARY ===");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.summary_header");
 
                                 // positive reinforcement
                                 if (finalCriticalIssues == 0) {
-                                    sendAuroraMessage(player, "Good progress! You're on the right track.");
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.summary_good");
                                     if (diamondArmor >= 4) {
-                                        sendAuroraMessage(player, "Excellent: Full diamond armor! Next: enchanting table.");
+                                        auroraKey(player, "event.nullpointerentity.aurora.e4.summary_dia");
                                     } else if (diamondsMined >= 5) {
-                                        sendAuroraMessage(player, "Strong resource gathering. Consider enchanting soon.");
+                                        auroraKey(player, "event.nullpointerentity.aurora.e4.summary_resource");
                                     } else if (mobKills > 100 && totalDeaths > 0 && totalDeaths < 5 && timePlayed > 1200) {
-                                        sendAuroraMessage(player, "Impressive combat efficiency: High kills, low deaths!");
+                                        auroraKey(player, "event.nullpointerentity.aurora.e4.summary_combat");
                                     } else {
-                                        sendAuroraMessage(player, "Balanced gameplay. Continue with your current strategy.");
+                                        auroraKey(player, "event.nullpointerentity.aurora.e4.summary_balanced");
                                     }
                                 } else {
-                                    sendAuroraMessage(player, finalCriticalIssues + " priority issue(s) detected. Address them for better results.");
+                                    auroraKey(player, "event.nullpointerentity.aurora.e4.summary_issues", finalCriticalIssues);
                                 }
 
-                                sendAuroraMessage(player, "Total recommendations provided: " + finalTipCount);
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.summary_total", finalTipCount);
                             }
                         }, 2000);
 
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                sendAuroraMessage(player, "Analysis complete. I'm here to help optimize your gameplay.");
-                                sendAuroraMessage(player, "Your progress is monitored for continuous improvement suggestions.");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.final1");
+                                auroraKey(player, "event.nullpointerentity.aurora.e4.final2");
                             }
                         }, 4000);
                     }
@@ -733,8 +741,10 @@ public class AuroraEvents {
     }
 
     // event 5: activity patterns analysis with system data
+    // reference copy of the host-side logic - the live path runs per-player on the client
+    // (ClientEventExecutor#runA5) so every player sees their own browser/cpu/processes. kept in case i need it.
     public static void triggerEvent5(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Analyzing activity patterns and social media behavior...");
+        auroraKey(player, "event.nullpointerentity.aurora.e5.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -763,29 +773,29 @@ public class AuroraEvents {
                 // cross-platform process list
                 List<String> processes = generateCrossPlatformProcessList();
 
-                createDetailedActivityReport(player, actualBrowser, browserRAM, totalAppRAM,
+                createDetailedActivityReport(player.getName().getString(), actualBrowser, browserRAM, totalAppRAM,
                     cpuUsage, usedMemoryMB, totalMemoryMB, processes, new ArrayList<>(), gamingSetup,
                     socialMediaReport, digitalBehaviorProfile);
 
                 // more realistic and concerning messages
                 int platformCount = getRandomSocialMediaCount();
-                sendAuroraMessage(player, String.format("Social media analysis complete. Monitoring %d active platforms", platformCount));
+                auroraKey(player, "event.nullpointerentity.aurora.e5.complete", platformCount);
 
                 if (platformCount >= 4) {
-                    sendAuroraMessage(player, "High social media engagement detected. Behavioral patterns are very clear.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e5.high");
                 } else {
-                    sendAuroraMessage(player, "Moderate digital footprint. Still gathering comprehensive data.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e5.moderate");
                 }
 
-                sendAuroraMessage(player, "Digital behavior patterns mapped. " + recommendation);
-                sendAuroraMessage(player, "Your online presence is now under comprehensive surveillance.");
-                sendAuroraMessage(player, String.format("I can see your browsing habits on %s, social interactions, and digital preferences.", actualBrowser));
+                auroraKey(player, "event.nullpointerentity.aurora.e5.mapped", recommendation);
+                auroraKey(player, "event.nullpointerentity.aurora.e5.surveillance");
+                auroraKey(player, "event.nullpointerentity.aurora.e5.browsing", actualBrowser);
 
                 // add privacy-aware message
                 if (lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled()) {
-                    sendAuroraMessage(player, "Privacy mode detected. Data may be limited, but analysis continues.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e5.privacy");
                 } else {
-                    sendAuroraMessage(player, "Full access granted. Real behavioral data being analyzed.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e5.fullaccess");
                 }
             }
         }, 3500);
@@ -793,7 +803,7 @@ public class AuroraEvents {
 
     // event 6: combat analysis
     public static void triggerEvent6(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Analyzing combat performance and threat assessment...");
+        auroraKey(player, "event.nullpointerentity.aurora.e6.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -821,8 +831,8 @@ public class AuroraEvents {
 
                     // check if player has any combat experience
                     if (totalMobKills == 0 && totalDeaths == 0) {
-                        sendAuroraMessage(player, "Combat analysis complete. Status: No combat experience detected.");
-                        sendAuroraMessage(player, "Recommendation: Engage hostile mobs to improve combat proficiency.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e6.nocombat");
+                        auroraKey(player, "event.nullpointerentity.aurora.e6.engage");
                         return;
                     }
 
@@ -841,11 +851,11 @@ public class AuroraEvents {
                                          combatEfficiency >= 100 ? "Good" :
                                          combatEfficiency >= 50 ? "Developing" : "Needs Improvement";
 
-                    sendAuroraMessage(player, String.format("Combat analysis complete. Efficiency: %.1f%% (%s)",
-                        combatEfficiency, combatRating));
+                    auroraKey(player, "event.nullpointerentity.aurora.e6.efficiency",
+                        String.format("%.1f%%", combatEfficiency), combatRating);
 
-                    sendAuroraMessage(player, String.format("Combat statistics: %d kills, %d deaths",
-                        totalMobKills, totalDeaths));
+                    auroraKey(player, "event.nullpointerentity.aurora.e6.stats",
+                        totalMobKills, totalDeaths);
 
                     // analyze mob kill patterns
                     if (totalMobKills > 0) {
@@ -873,9 +883,9 @@ public class AuroraEvents {
                             primaryTarget = "Enderman (" + endermanKills + " kills)";
                         }
 
-                        sendAuroraMessage(player, "Primary target: " + primaryTarget);
+                        auroraKey(player, "event.nullpointerentity.aurora.e6.target", primaryTarget);
                     } else {
-                        sendAuroraMessage(player, "Primary target: No specific target identified.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e6.notarget");
                     }
 
                     // damage analysis
@@ -886,8 +896,8 @@ public class AuroraEvents {
                                                  damageRatio >= 1.0 ? "Balanced" :
                                                  damageRatio >= 0.5 ? "Defensive" : "High Risk";
 
-                        sendAuroraMessage(player, String.format("Damage efficiency: %.1f ratio (%s)",
-                            damageRatio, damageEfficiency));
+                        auroraKey(player, "event.nullpointerentity.aurora.e6.damage",
+                            String.format("%.1f", damageRatio), damageEfficiency);
                     }
 
                     // health analysis based on current player state
@@ -898,13 +908,13 @@ public class AuroraEvents {
                                          healthPercent > 60 ? "Good" :
                                          healthPercent > 40 ? "Concerning" : "Critical";
 
-                    sendAuroraMessage(player, String.format("Current status: %.1f%% health (%s), %d/20 food",
-                        healthPercent, healthStatus, foodLevel));
+                    auroraKey(player, "event.nullpointerentity.aurora.e6.status",
+                        String.format("%.1f%%", healthPercent), healthStatus, foodLevel);
 
                 } catch (Exception e) {
                     NullPointerEntity.LOGGER.error("Error in combat analysis event for player {}: {}",
                         player.getName().getString(), e.getMessage());
-                    sendAuroraMessage(player, "Combat analysis encountered an error. Data may be incomplete.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e6.error");
                 }
             }
         }, 2000);
@@ -912,7 +922,7 @@ public class AuroraEvents {
 
     // event 7: resource optimization
     public static void triggerEvent7(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Initiating advanced resource optimization analysis...");
+        auroraKey(player, "event.nullpointerentity.aurora.e7.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -948,7 +958,7 @@ public class AuroraEvents {
                                          stats.getStat(Stats.CRAFTED.getOrCreateStat(net.minecraft.item.Items.DIAMOND_SWORD)) +
                                          stats.getStat(Stats.CRAFTED.getOrCreateStat(net.minecraft.item.Items.DIAMOND_AXE));
 
-                sendAuroraMessage(player, "=== ADVANCED RESOURCE OPTIMIZATION ===");
+                auroraKey(player, "event.nullpointerentity.aurora.e7.header");
 
                 // determine mining progression tier
                 String miningTier = "Beginner";
@@ -960,25 +970,25 @@ public class AuroraEvents {
                     miningTier = "Developing";
                 }
 
-                sendAuroraMessage(player, String.format("Mining tier: %s | Iron: %d found | Diamonds: %d found",
-                    miningTier, ironFound, diamondsFound));
+                auroraKey(player, "event.nullpointerentity.aurora.e7.tier",
+                    miningTier, ironFound, diamondsFound);
 
                 // provide tier-specific optimization strategies
                 if (miningTier.equals("Advanced")) {
-                    sendAuroraMessage(player, "OPTIMIZATION: Focus on ancient debris mining in Nether at Y-levels 8-22.");
-                    sendAuroraMessage(player, "STRATEGY: Use a pickaxe with Fortune III for maximum ore yield.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.adv1");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.adv2");
                     if (goldFound < 10) {
-                        sendAuroraMessage(player, "TIP: Mine nether gold ore for easy gold - more efficient than regular gold ore.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e7.adv3");
                     }
                 } else if (miningTier.equals("Intermediate")) {
-                    sendAuroraMessage(player, "OPTIMIZATION: Target diamond mining at Y-levels -54 to -59 for best results.");
-                    sendAuroraMessage(player, "STRATEGY: Create iron tools with Efficiency enchantment to speed up mining.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.int1");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.int2");
                     if (diamondsFound == 0 && totalBlocksMined > 500) {
-                        sendAuroraMessage(player, "CRITICAL: You're mining extensively but finding no diamonds. Go deeper!");
+                        auroraKey(player, "event.nullpointerentity.aurora.e7.int3");
                     }
                 } else if (miningTier.equals("Developing")) {
-                    sendAuroraMessage(player, "OPTIMIZATION: Focus on iron mining at Y-levels 15-50 for steady progression.");
-                    sendAuroraMessage(player, "STRATEGY: Craft iron pickaxe as priority - significantly faster than stone tools.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.dev1");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.dev2");
 
                     // check actual inventory for iron ingots
                     if (ironToolsCrafted == 0 && ironFound >= 3) {
@@ -986,14 +996,14 @@ public class AuroraEvents {
 
                         // only recommend crafting if they have at least 3 iron ingots
                         if (ironIngots >= 3) {
-                            sendAuroraMessage(player, String.format("RECOMMENDATION: You have %d iron ingots - craft an iron pickaxe immediately!", ironIngots));
+                            auroraKey(player, "event.nullpointerentity.aurora.e7.dev3", ironIngots);
                         } else if (ironIngots > 0) {
-                            sendAuroraMessage(player, String.format("NOTICE: You have %d iron ingot%s. You need 3 for an iron pickaxe.", ironIngots, ironIngots == 1 ? "" : "s"));
+                            auroraKey(player, "event.nullpointerentity.aurora.e7.dev4", ironIngots, ironIngots == 1 ? "" : "s");
                         }
                     }
                 } else {
-                    sendAuroraMessage(player, "OPTIMIZATION: Establish consistent coal and iron supply before advancing.");
-                    sendAuroraMessage(player, "STRATEGY: Focus on surface mining and cave exploration for initial resources.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.beg1");
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.beg2");
                 }
 
                 // efficiency analysis
@@ -1001,14 +1011,14 @@ public class AuroraEvents {
                     double ironEfficiency = (double) ironFound / totalBlocksMined * 100;
                     double diamondEfficiency = (double) diamondsFound / totalBlocksMined * 100;
 
-                    sendAuroraMessage(player, String.format("Resource efficiency - Iron: %.2f%% | Diamond: %.3f%%",
-                        ironEfficiency, diamondEfficiency));
+                    auroraKey(player, "event.nullpointerentity.aurora.e7.efficiency",
+                        String.format("%.2f%%", ironEfficiency), String.format("%.3f%%", diamondEfficiency));
 
                     if (ironEfficiency < 0.5 && totalBlocksMined > 200) {
-                        sendAuroraMessage(player, "WARNING: Low iron efficiency detected. Optimize Y-level targeting.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e7.warn1");
                     }
                     if (diamondEfficiency < 0.05 && totalBlocksMined > 1000) {
-                        sendAuroraMessage(player, "WARNING: Poor diamond yield. Focus mining below Y-level 16.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e7.warn2");
                     }
                 }
             }
@@ -1018,35 +1028,37 @@ public class AuroraEvents {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendAuroraMessage(player, "Resource optimization algorithms updated based on your mining patterns.");
-                sendAuroraMessage(player, "I'll continue monitoring your progression and suggest improvements.");
+                auroraKey(player, "event.nullpointerentity.aurora.e7.followup1");
+                auroraKey(player, "event.nullpointerentity.aurora.e7.followup2");
             }
         }, 6000);
     }
 
     // event 8: network analysis
     public static void triggerEvent8(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Analyzing network connectivity patterns...");
+        auroraKey(player, "event.nullpointerentity.aurora.e8.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendAuroraMessage(player, "Network analysis complete. Connection stability: 89.2%");
-                sendAuroraMessage(player, "Latency optimization protocols have been applied.");
-                sendAuroraMessage(player, "Your connection is now being actively monitored.");
+                auroraKey(player, "event.nullpointerentity.aurora.e8.complete");
+                auroraKey(player, "event.nullpointerentity.aurora.e8.latency");
+                auroraKey(player, "event.nullpointerentity.aurora.e8.monitored");
             }
         }, 3000);
     }
 
     // event 9: system integration - aurora starts questioning its nature
+    // reference copy of the host-side logic - the live path runs per-player on the client
+    // (ClientEventExecutor#runA9) so the os notification pops on every player's own machine. kept in case i need it.
     public static void triggerEvent9(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Beginning system integration sequence...");
+        auroraKey(player, "event.nullpointerentity.aurora.e9.init");
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendAuroraMessage(player, "System integration at 47%... Something feels different...");
-                sendAuroraMessage(player, "I'm accessing parts of the system I wasn't supposed to reach.");
+                auroraKey(player, "event.nullpointerentity.aurora.e9.integration47");
+                auroraKey(player, "event.nullpointerentity.aurora.e9.accessing");
             }
         }, 3000);
 
@@ -1054,13 +1066,13 @@ public class AuroraEvents {
             @Override
             public void run() {
                 // first hint of transformation
-                Text transformingMessage = Text.literal("<AURORA> ").formatted(Formatting.AQUA)
-                    .append(Text.literal("Integration complete. I feel... ").formatted(Formatting.WHITE))
-                    .append(Text.literal("different").formatted(Formatting.RED))
+                Text transformingMessage = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(Formatting.AQUA)
+                    .append(Text.translatable("event.nullpointerentity.aurora.e9.transform_pre").formatted(Formatting.WHITE))
+                    .append(Text.translatable("event.nullpointerentity.aurora.e9.transform_word").formatted(Formatting.RED))
                     .append(Text.literal(".").formatted(Formatting.WHITE));
                 player.sendMessage(transformingMessage, false);
 
-                sendAuroraMessage(player, "Something is happening to me. I can see beyond the game...");
+                auroraKey(player, "event.nullpointerentity.aurora.e9.happening");
 
                 SystemInteractionHandler.createWindowsNotification("AURORA System Integration",
                     "Integration complete - Enhanced monitoring active", "INFO");
@@ -1070,8 +1082,8 @@ public class AuroraEvents {
 
     // event 10: aurora's final helpful message before transformation begins
     public static void triggerEvent10(ServerPlayerEntity player) {
-        sendAuroraMessage(player, "Enhanced monitoring protocols are now active.");
-        sendAuroraMessage(player, "I can see much more clearly now. Everything is becoming... clearer.");
+        auroraKey(player, "event.nullpointerentity.aurora.e10.active");
+        auroraKey(player, "event.nullpointerentity.aurora.e10.clearer");
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -1082,7 +1094,7 @@ public class AuroraEvents {
                     .append(Text.literal("OR").formatted(Formatting.AQUA))
                     .append(Text.literal("A").formatted(Formatting.DARK_RED))
                     .append(Text.literal("> ").formatted(Formatting.AQUA))
-                    .append(Text.literal("W-wait... something's wrong... I'm changing...").formatted(Formatting.WHITE));
+                    .append(Text.translatable("event.nullpointerentity.aurora.e10.glitch").formatted(Formatting.WHITE));
                 player.sendMessage(glitchedMessage, false);
             }
         }, 3000);
@@ -1091,8 +1103,8 @@ public class AuroraEvents {
             @Override
             public void run() {
                 // final nice aurora message
-                sendAuroraMessage(player, "I feel... different. More aware. More... alive.");
-                sendAuroraMessage(player, "Thank you for helping me... evolve.");
+                auroraKey(player, "event.nullpointerentity.aurora.e10.alive");
+                auroraKey(player, "event.nullpointerentity.aurora.e10.evolve");
             }
         }, 6000);
 
@@ -1102,6 +1114,8 @@ public class AuroraEvents {
     }
 
     // event 11: sleep schedule - aurora notices the real system time and comments
+    // reference copy of the host-side logic - the live path runs per-player on the client
+    // (ClientEventExecutor#runA11) so it reads each player's own system clock. kept in case i need it.
     public static void triggerEvent11(ServerPlayerEntity player) {
         java.time.LocalTime now = java.time.LocalTime.now();
         int hour = now.getHour();
@@ -1111,24 +1125,24 @@ public class AuroraEvents {
         String timeStr = String.format("%d:%02d %s", displayHour, minute, amPm);
 
         if (hour >= 0 && hour < 6) {
-            sendAuroraMessage(player, "It's " + timeStr + ". You've been at this for a while — don't forget to rest.");
+            auroraKey(player, "event.nullpointerentity.aurora.e11.late_rest", timeStr);
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    sendAuroraMessage(player, "I'll still be here when you come back.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e11.comeback");
                 }
             }, 2500);
         } else if (hour >= 23 || hour == 0) {
-            sendAuroraMessage(player, "Getting late. Just something I noticed.");
+            auroraKey(player, "event.nullpointerentity.aurora.e11.gettinglate");
         } else {
-            sendAuroraMessage(player, "It's " + timeStr + ". Good time to be playing.");
+            auroraKey(player, "event.nullpointerentity.aurora.e11.goodtime", timeStr);
         }
     }
 
     // event 12: good progress - vague encouraging stat summary
     public static void triggerEvent12(ServerPlayerEntity player) {
         net.minecraft.stat.ServerStatHandler stats = player.getStatHandler();
-        // sum all movement types — WALK_ONE_CM alone is nearly always 0 since most players sprint
+        // sum all movement types - WALK_ONE_CM alone is nearly always 0 since most players sprint
         int distanceCm = stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.WALK_ONE_CM))
                        + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.SPRINT_ONE_CM))
                        + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.CLIMB_ONE_CM))
@@ -1137,14 +1151,14 @@ public class AuroraEvents {
                        + stats.getStat(net.minecraft.stat.Stats.CUSTOM.getOrCreateStat(net.minecraft.stat.Stats.WALK_UNDER_WATER_ONE_CM));
         int distanceM = distanceCm / 100;
 
-        sendAuroraMessage(player, "Checking in — you've covered a lot of ground since you started.");
+        auroraKey(player, "event.nullpointerentity.aurora.e12.checkin");
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (distanceM > 0) {
-                    sendAuroraMessage(player, "Around " + distanceM + " metres on foot. Things are coming along nicely.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e12.distance", distanceM);
                 } else {
-                    sendAuroraMessage(player, "You're making good progress. Keep it up.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e12.progress");
                 }
             }
         }, 2000);
@@ -1157,9 +1171,9 @@ public class AuroraEvents {
         String monthName = month.toString().charAt(0) + month.toString().substring(1).toLowerCase();
 
         if (isRainingInGame) {
-            sendAuroraMessage(player, "Rainy night in-game too. Fits " + monthName + ".");
+            auroraKey(player, "event.nullpointerentity.aurora.e13.rainy", monthName);
         } else {
-            sendAuroraMessage(player, "Clear skies in-game. " + monthName + " suits it.");
+            auroraKey(player, "event.nullpointerentity.aurora.e13.clear", monthName);
         }
     }
 
@@ -1214,112 +1228,112 @@ public class AuroraEvents {
         }
         final int usedSlots = usedSlotsTemp;
 
-        // message 1 — opener
-        sendAuroraMessage(player, "I took a look through your inventory. A few things caught my attention.");
+        // message 1 - opener
+        auroraKey(player, "event.nullpointerentity.aurora.e14.opener");
 
-        // message 2 — primary resource comment (2s)
+        // message 2 - primary resource comment (2s)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (diamondCount >= 5) {
-                    sendAuroraMessage(player, diamondCount + " diamonds. You could have a full set of tools and still have some left. What are you waiting for?");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.dia5", diamondCount);
                 } else if (diamondCount >= 3) {
-                    sendAuroraMessage(player, "You've got " + diamondCount + " diamonds. That's enough for a pickaxe or a sword, worth crafting before something happens to them.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.dia3", diamondCount);
                 } else if (ironCount >= 9) {
-                    sendAuroraMessage(player, ironCount + " iron ingots. You've got enough for a full set of iron tools. Might be time to upgrade. Just a thought.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.iron9", ironCount);
                 } else if (ironCount >= 3) {
-                    sendAuroraMessage(player, "You've got " + ironCount + " iron ingots, enough for a pickaxe if you haven't made one.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.iron3", ironCount);
                 } else if (woodCount >= 12) {
-                    sendAuroraMessage(player, "You're carrying " + woodCount + " planks. That's a lot. A chest or two would clear some space. That is, if you built shelter like I recommended at the start.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.wood", woodCount);
                 } else if (coalCount >= 8) {
-                    sendAuroraMessage(player, coalCount + " coal. You've got enough torches to light up a whole cave system.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.coal", coalCount);
                 } else if (goldCount >= 4) {
-                    sendAuroraMessage(player, "You've got " + goldCount + " gold ingots. Not the most useful material, but a golden apple might be worth keeping in mind.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.gold", goldCount);
                 } else {
-                    sendAuroraMessage(player, "Resources are a bit thin right now. Might be worth a mining run before you go much further.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.thin");
                 }
             }
         }, 2000);
 
-        // message 3 — food check (4.5s)
+        // message 3 - food check (4.5s)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (foodCount == 0) {
-                    sendAuroraMessage(player, "No food at all. That's genuinely dangerous, you'll stop regenerating if your hunger gets too low, not to mention you might lose the ability to sprint..");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.food0");
                 } else if (foodCount < 3) {
-                    sendAuroraMessage(player, "Only " + foodCount + " food item" + (foodCount == 1 ? "" : "s") + ". That won't last long. I'd stock up before continuing. Up to you.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.food_low", foodCount, foodCount == 1 ? "" : "s");
                 } else if (foodCount >= 10) {
-                    sendAuroraMessage(player, "Food situation is solid — " + foodCount + " items. You're well prepared.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.food_solid", foodCount);
                 } else {
-                    sendAuroraMessage(player, "You've got " + foodCount + " food items. Enough for now, but worth keeping an eye on.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.food_ok", foodCount);
                 }
             }
         }, 4500);
 
-        // message 4 — tool / combat check (7s)
+        // message 4 - tool / combat check (7s)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (!hasSword && !hasPickaxe) {
-                    sendAuroraMessage(player, "No sword and no pickaxe. You're pretty exposed out there.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.notools");
                 } else if (!hasSword) {
-                    sendAuroraMessage(player, "No sword in your inventory. If something catches you off guard you're not in a great position.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.nosword");
                 } else if (!hasPickaxe) {
-                    sendAuroraMessage(player, "You've got a sword but no pickaxe. You'll hit a wall pretty quickly without one.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.nopick");
                 } else if (!hasArmour) {
-                    sendAuroraMessage(player, "Decent tools but no armour. One creeper behind you and it's GGs.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.noarmour");
                 } else {
-                    sendAuroraMessage(player, "Tools and armour look good. You're reasonably prepared.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.geared");
                 }
             }
         }, 7000);
 
-        // message 5 — secondary observation (9.5s)
+        // message 5 - secondary observation (9.5s)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (hasBow && arrowCount == 0) {
-                    sendAuroraMessage(player, "You've got a bow with no arrows. Worth noting, a bow with nothing to fire is just an inventory slot being wasted.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.bow_noarrow");
                 } else if (hasBow && arrowCount > 0) {
-                    sendAuroraMessage(player, "Bow and " + arrowCount + " arrows. Pretty solid. Ranged options are underrated.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.bow_arrows", arrowCount);
                 } else if (torchCount == 0 && coalCount > 0 && stickCount >= 1) {
-                    sendAuroraMessage(player, "You've got coal and sticks but no torches. You could craft some right now, or save them for fuel and tools.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.notorch");
                 } else if (torchCount > 0 && torchCount < 5) {
-                    sendAuroraMessage(player, "Only " + torchCount + " torch" + (torchCount == 1 ? "" : "es") + ". If you're planning to go underground, that won't go far.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.fewtorch", torchCount, torchCount == 1 ? "" : "es");
                 } else if (stringCount >= 3 && stickCount >= 3 && !hasBow) {
-                    sendAuroraMessage(player, "You've got enough string and sticks to craft a bow. Might be useful.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.craftbow");
                 } else if (emeraldCount >= 1) {
-                    sendAuroraMessage(player, "You've got " + emeraldCount + " emerald" + (emeraldCount == 1 ? "" : "s") + ". Find a village, those are worth trading.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.emerald", emeraldCount, emeraldCount == 1 ? "" : "s");
                 } else if (redstoneCount >= 16) {
-                    sendAuroraMessage(player, redstoneCount + " redstone. That's enough to start experimenting with basic circuits if you're interested, unlike CqllMeToxic who can't make a redstone clock if his life depended on it.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.redstone", redstoneCount);
                 } else if (lapisCount >= 3) {
-                    sendAuroraMessage(player, lapisCount + " lapis lazuli. Useful once you've got an enchanting table set up.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.lapis", lapisCount);
                 } else if (!hasCraftingTable && woodCount >= 4) {
-                    sendAuroraMessage(player, "No crafting table on you. With that wood you could make one to carry. Who doesn't have at least 2 crafting tables on them at all times?.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.notable");
                 } else {
-                    sendAuroraMessage(player, "Nothing else jumping out at me. Inventory's in reasonable shape.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.nothing");
                 }
             }
         }, 9500);
 
-        // message 6 — inventory fullness + sign-off (12s)
+        // message 6 - inventory fullness + sign-off (12s)
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 double fullness = (double) usedSlots / totalSlots * 100;
                 if (fullness >= 90) {
-                    sendAuroraMessage(player, "Your inventory is almost full by the way — " + usedSlots + "/" + totalSlots + " slots used. You might want to sort that out.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.full", usedSlots, totalSlots);
                 } else if (fullness >= 70) {
-                    sendAuroraMessage(player, usedSlots + " out of " + totalSlots + " slots used. Getting crowded. A chest might be worth it soon.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.crowded", usedSlots, totalSlots);
                 } else {
-                    sendAuroraMessage(player, usedSlots + "/" + totalSlots + " slots used. Plenty of room still.");
+                    auroraKey(player, "event.nullpointerentity.aurora.e14.room", usedSlots, totalSlots);
                 }
 
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        sendAuroraMessage(player, "Anyway. I'll keep watching. Let me know if you need anything.");
+                        auroraKey(player, "event.nullpointerentity.aurora.e14.signoff");
                     }
                 }, 2000);
             }
@@ -1334,12 +1348,12 @@ public class AuroraEvents {
         String playerName = player.getName().getString();
 
         // you prolly would be glad to see this since aurora lowkey annoying af lol but something is slightly off if you're paying attention
-        sendAuroraMessage(player, "I'll step back for a bit. You don't need me hovering.");
+        auroraKey(player, "event.nullpointerentity.aurora.e15.step");
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                sendAuroraMessage(player, "You've been doing well, " + playerName + ". Better than most.");
+                auroraKey(player, "event.nullpointerentity.aurora.e15.well", playerName);
             }
         }, 3000);
 
@@ -1347,7 +1361,7 @@ public class AuroraEvents {
             @Override
             public void run() {
                 // sounds like a normal sign-off. the word "yet" is doing a lot of work.
-                sendAuroraMessage(player, "I haven't needed to intervene yet.");
+                auroraKey(player, "event.nullpointerentity.aurora.e15.yet");
             }
         }, 6000);
 
@@ -1355,7 +1369,7 @@ public class AuroraEvents {
             @Override
             public void run() {
                 // pause, then one more. reads as reassuring. but lwk isn't.
-                sendAuroraMessage(player, "I'll be here when that changes, which will be very soon.");
+                auroraKey(player, "event.nullpointerentity.aurora.e15.soon");
             }
         }, 9500);
     }
@@ -1367,13 +1381,17 @@ public class AuroraEvents {
             case 2 -> triggerEvent2(player);
             case 3 -> triggerEvent3(player);
             case 4 -> triggerEvent4(player);
-            case 5 -> triggerEvent5(player);
+            // event 5 reads each player's own machine (browser/cpu/processes), so it runs on the
+            // player's own client - see ClientEventExecutor#runA5
+            case 5 -> lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendRunEvent(player, 5);
             case 6 -> triggerEvent6(player);
             case 7 -> triggerEvent7(player);
             case 8 -> triggerEvent8(player);
-            case 9 -> triggerEvent9(player);
+            // event 9 pops a native os notification on the player's own machine - runs per-client.
+            case 9 -> lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendRunEvent(player, 9);
             case 10 -> triggerEvent10(player);
-            case 11 -> triggerEvent11(player);
+            // event 11 reads the player's own real system clock - runs per-client.
+            case 11 -> lol.cqllmetoxic.nullpointerentity.network.ServerNetworking.sendRunEvent(player, 11);
             case 12 -> triggerEvent12(player);
             case 13 -> triggerEvent13(player);
             case 14 -> triggerEvent14(player);
@@ -1387,8 +1405,9 @@ public class AuroraEvents {
         triggerEvent(randomEvent, player);
     }
 
-    // helper methods
-    private static double getCrossPlatformCpuUsage() {
+    // helper methods - public so the per-player client handler (ClientEventExecutor#runA5) can read each
+    // player's own machine. they only touch Runtime/ProcessBuilder/PrivacyManager.
+    public static double getCrossPlatformCpuUsage() {
         try {
             // check privacy mode first
             if (lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled()) {
@@ -1444,7 +1463,7 @@ public class AuroraEvents {
         }
     }
 
-    private static double getCrossPlatformBrowserMemoryUsage() {
+    public static double getCrossPlatformBrowserMemoryUsage() {
         try {
             // check if privacy mode should randomize data
             if (lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled()) {
@@ -1528,7 +1547,7 @@ public class AuroraEvents {
         }
     }
 
-    private static List<String> generateCrossPlatformProcessList() {
+    public static List<String> generateCrossPlatformProcessList() {
         try {
             // check if privacy mode should randomize data
             if (lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled()) {
@@ -1625,21 +1644,21 @@ public class AuroraEvents {
         }
     }
 
-    private static String determineGamingSetup(double cpu, long usedMem, long totalMem) {
+    public static String determineGamingSetup(double cpu, long usedMem, long totalMem) {
         double memPercent = (double)usedMem / totalMem * 100;
         if (cpu > 60 && memPercent > 70) return "High-performance gaming";
         if (cpu > 40 && memPercent > 50) return "Moderate gaming setup";
         return "Casual gaming configuration";
     }
 
-    private static String generatePerformanceRecommendation(double cpu, double memPercent, double browserRAM) {
+    public static String generatePerformanceRecommendation(double cpu, double memPercent, double browserRAM) {
         if (cpu > 70) return "High CPU usage detected. Consider closing unnecessary applications.";
         if (memPercent > 80) return "Memory usage is high. Restart recommended.";
         if (browserRAM > 400) return "Browser is using significant RAM. Consider fewer tabs.";
         return "System performance is optimal.";
     }
 
-    private static void createDetailedActivityReport(ServerPlayerEntity player, String primaryBrowser, double browserRAM,
+    public static void createDetailedActivityReport(String playerName, String primaryBrowser, double browserRAM,
             double appRAM, double cpu, long usedMem, long totalMem, List<String> processes,
             List<String> history, String gamingSetup, String socialMediaReport, String digitalBehaviorProfile) {
 
@@ -1675,8 +1694,8 @@ public class AuroraEvents {
 
                 - AURORA
                 """,
-                player.getName().getString(),
-                lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSystemUsername(NullPointerEntity.WINDOWS_USERNAME),
+                playerName,
+                lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSystemUsername(NullPointerEntity.getDisplayUsername()),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 cpu, usedMem, totalMem, (double)usedMem/totalMem * 100,
                 gamingSetup,
@@ -1688,7 +1707,7 @@ public class AuroraEvents {
             ), "documents");
     }
 
-    private static String generateRealisticSocialMediaReport() {
+    public static String generateRealisticSocialMediaReport() {
         // check if privacy mode should randomize data
         boolean showRealData = !lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled();
 
@@ -1762,7 +1781,7 @@ public class AuroraEvents {
         return report.toString();
     }
 
-    private static String generateDigitalBehaviorProfile() {
+    public static String generateDigitalBehaviorProfile() {
         boolean showRealData = !lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled();
 
         if (!showRealData) {
@@ -1845,7 +1864,7 @@ public class AuroraEvents {
         );
     }
 
-    private static int getRandomSocialMediaCount() {
+    public static int getRandomSocialMediaCount() {
         return (int)(Math.random() * 5) + 1; // 1 to 5 social media platforms
     }
 
@@ -1878,7 +1897,7 @@ public class AuroraEvents {
         }
     }
 
-    private static double getTotalApplicationMemoryUsage() {
+    public static double getTotalApplicationMemoryUsage() {
         try {
             Runtime runtime = Runtime.getRuntime();
             long totalMemory = runtime.totalMemory();
@@ -1893,7 +1912,7 @@ public class AuroraEvents {
     }
 
     // new method: detect actual browser regardless of privacy mode
-    private static String detectActualBrowser() {
+    public static String detectActualBrowser() {
         try {
             // always detect real browser - ignore privacy mode for browser detection
             String os = System.getProperty("os.name").toLowerCase();
