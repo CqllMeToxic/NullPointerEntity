@@ -32,31 +32,33 @@ public class PrivacyCommands {
 
     private static int executePrivacyStatus(CommandContext<ServerCommandSource> context) {
         boolean privacyEnabled = PrivacyManager.isPrivacyEnabled();
-        Text statusText = privacyEnabled ?
-            Text.literal("Privacy Mode: ENABLED - Personally identifiable information will be randomized").formatted(Formatting.GREEN) :
-            Text.literal("Privacy Mode: DISABLED - Personal information will be shown. Use '/nullpointer privacy true' to hide personal information").formatted(Formatting.RED);
-        
+        Text statusText = privacyEnabled
+            ? Text.translatable("command.nullpointerentity.privacy.status.enabled").formatted(Formatting.GREEN)
+            : Text.translatable("command.nullpointerentity.privacy.status.disabled").formatted(Formatting.RED);
+
         context.getSource().sendFeedback(() -> statusText, false);
-        context.getSource().sendFeedback(() -> Text.literal("Use '/nullpointer privacy true' to enable or '/nullpointer privacy false' to disable"), false);
-        
+        context.getSource().sendFeedback(() -> Text.translatable("command.nullpointerentity.privacy.usage"), false);
+
         return 1;
     }
 
     private static int executePrivacyToggle(CommandContext<ServerCommandSource> context) {
         boolean newValue = BoolArgumentType.getBool(context, "enabled");
         PrivacyManager.setPrivacyEnabled(newValue);
-        
-        Text feedbackText = newValue ?
-            Text.literal("Privacy Mode ENABLED - Personal information will now be randomized").formatted(Formatting.GREEN) :
-            Text.literal("Privacy Mode DISABLED - Personal information will be shown.").formatted(Formatting.RED);
-            
+
+        Text feedbackText = newValue
+            ? Text.translatable("command.nullpointerentity.privacy.toggle.enabled").formatted(Formatting.GREEN)
+            : Text.translatable("command.nullpointerentity.privacy.toggle.disabled").formatted(Formatting.RED);
+
         context.getSource().sendFeedback(() -> feedbackText, false);
-        
+
         if (!newValue) {
-            context.getSource().sendFeedback(() -> 
-                Text.literal("WARNING: NullPointerEntity will now use randomized data instead of your real information").formatted(Formatting.YELLOW), false);
+            context.getSource().sendFeedback(
+                () -> Text.translatable("command.nullpointerentity.privacy.warning").formatted(Formatting.YELLOW),
+                false
+            );
         }
-        
+
         return 1;
     }
 }

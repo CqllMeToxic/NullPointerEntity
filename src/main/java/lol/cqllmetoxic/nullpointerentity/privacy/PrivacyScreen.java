@@ -1,7 +1,11 @@
 package lol.cqllmetoxic.nullpointerentity.privacy;
 
+import lol.cqllmetoxic.nullpointerentity.NullPointerEntityClient;
+import lol.cqllmetoxic.nullpointerentity.config.VoiceChatConfig;
+import lol.cqllmetoxic.nullpointerentity.network.ClientSessionState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -17,9 +21,11 @@ import net.minecraft.util.Formatting;
 public class PrivacyScreen extends Screen {
     private final Screen parent;
     private boolean privacyEnabled;
+    private boolean pushToTalkEnabled;
     private javax.sound.sampled.Mixer.Info[] availableMicrophones;
     private int selectedMicrophoneIndex = 0;
     private int originalGuiScale = -999;
+    private static final int CONTENT_OFFSET_Y = 4;
 
     /**
      * creates a new privacy configuration screen.
@@ -27,9 +33,10 @@ public class PrivacyScreen extends Screen {
      * @param parent the screen to return to when closed
      */
     public PrivacyScreen(Screen parent) {
-        super(Text.literal("NullPointerEntity Privacy Settings"));
+        super(Text.translatable("screen.nullpointerentity.privacy.title"));
         this.parent = parent;
-        this.privacyEnabled = PrivacyManager.isPrivacyEnabled();
+        this.privacyEnabled = PrivacyManager.isPrivacyEnabledRaw();
+        this.pushToTalkEnabled = VoiceChatConfig.isPushToTalkEnabled();
 
         // get available microphones
         this.availableMicrophones = lol.cqllmetoxic.nullpointerentity.audio.AudioRecorder.getAvailableMicrophones();
@@ -52,11 +59,6 @@ public class PrivacyScreen extends Screen {
             this.originalGuiScale = this.client.options.getGuiScale().getValue();
         }
 
-        if (this.client != null && this.client.options.getGuiScale().getValue() != 3) {
-            this.client.options.getGuiScale().setValue(3);
-            return;
-        }
-
         super.init();
 
         if (this.client != null && this.client.mouse != null) {
@@ -67,11 +69,11 @@ public class PrivacyScreen extends Screen {
         int buttonWidth = 140;
         int buttonHeight = 24;
         int buttonSpacing = 40;
-        int buttonY = this.height - 80;
+        int buttonY = this.height - 60;
 
-        if (isMultiplayerWorld()) {
+        if (shouldShowLegacyMultiplayerNotice()) {
             this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("I Understand"),
+                Text.translatable("screen.nullpointerentity.privacy.confirm"),
                 button -> {
                     PrivacyManager.setFirstTimeUser(false);
 
@@ -84,67 +86,111 @@ public class PrivacyScreen extends Screen {
                         this.client.setScreen(parent);
                     }
                 })
-                .dimensions(centerX - buttonWidth/2, buttonY, buttonWidth, buttonHeight)
+                .dimensions(centerX - buttonWidth / 2, buttonY, buttonWidth, buttonHeight)
                 .build());
-        } else {
-            // microphone selection button
-            int micButtonY = buttonY - 60;
+            return;
+        }
+
+        // microphone selection button (left) + push-to-talk toggle (right) share one row
+        int micButtonY = buttonY - 54;
+        int rowGap = 6;
+        int pttButtonWidth = 120;
+        int micButtonWidth = 360 - pttButtonWidth - rowGap;
+        this.addDrawableChild(ButtonWidget.builder(
+            getMicrophoneButtonText(),
+            button -> {
+                if (availableMicrophones.length > 0) {
+                    selectedMicrophoneIndex = (selectedMicrophoneIndex + 1) % availableMicrophones.length;
+                    button.setMessage(getMicrophoneButtonText());
+                }
+            })
+            .dimensions(centerX - 180, micButtonY, micButtonWidth, buttonHeight)
+            .build());
+
+        // push-to-talk toggle: when on, AURORA only hears the mic while the voice key is held
+        this.addDrawableChild(ButtonWidget.builder(
+            getPushToTalkButtonText(),
+            button -> {
+                pushToTalkEnabled = !pushToTalkEnabled;
+                button.setMessage(getPushToTalkButtonText());
+            })
+            .dimensions(centerX - 180 + micButtonWidth + rowGap, micButtonY, pttButtonWidth, buttonHeight)
+            .build());
+
+        if (isRemoteJoiningClient()) {
+            // joining (non-host) clients don't control Privacy Mode - the host's session setting drives
+            // everyone. show only a centered confirm; mic + push-to-talk above stay editable per client.
             this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(getMicrophoneButtonText()),
-                button -> {
-                    if (availableMicrophones.length > 0) {
-                        selectedMicrophoneIndex = (selectedMicrophoneIndex + 1) % availableMicrophones.length;
-                        button.setMessage(Text.literal(getMicrophoneButtonText()));
-                    }
-                })
-                .dimensions(centerX - 180, micButtonY, 360, buttonHeight)
+                Text.translatable("screen.nullpointerentity.privacy.confirm"),
+                button -> confirmAndClose(false))
+                .dimensions(centerX - buttonWidth / 2, buttonY, buttonWidth, buttonHeight)
                 .build());
+            return;
+        }
 
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("I Understand"),
-                button -> {
-                    PrivacyManager.setPrivacyEnabled(privacyEnabled);
-                    PrivacyManager.setFirstTimeUser(false);
+        this.addDrawableChild(ButtonWidget.builder(
+            Text.translatable("screen.nullpointerentity.privacy.confirm"),
+            button -> confirmAndClose(true))
+            .dimensions(centerX - buttonWidth - buttonSpacing / 2, buttonY, buttonWidth, buttonHeight)
+            .build());
 
-                    // save selected microphone
-                    if (availableMicrophones.length > 0 && selectedMicrophoneIndex >= 0 && selectedMicrophoneIndex < availableMicrophones.length) {
-                        PrivacyManager.setSelectedMicrophone(availableMicrophones[selectedMicrophoneIndex].getName());
-                    }
+        this.addDrawableChild(ButtonWidget.builder(
+            getPrivacyToggleText(),
+            button -> {
+                privacyEnabled = !privacyEnabled;
+                button.setMessage(getPrivacyToggleText());
+            })
+            .dimensions(centerX + buttonSpacing / 2, buttonY, buttonWidth, buttonHeight)
+            .build());
+    }
 
-                    String worldName = getCurrentWorldName();
-                    if (worldName != null) {
-                        PrivacyManager.markWorldAsProcessed(worldName);
-                    }
+    /**
+     * applies the chosen settings and returns to the parent screen.
+     *
+     * @param applyPrivacy whether to write the local Privacy Mode toggle (host/local only; joining
+     *                     clients leave Privacy Mode to the host's session setting)
+     */
+    private void confirmAndClose(boolean applyPrivacy) {
+        if (applyPrivacy) {
+            PrivacyManager.setPrivacyEnabled(privacyEnabled);
+        }
+        PrivacyManager.setFirstTimeUser(false);
 
-                    if (this.client != null) {
-                        this.client.setScreen(parent);
-                    }
-                })
-                .dimensions(centerX - buttonWidth - buttonSpacing/2, buttonY, buttonWidth, buttonHeight)
-                .build());
+        // save selected microphone
+        if (availableMicrophones.length > 0 && selectedMicrophoneIndex >= 0 && selectedMicrophoneIndex < availableMicrophones.length) {
+            PrivacyManager.setSelectedMicrophone(availableMicrophones[selectedMicrophoneIndex].getName());
+        }
 
-            this.addDrawableChild(ButtonWidget.builder(
-                privacyEnabled ?
-                    Text.literal("Privacy: ON").formatted(Formatting.GREEN) :
-                    Text.literal("Privacy: OFF").formatted(Formatting.RED),
-                button -> {
-                    privacyEnabled = !privacyEnabled;
-                    button.setMessage(privacyEnabled ?
-                        Text.literal("Privacy: ON").formatted(Formatting.GREEN) :
-                        Text.literal("Privacy: OFF").formatted(Formatting.RED));
-                })
-                .dimensions(centerX + buttonSpacing/2, buttonY, buttonWidth, buttonHeight)
-                .build());
+        // save and apply push-to-talk preference live (Shriek init has already run)
+        VoiceChatConfig.setPushToTalkEnabled(pushToTalkEnabled);
+        NullPointerEntityClient.applyPushToTalkPreference();
+
+        String worldName = getCurrentWorldName();
+        if (worldName != null) {
+            PrivacyManager.markWorldAsProcessed(worldName);
+        }
+
+        if (this.client != null) {
+            this.client.setScreen(parent);
         }
     }
 
-    private String getMicrophoneButtonText() {
+    /**
+     * true when this client is connected to someone else's server (not the integrated host). such
+     * clients follow the host's Privacy Mode and shouldn't see the On/Off toggle.
+     */
+    private boolean isRemoteJoiningClient() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        return client != null && client.world != null && !client.isIntegratedServerRunning();
+    }
+
+    private Text getMicrophoneButtonText() {
         if (availableMicrophones == null || availableMicrophones.length == 0) {
-            return "Microphone: None Detected";
+            return Text.translatable("screen.nullpointerentity.privacy.microphone.none");
         }
 
         if (selectedMicrophoneIndex < 0 || selectedMicrophoneIndex >= availableMicrophones.length) {
-            return "Microphone: Error - Invalid Selection";
+            return Text.translatable("screen.nullpointerentity.privacy.microphone.invalid");
         }
 
         // get microphone info
@@ -163,7 +209,7 @@ public class PrivacyScreen extends Screen {
 
         // final fallback
         if (micName == null || micName.trim().isEmpty()) {
-            micName = "Microphone #" + (selectedMicrophoneIndex + 1);
+            micName = Text.translatable("screen.nullpointerentity.privacy.microphone.fallback", selectedMicrophoneIndex + 1).getString();
         }
 
         // truncate if too long
@@ -171,7 +217,19 @@ public class PrivacyScreen extends Screen {
             micName = micName.substring(0, 42) + "...";
         }
 
-        return "Microphone: " + micName;
+        return Text.translatable("screen.nullpointerentity.privacy.microphone.current", micName);
+    }
+
+    private Text getPushToTalkButtonText() {
+        return pushToTalkEnabled
+            ? Text.translatable("screen.nullpointerentity.privacy.pushtotalk.on").formatted(Formatting.GREEN)
+            : Text.translatable("screen.nullpointerentity.privacy.pushtotalk.off").formatted(Formatting.RED);
+    }
+
+    private Text getPrivacyToggleText() {
+        return privacyEnabled
+            ? Text.translatable("screen.nullpointerentity.privacy.toggle.on").formatted(Formatting.GREEN)
+            : Text.translatable("screen.nullpointerentity.privacy.toggle.off").formatted(Formatting.RED);
     }
 
     private String getCurrentWorldName() {
@@ -181,9 +239,14 @@ public class PrivacyScreen extends Screen {
         return "multiplayer_world"; // default for multiplayer
     }
 
-    private boolean isMultiplayerWorld() {
-        // use the centralized multiplayer detection utility
-        return lol.cqllmetoxic.nullpointerentity.util.MultiplayerDetection.isMultiplayerClient();
+    private boolean shouldShowLegacyMultiplayerNotice() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null) {
+            return false;
+        }
+
+        boolean isRemoteServer = client.getCurrentServerEntry() != null;
+        return isRemoteServer && !ClientSessionState.isServerModPresent();
     }
 
     @Override
@@ -192,58 +255,97 @@ public class PrivacyScreen extends Screen {
         context.fillGradient(0, 0, this.width, this.height, 0xCC000000, 0xDD000000);
 
         int centerX = this.width / 2;
-        int currentY = 40;
+        int lineHeight = this.textRenderer.fontHeight;
+        int headerY = 40;
+        int currentY = headerY;
 
         // title with better spacing
-        context.drawCenteredTextWithShadow(this.textRenderer, "NullPointerEntity", centerX, currentY, 0xFFFFFF);
-        currentY += 25;
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.brand").getString(), centerX, currentY, 0xFFFFFF);
+        currentY += lineHeight + 10;
 
         // attribution
-        context.drawCenteredTextWithShadow(this.textRenderer, "Developed by CqllMeToxic, inspired by Split Self by Pryzmm", centerX, currentY, 0x888888);
-        currentY += 35;
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.attribution").getString(), centerX, currentY, 0x888888);
+        int headerBottom = currentY + (lineHeight * 2);
+        currentY = headerBottom;
 
-        if (isMultiplayerWorld()) {
-            // multiplayer message with better spacing
-            context.drawCenteredTextWithShadow(this.textRenderer, "This mod is DISABLED in multiplayer environments.", centerX, currentY, 0xFF6666);
+        if (shouldShowLegacyMultiplayerNotice()) {
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.multiplayer.disabled").getString(), centerX, currentY, 0xFF6666);
             currentY += 25;
 
-            context.drawCenteredTextWithShadow(this.textRenderer, "Mod features are disabled and not functional.", centerX, currentY, 0xCCCCCC);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.multiplayer.features_off").getString(), centerX, currentY, 0xCCCCCC);
             currentY += 20;
-            context.drawCenteredTextWithShadow(this.textRenderer, "Only vanilla features or mods you have are useable.", centerX, currentY, 0xCCCCCC);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.multiplayer.vanilla_only").getString(), centerX, currentY, 0xCCCCCC);
             currentY += 25;
 
-            context.drawCenteredTextWithShadow(this.textRenderer, "To use full mod features, play in single player.", centerX, currentY, 0xFFFF55);
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.multiplayer.singleplayer_hint").getString(), centerX, currentY, 0xFFFF55);
+
+            super.render(context, mouseX, mouseY, delta);
+            return;
+        }
+
+        int buttonY = this.height - 60;
+        int micButtonY = buttonY - 54;
+        int topPadding = headerBottom + 16 + CONTENT_OFFSET_Y;
+        int footerSpacing = 10;
+        int availableHeight = Math.max(0, micButtonY - footerSpacing - topPadding);
+
+        int lines = 6;
+        int lineStride = 18; // 18 ensures consistent, clean spacing even with scaling
+        int contentHeight = lineStride * lines;
+
+        currentY = topPadding + Math.max(0, (availableHeight - contentHeight) / 2);
+
+        boolean joiningClient = isRemoteJoiningClient();
+
+        if (joiningClient) {
+            // joining clients can't change Privacy Mode (the host's session setting drives it), so show
+            // a note in place of the singleplayer warning + privacy status/explanation lines.
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.host_controlled.title").getString(), centerX, currentY, 0xFFFFFF);
+            currentY += lineStride;
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.host_controlled.detail").getString(), centerX, currentY, 0xAAAAAA);
+            currentY += lineStride;
+            // keep the row count consistent with the host layout
+            currentY += lineStride;
         } else {
             // single player message with better spacing
-            context.drawCenteredTextWithShadow(this.textRenderer, "This mod may access personal information.", centerX, currentY, 0xFFFFFF);
-            currentY += 30;
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.singleplayer.warning").getString(), centerX, currentY, 0xFFFFFF);
+            currentY += lineStride;
 
             // privacy status with prominent display
-            String privacyStatus = "Privacy Mode: " + (privacyEnabled ? "ENABLED" : "DISABLED");
+            String privacyStatus = Text.translatable(
+                "screen.nullpointerentity.privacy.status",
+                privacyEnabled
+                    ? Text.translatable("screen.nullpointerentity.privacy.status.enabled")
+                    : Text.translatable("screen.nullpointerentity.privacy.status.disabled")
+            ).getString();
             int privacyColor = privacyEnabled ? 0x55FF55 : 0xFF5555;
             context.drawCenteredTextWithShadow(this.textRenderer, privacyStatus, centerX, currentY, privacyColor);
-            currentY += 25;
+            currentY += lineStride;
 
             // explanation of what privacy mode does
-            String privacyExplanation = privacyEnabled ?
-                "Personal information will be RANDOMIZED and protected." :
-                "Real personal information will be displayed.";
+            String privacyExplanation = (privacyEnabled
+                ? Text.translatable("screen.nullpointerentity.privacy.explanation.enabled")
+                : Text.translatable("screen.nullpointerentity.privacy.explanation.disabled")
+            ).getString();
             int explanationColor = privacyEnabled ? 0xAAFFAA : 0xFFFF55;
             context.drawCenteredTextWithShadow(this.textRenderer, privacyExplanation, centerX, currentY, explanationColor);
-            currentY += 30;
-
-            // microphone selection explanation
-            context.drawCenteredTextWithShadow(this.textRenderer, "Select your microphone:", centerX, currentY, 0xFFFFFF);
-            currentY += 20;
-            if (availableMicrophones.length == 0) {
-                context.drawCenteredTextWithShadow(this.textRenderer, "No microphones detected! Audio events may be silent.", centerX, currentY, 0xFF5555);
-            } else {
-                context.drawCenteredTextWithShadow(this.textRenderer, "Click the button below to cycle through available microphones.", centerX, currentY, 0xAAFFAA);
-            }
-            currentY += 60; // extra space before final instruction
-
-            context.drawCenteredTextWithShadow(this.textRenderer, "Toggle privacy mode and click 'I Understand' to continue.", centerX, currentY, 0xCCCCCC);
+            currentY += lineStride;
         }
+
+        // microphone selection explanation
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.microphone.select").getString(), centerX, currentY, 0xFFFFFF);
+        currentY += lineStride;
+        if (availableMicrophones.length == 0) {
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.microphone.none_warning").getString(), centerX, currentY, 0xFF5555);
+        } else {
+            context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("screen.nullpointerentity.privacy.microphone.cycle_hint").getString(), centerX, currentY, 0xAAFFAA);
+        }
+        currentY += lineStride;
+
+        String finalInstruction = joiningClient
+            ? "screen.nullpointerentity.privacy.joining_instruction"
+            : "screen.nullpointerentity.privacy.final_instruction";
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable(finalInstruction).getString(), centerX, currentY, 0xCCCCCC);
 
         // render the buttons and other child widgets
         super.render(context, mouseX, mouseY, delta);

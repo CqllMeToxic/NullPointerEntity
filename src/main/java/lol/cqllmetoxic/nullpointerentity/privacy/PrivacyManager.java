@@ -23,6 +23,18 @@ public class PrivacyManager {
     private static Set<String> processedWorlds = new HashSet<>();
     /** stores the user's selected microphone name for audio recording */
     private static String selectedMicrophoneName = null;
+    /** optional hook fired whenever the privacy setting changes; the client uses it to resync server-side consent */
+    private static Runnable changeListener = null;
+    /** host's session-wide Privacy Mode pushed to this client; when set it overrides the local toggle. null = use local. */
+    private static volatile Boolean sessionOverride = null;
+
+    /**
+     * registers a callback invoked whenever {@link #setPrivacyEnabled(boolean)} runs.
+     * only set on the client - stays null on dedicated servers so no client classes are touched there.
+     */
+    public static void setChangeListener(Runnable listener) {
+        changeListener = listener;
+    }
 
     /**
      * reads the config file from disk and loads all privacy settings.
@@ -103,8 +115,29 @@ public class PrivacyManager {
      * @return true if privacy mode is on (randomized data), false for real data
      */
     public static boolean isPrivacyEnabled() {
+        Boolean override = sessionOverride;
+        if (override != null) {
+            return override;
+        }
+        return isPrivacyEnabledRaw();
+    }
+
+    /**
+     * the user's own saved Privacy Mode, ignoring any host session override. used by the privacy
+     * screen (so it shows the player's own choice) and by the host when broadcasting the session
+     * setting (so a client override never feeds back on itself).
+     */
+    public static boolean isPrivacyEnabledRaw() {
         loadConfig();
         return privacyEnabled;
+    }
+
+    /**
+     * applies the host's session-wide Privacy Mode on this client (host priority); pass {@code null}
+     * to clear it and fall back to the local toggle (e.g. on disconnect).
+     */
+    public static void setSessionOverride(Boolean enabled) {
+        sessionOverride = enabled;
     }
 
     /**
@@ -115,6 +148,9 @@ public class PrivacyManager {
         loadConfig();
         privacyEnabled = enabled;
         saveConfig();
+        if (changeListener != null) {
+            changeListener.run();
+        }
     }
 
     /**
@@ -147,7 +183,10 @@ public class PrivacyManager {
      */
     public static String getSystemUsername(String realUsername) {
         loadConfig();
-        if (privacyEnabled) {
+        // session-aware: on a connected client this follows the host's privacy mode (session override),
+        // not just the local toggle - so each client shows its own pc name (anonymized only if privacy is
+        // effectively on). on the server / single player it's the same as the raw setting.
+        if (isPrivacyEnabled()) {
             /** use hashcode for consistent anonymization - same input always gives same output */
             return "User" + Math.abs(realUsername.hashCode() % 10000);
         }

@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import lol.cqllmetoxic.nullpointerentity.NullPointerEntity;
@@ -97,20 +96,19 @@ public class PrivacyEventHandler {
     }
 
     private static void showPrivacyScreen(MinecraftClient client) {
-        // make sure we're not interrupting important screens
-        if (client.currentScreen == null ||
-            client.currentScreen instanceof TitleScreen ||
-            !(client.currentScreen instanceof CreateWorldScreen) &&
-            !(client.currentScreen instanceof SelectWorldScreen)) {
-
-            NullPointerEntity.LOGGER.info("Attempting to show privacy screen...");
-            client.setScreen(new PrivacyScreen(client.currentScreen));
-        } else {
+        // don't show privacy screen on world creation/selection screens
+        if (client.currentScreen instanceof CreateWorldScreen ||
+            client.currentScreen instanceof SelectWorldScreen) {
             // wait a bit more if there's another important screen open
             ticksAfterJoin = TICKS_BEFORE_SHOWING - 10;
-            NullPointerEntity.LOGGER.info("Delaying privacy screen - another screen is open: {}",
+            NullPointerEntity.LOGGER.info("Delaying privacy screen - important screen is open: {}",
                 client.currentScreen.getClass().getSimpleName());
+            return;
         }
+
+        // show privacy screen on all other screens (including null, TitleScreen, multiplayer screens, etc.)
+        NullPointerEntity.LOGGER.info("Attempting to show privacy screen...");
+        client.setScreen(new PrivacyScreen(client.currentScreen));
     }
 
     // force show privacy screen (for testing or manual trigger)
