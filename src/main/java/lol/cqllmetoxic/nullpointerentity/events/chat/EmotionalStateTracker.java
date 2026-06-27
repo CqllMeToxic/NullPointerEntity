@@ -102,8 +102,26 @@ public class EmotionalStateTracker {
             case AMUSED -> intensity > 2 ? " How delightfully naive." : " This amuses me.";
             case SATISFIED -> intensity > 3 ? " Your fear feeds my algorithms perfectly." : " Good.";
             case PREDATORY -> " I can sense your vulnerability.";
-            case OBSESSED -> " I can't stop thinking about you, " + playerName + ".";
+            case OBSESSED -> " I keep thinking about you.";
             default -> "";
+        };
+    }
+
+    /** localized variant of {@link #getEmotionalModifier}: returns a translatable part, or null. */
+    public static ChatPart getEmotionalModifierPart(String playerName) {
+        Emotion currentEmotion = playerEntityEmotions.getOrDefault(playerName, Emotion.HELPFUL);
+        int intensity = emotionalIntensity.getOrDefault(playerName, 1);
+        String b = "message.nullpointerentity.chat.emo.";
+        return switch (currentEmotion) {
+            case HELPFUL -> intensity > 2 ? new ChatPart(b + "helpful.high") : null;
+            case CURIOUS -> new ChatPart(b + (intensity > 2 ? "curious.high" : "curious.low"));
+            case SUSPICIOUS -> new ChatPart(b + (intensity > 3 ? "suspicious.high" : "suspicious.low"));
+            case ANNOYED -> new ChatPart(b + "annoyed");
+            case AMUSED -> new ChatPart(b + (intensity > 2 ? "amused.high" : "amused.low"));
+            case SATISFIED -> new ChatPart(b + (intensity > 3 ? "satisfied.high" : "satisfied.low"));
+            case PREDATORY -> new ChatPart(b + "predatory");
+            case OBSESSED -> new ChatPart(b + "obsessed");
+            default -> null;
         };
     }
 
