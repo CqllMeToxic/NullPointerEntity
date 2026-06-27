@@ -177,6 +177,55 @@ public class PsychologicalProfiler {
         return baseResponse + enhancement.toString();
     }
 
+    /** localized variant of {@link #generateProfileAwareResponse}: returns translatable parts (may be empty). */
+    public static java.util.List<ChatPart> generateProfileParts(String playerName, String phase, String entity) {
+        java.util.List<ChatPart> parts = new java.util.ArrayList<>();
+        java.util.Set<PersonalityTrait> traits = playerPersonalities.getOrDefault(playerName, new java.util.HashSet<>());
+        PlayStyle playStyle = playerPlayStyles.get(playerName);
+        java.util.List<String> suspicious = suspiciousActivities.getOrDefault(playerName, new java.util.ArrayList<>());
+        String b = "message.nullpointerentity.chat.prof.";
+
+        if (traits.contains(PersonalityTrait.ANXIOUS) && !phase.equals("NICE")) parts.add(new ChatPart(b + "trait.anxious", playerName));
+        if (traits.contains(PersonalityTrait.OBSESSIVE)) parts.add(new ChatPart(b + "trait.obsessive"));
+        if (traits.contains(PersonalityTrait.PARANOID) && phase.equals("HOSTILE")) parts.add(new ChatPart(b + "trait.paranoid"));
+
+        if (playStyle != null && hasMinimumGameplayData(playerName)) {
+            ChatPart style = playStylePart(playStyle, phase, entity, b);
+            if (style != null) parts.add(style);
+        }
+
+        if (!suspicious.isEmpty() && !phase.equals("NICE")) {
+            String recent = suspicious.get(suspicious.size() - 1);
+            ChatPart sp = switch (phase) {
+                case "TRANSITION" -> new ChatPart(b + "suspicious.transition", playerName);
+                case "HOSTILE" -> new ChatPart(b + "suspicious.hostile", recent.toLowerCase(), playerName);
+                case "JUMPSCARE" -> new ChatPart(b + "suspicious.jumpscare", playerName);
+                default -> null;
+            };
+            if (sp != null) parts.add(sp);
+        }
+        return parts;
+    }
+
+    private static ChatPart playStylePart(PlayStyle style, String phase, String entity, String b) {
+        if (entity.equals("NULLPOINTER")) {
+            return switch (style) {
+                case FIGHTER -> new ChatPart(b + "style.npe.fighter");
+                case BUILDER -> new ChatPart(b + "style.npe.builder");
+                case EXPLORER -> new ChatPart(b + "style.npe.explorer");
+                case COLLECTOR -> new ChatPart(b + "style.npe.collector");
+                default -> null;
+            };
+        }
+        String v = phase.equals("NICE") ? "nice" : "other";
+        return switch (style) {
+            case FIGHTER -> new ChatPart(b + "style.aurora.fighter." + v);
+            case BUILDER -> new ChatPart(b + "style.aurora.builder." + v);
+            case EXPLORER -> new ChatPart(b + "style.aurora.explorer." + v);
+            default -> null;
+        };
+    }
+
     /**
      * check if player has sufficient gameplay data to make meaningful observations
      */

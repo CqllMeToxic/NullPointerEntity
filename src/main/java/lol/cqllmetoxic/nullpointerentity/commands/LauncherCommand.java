@@ -26,17 +26,19 @@ public class LauncherCommand {
         LauncherDetection.Launcher launcher = LauncherDetection.getLauncher();
         String launcherName = launcher.getDisplayName();
 
-        // send launcher info to player
+        // send launcher info to the player. the root aqua style colours the %s launcher name - the
+        // value's §-codes don't reach the substituted arg, so the launcher name would render white without this.
         context.getSource().sendFeedback(
-            () -> Text.literal("§fYou are using: §b" + launcherName),
+            () -> Text.translatable("command.nullpointerentity.launcher.using", launcherName)
+                .formatted(net.minecraft.util.Formatting.AQUA),
             false
         );
 
         // additional info based on launcher type
-        String additionalInfo = getAdditionalLauncherInfo(launcher);
-        if (additionalInfo != null) {
+        String additionalInfoKey = getAdditionalLauncherInfo(launcher);
+        if (additionalInfoKey != null) {
             context.getSource().sendFeedback(
-                () -> Text.literal("§7" + additionalInfo),
+                () -> Text.translatable(additionalInfoKey),
                 false
             );
         }
@@ -46,15 +48,15 @@ public class LauncherCommand {
 
     private static String getAdditionalLauncherInfo(LauncherDetection.Launcher launcher) {
         return switch (launcher) {
-            case FEATHER_LUNAR -> "PvP-focused client with cosmetics and performance enhancements. Not sure why you're on a PvP client for a horror mod, but you do you.";
-            case MULTIMC -> "MultiMC-based launchers offer great instance management.";
-            case MODRINTH -> "Modrinth provides a curated mod experience.";
-            case CURSEFORGE -> "CurseForge offers the a huge mod library.";
-            case ATLAUNCHER -> "ATLauncher specializes in modpack automation.";
-            case TECHNIC -> "Technic Platform focuses on easy modpack installation.";
-            case GDLAUNCHER -> "GDLauncher combines features from multiple launchers.";
-            case MCUPDATER -> "MCUpdater provides automatic modpack updates.";
-            case VANILLA -> "Using the default Minecraft launcher.";
+            case FEATHER_LUNAR -> "command.nullpointerentity.launcher.info.feather_lunar";
+            case MULTIMC -> "command.nullpointerentity.launcher.info.multimc";
+            case MODRINTH -> "command.nullpointerentity.launcher.info.modrinth";
+            case CURSEFORGE -> "command.nullpointerentity.launcher.info.curseforge";
+            case ATLAUNCHER -> "command.nullpointerentity.launcher.info.atlauncher";
+            case TECHNIC -> "command.nullpointerentity.launcher.info.technic";
+            case GDLAUNCHER -> "command.nullpointerentity.launcher.info.gdlauncher";
+            case MCUPDATER -> "command.nullpointerentity.launcher.info.mcupdater";
+            case VANILLA -> "command.nullpointerentity.launcher.info.vanilla";
         };
     }
 }

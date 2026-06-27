@@ -36,6 +36,7 @@ public class PersistentDataManager {
 
         public boolean welcomeMessageSent = false;
         public int currentEventPhase = 0;
+        public int sharedEventsExperienced = 0;
         public long lastEventTime = 0;
         public int eventsTriggeredThisSession = 0;
 
@@ -58,6 +59,7 @@ public class PersistentDataManager {
         public Map<String, Boolean> triggeredEvents = new ConcurrentHashMap<>();
         public Map<String, Long> lastEventTimes = new ConcurrentHashMap<>();
         public int totalEventsExperienced = 0;
+        public int lastSharedCatchupProgressSeen = 0;
         public boolean privacyModeEnabled = true;
         public long totalPlayTime = 0;
         public int sessionsPlayed = 0;
@@ -245,6 +247,11 @@ public class PersistentDataManager {
 
     public static void setCurrentEventPhase(int phase) {
         worldData.currentEventPhase = phase;
+        saveDataAsync();
+    }
+
+    public static void setSharedEventsExperienced(int sharedEventsExperienced) {
+        worldData.sharedEventsExperienced = Math.max(0, sharedEventsExperienced);
         saveDataAsync();
     }
 

@@ -35,7 +35,7 @@ public class RedRainRenderer {
             MinecraftClient.getInstance().execute(() -> {
                 MinecraftClient client = MinecraftClient.getInstance();
                 if (client.player != null) {
-                    client.player.sendMessage(net.minecraft.text.Text.literal("§4The sky bleeds... red rain begins to fall."), false);
+                    client.player.sendMessage(net.minecraft.text.Text.translatable("message.nullpointerentity.red_rain.begin"), false);
                 }
             });
         }

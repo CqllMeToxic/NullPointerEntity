@@ -186,6 +186,34 @@ public class MemoryPersistence {
         return memoryResponse.toString().trim();
     }
 
+    /** localized variant of {@link #generateMemoryResponse}: returns translatable parts (may be empty). */
+    public static java.util.List<ChatPart> generateMemoryParts(String playerName, String phase) {
+        java.util.List<ChatPart> parts = new java.util.ArrayList<>();
+        PlayerMemory memory = loadPlayerMemory(playerName);
+        if (memory.totalConversations == 0) return parts;
+        String b = "message.nullpointerentity.chat.mem.";
+
+        if (memory.totalConversations > 5) {
+            parts.add(new ChatPart(b + "conversations", memory.totalConversations));
+        }
+        if (!memory.significantMoments.isEmpty() && Math.random() < 0.3) {
+            String momentText = memory.significantMoments.get(memory.significantMoments.size() - 1).split("] ")[1];
+            int lastParen = momentText.lastIndexOf(" (");
+            if (lastParen > 0) momentText = momentText.substring(0, lastParen);
+            parts.add(new ChatPart(b + "moment", momentText));
+        }
+        if (!memory.memorableQuotes.isEmpty() && Math.random() < 0.2) {
+            String quote = memory.memorableQuotes.get(memory.memorableQuotes.size() - 1);
+            String justQuote = quote.substring(quote.indexOf("\"") + 1, quote.lastIndexOf("\""));
+            parts.add(new ChatPart(b + "quote", justQuote));
+        }
+        if (!memory.failedAttempts.isEmpty() && (phase.equals("HOSTILE") || phase.equals("JUMPSCARE"))) {
+            int attempts = memory.failedAttempts.size();
+            if (attempts > 3) parts.add(new ChatPart(b + "escapes", attempts));
+        }
+        return parts;
+    }
+
     /**
      * generate welcome back message for returning players
      */
