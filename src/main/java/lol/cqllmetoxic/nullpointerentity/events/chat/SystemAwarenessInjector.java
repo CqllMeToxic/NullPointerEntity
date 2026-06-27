@@ -161,6 +161,35 @@ public class SystemAwarenessInjector {
         };
     }
 
+    /** localized variant: returns a translatable real-machine-awareness part, or null. */
+    public static ChatPart generateSystemAwarePart(String playerName, String phase) {
+        List<String> changes = detectedChanges.getOrDefault(playerName, new ArrayList<>());
+        if (changes.isEmpty()) return null;
+        String relevantChange = selectMostRelevantChange(changes, playerName);
+        if (relevantChange == null) return null;
+
+        String ph = switch (phase) {
+            case "NICE" -> "nice";
+            case "TRANSITION" -> "transition";
+            case "HOSTILE" -> "hostile";
+            case "JUMPSCARE" -> "jumpscare";
+            default -> null;
+        };
+        String c = switch (relevantChange) {
+            case "HIGH_CPU" -> "high_cpu";
+            case "HIGH_MEMORY" -> "high_memory";
+            case "LATE_HOURS" -> "late_hours";
+            case "BROWSER_ACTIVE" -> "browser";
+            case "CHAT_APP_ACTIVE" -> "chat_app";
+            case "MEDIA_PLAYING" -> "media";
+            default -> null;
+        };
+        if (ph == null || c == null) return null;
+
+        recordMentionedChange(playerName, relevantChange);
+        return new ChatPart("message.nullpointerentity.chat.sys." + ph + "." + c, playerName);
+    }
+
     private static String selectMostRelevantChange(List<String> changes, String playerName) {
         long currentTime = System.currentTimeMillis();
 

@@ -4,6 +4,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -16,37 +17,73 @@ public class TypingSimulator {
      * send a message with realistic typing simulation
      */
     public static void sendMessageWithTyping(ServerPlayerEntity player, String entity, String message, String phase) {
-        String playerName = player.getName().getString();
+        List<ServerPlayerEntity> recipients = ChatMessageFormatter.resolveRecipients(player);
 
         // calculate realistic typing time based on message length and entity
         int typingTime = calculateTypingTime(message, entity, phase);
 
         // show typing indicator
-        showTypingIndicator(player, entity, phase);
+        showTypingIndicator(recipients, entity, phase);
 
         // send actual message after typing delay
         Timer messageTimer = new Timer();
         messageTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                hideTypingIndicator(player, entity);
+                hideTypingIndicator(recipients);
 
                 // send the actual message directly (fix: remove recursive call)
                 if (entity.equals("NULLPOINTER")) {
-                    Text nullMessage = Text.literal("<NullPointerEntity> ").formatted(Formatting.DARK_RED)
+                    Text nullMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
                         .append(Text.literal(message).formatted(Formatting.RED));
-                    player.sendMessage(nullMessage, false);
+                    for (ServerPlayerEntity recipient : recipients) {
+                        recipient.sendMessage(nullMessage, false);
+                    }
                 } else {
                     // phase-based aurora color - use yellow during transition phase
                     Formatting auroraColor = phase.equals("TRANSITION") ? Formatting.YELLOW : Formatting.AQUA;
-                    Text auroraMessage = Text.literal("<AURORA> ").formatted(auroraColor)
+                    Text auroraMessage = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(auroraColor)
                         .append(Text.literal(message).formatted(Formatting.WHITE));
-                    player.sendMessage(auroraMessage, false);
+                    for (ServerPlayerEntity recipient : recipients) {
+                        recipient.sendMessage(auroraMessage, false);
+                    }
                 }
 
                 messageTimer.cancel();
             }
         }, typingTime);
+    }
+
+    /** like {@link #sendMessageWithTyping} but for an already-built, localized {@link Text} message. */
+    public static void sendTextWithTyping(ServerPlayerEntity player, String entity, Text completeMessage, int estLen, String phase) {
+        List<ServerPlayerEntity> recipients = ChatMessageFormatter.resolveRecipients(player);
+        int typingTime = calculateTypingTime(estLen, entity, phase);
+        showTypingIndicator(recipients, entity, phase);
+
+        Timer messageTimer = new Timer();
+        messageTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                hideTypingIndicator(recipients);
+                for (ServerPlayerEntity recipient : recipients) {
+                    recipient.sendMessage(completeMessage, false);
+                }
+                messageTimer.cancel();
+            }
+        }, typingTime);
+    }
+
+    private static int calculateTypingTime(int length, String entity, String phase) {
+        int baseTime = entity.equals("NULLPOINTER") ? length * 150 : length * 80;
+        switch (phase) {
+            case "NICE" -> baseTime = (int)(baseTime * 0.8);
+            case "TRANSITION" -> baseTime = (int)(baseTime * 1.2);
+            case "HOSTILE" -> baseTime = (int)(baseTime * 1.1);
+            case "JUMPSCARE" -> baseTime = (int)(baseTime * 1.5);
+        }
+        int variance = (int)(baseTime * 0.3);
+        baseTime += (Math.random() - 0.5) * variance;
+        return Math.max(500, Math.min(baseTime, 8000));
     }
 
     /**
@@ -82,7 +119,7 @@ public class TypingSimulator {
     /**
      * show typing indicator with dots animation
      */
-    private static void showTypingIndicator(ServerPlayerEntity player, String entity, String phase) {
+    private static void showTypingIndicator(List<ServerPlayerEntity> recipients, String entity, String phase) {
         Formatting nameColor;
 
         if (entity.equals("AURORA")) {
@@ -96,19 +133,21 @@ public class TypingSimulator {
             nameColor = Formatting.DARK_RED;
         }
 
-        Text typingText = Text.literal("<" + entity + "> ").formatted(nameColor)
-            .append(Text.literal("typing...").formatted(Formatting.GRAY, Formatting.ITALIC));
+        Text typingText = Text.translatable("message.nullpointerentity.typing.prefix", entity).formatted(nameColor)
+            .append(Text.translatable("message.nullpointerentity.typing.status").formatted(Formatting.GRAY, Formatting.ITALIC));
 
-        player.sendMessage(typingText, true); // send as action bar
+        for (ServerPlayerEntity recipient : recipients) {
+            recipient.sendMessage(typingText, true);
+        }
 
         // animate dots
-        animateTypingDots(player, entity, nameColor, 3);
+        animateTypingDots(recipients, entity, nameColor, 3);
     }
 
     /**
      * animate typing dots for more realism
      */
-    private static void animateTypingDots(ServerPlayerEntity player, String entity, Formatting nameColor, int cycles) {
+    private static void animateTypingDots(List<ServerPlayerEntity> recipients, String entity, Formatting nameColor, int cycles) {
         Timer dotTimer = new Timer();
 
         for (int i = 0; i <= cycles; i++) {
@@ -119,10 +158,12 @@ public class TypingSimulator {
                 public void run() {
                     String dotString = ".".repeat(dots) + " ".repeat(4 - dots);
 
-                    Text animatedText = Text.literal("<" + entity + "> ").formatted(nameColor)
-                        .append(Text.literal("typing" + dotString).formatted(Formatting.GRAY, Formatting.ITALIC));
+                    Text animatedText = Text.translatable("message.nullpointerentity.typing.prefix", entity).formatted(nameColor)
+                        .append(Text.translatable("message.nullpointerentity.typing.status_dots", dotString).formatted(Formatting.GRAY, Formatting.ITALIC));
 
-                    player.sendMessage(animatedText, true);
+                    for (ServerPlayerEntity recipient : recipients) {
+                        recipient.sendMessage(animatedText, true);
+                    }
                 }
             }, i * 600); // 600ms between dot animations
         }
@@ -139,9 +180,11 @@ public class TypingSimulator {
     /**
      * clear typing indicator
      */
-    private static void hideTypingIndicator(ServerPlayerEntity player, String entity) {
+    private static void hideTypingIndicator(List<ServerPlayerEntity> recipients) {
         // clear action bar
-        player.sendMessage(Text.literal(""), true);
+        for (ServerPlayerEntity recipient : recipients) {
+            recipient.sendMessage(Text.empty(), true);
+        }
     }
 
     /**
@@ -165,14 +208,16 @@ public class TypingSimulator {
      * simulate entity "thinking" before typing
      */
     public static void sendMessageWithThinking(ServerPlayerEntity player, String entity, String message, String phase) {
-        String playerName = player.getName().getString();
+        List<ServerPlayerEntity> recipients = ChatMessageFormatter.resolveRecipients(player);
         Formatting nameColor = entity.equals("AURORA") ? Formatting.AQUA : Formatting.DARK_RED;
 
         // show thinking indicator
-        Text thinkingText = Text.literal("<" + entity + "> ").formatted(nameColor)
-            .append(Text.literal("...").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
+        Text thinkingText = Text.translatable("message.nullpointerentity.typing.prefix", entity).formatted(nameColor)
+            .append(Text.translatable("message.nullpointerentity.thinking").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
 
-        player.sendMessage(thinkingText, true);
+        for (ServerPlayerEntity recipient : recipients) {
+            recipient.sendMessage(thinkingText, true);
+        }
 
         // think for a moment, then start typing
         Timer thinkTimer = new Timer();

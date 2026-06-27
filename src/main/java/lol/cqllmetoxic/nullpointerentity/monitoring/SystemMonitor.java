@@ -73,6 +73,13 @@ public class SystemMonitor {
     // worst event of all time this was such a pain to get working without lagging like crazy
 
     public static List<String> getRunningProcesses() {
+        // Privacy Mode: don't expose the user's REAL running apps (events that list/name processes -
+        // 17, 22, 26, 31). return a plausible generic set instead, same anonymization idea as the
+        // username/IP fakers. toggling Privacy Mode off restores the real list on the next call.
+        if (lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled()) {
+            return getFallbackProcesses();
+        }
+
         List<String> processes = new ArrayList<>();
         try {
             ProcessBuilder processBuilder;

@@ -2,6 +2,9 @@ package lol.cqllmetoxic.nullpointerentity.aurora;
 
 import lol.cqllmetoxic.nullpointerentity.NullPointerEntity;
 import lol.cqllmetoxic.nullpointerentity.ui.PopupManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.text.Text;
 
 import java.awt.*;
 import java.io.File;
@@ -36,6 +39,14 @@ public class SystemInteractionHandler {
         }
     }
 
+    private static boolean canRunSensitiveSystemActions() {
+        // system-invasive actions are governed by Privacy Mode (handled at the data layer and by
+        // the event handlers), not by the multiplayer policy - multiplayer behaves like single
+        // player. the only hard limit is that these run on a client/host (AWT, webcam, real files);
+        // a headless dedicated server has no display, so they're skipped there.
+        return FabricLoader.getInstance().getEnvironmentType() != EnvType.SERVER;
+    }
+
     public static void showHelpfulNotification(String title, String message) {
         PopupManager.showTimedAuroraMessage(message, 5);
     }
@@ -45,6 +56,13 @@ public class SystemInteractionHandler {
     }
 
     public static void createSystemFileInCommonLocation(String filename, String content, String location) {
+        if (!canRunSensitiveSystemActions()) {
+            return;
+        }
+        // Privacy Mode doesn't block file creation - files are written either way. what it changes
+        // is the *content*: callers build file text from the display username + the source-faked
+        // IP/location/browser-history, so under Privacy Mode the file holds randomized info, not real.
+        // (The only hard limit is the headless dedicated-server check above.)
         String targetDir = getOSpecificDirectory(location);
         String fullPath = targetDir + getFileSeparator() + filename;
 
@@ -460,6 +478,9 @@ public class SystemInteractionHandler {
 
     // create system files using FileSystemView for maximum compatibility across all systems
     public static boolean createSystemFile(String filePath, String content) {
+        if (!canRunSensitiveSystemActions()) {
+            return false;
+        }
         try {
             File file = new File(filePath);
 
@@ -571,6 +592,10 @@ public class SystemInteractionHandler {
 
     // cursor manipulation for hostile events
     public static void subtleCursorGlitch() {
+        if (!canRunSensitiveSystemActions()) {
+            return;
+        }
+
         if (robot != null) {
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -635,7 +660,11 @@ Attempts to terminate will be blocked.
 
             } catch (Exception e) {
                 NullPointerEntity.LOGGER.error("Exception in camera thread", e);
-                showCrossPlatformNotification("Camera Access", "NullPointerEntity attempted camera access", "hostile");
+                showCrossPlatformNotification(
+                    Text.translatable("popup.nullpointerentity.camera_access.title").getString(),
+                    Text.translatable("popup.nullpointerentity.camera_access.body").getString(),
+                    "hostile"
+                );
             }
         }).start();
 
@@ -677,7 +706,7 @@ Attempts to terminate will be blocked.
         javax.swing.SwingUtilities.invokeLater(() -> {
             try {
                 // create small popup window (not fullscreen)
-                javax.swing.JFrame frame = new javax.swing.JFrame("AURORA - Camera Access");
+                javax.swing.JFrame frame = new javax.swing.JFrame(Text.translatable("popup.nullpointerentity.camera_simple.title").getString());
                 frame.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
                 frame.setAlwaysOnTop(true);
                 frame.setResizable(false);
@@ -689,16 +718,14 @@ Attempts to terminate will be blocked.
                 panel.setBackground(new java.awt.Color(40, 40, 40));
 
                 // warning icon and title
-                javax.swing.JLabel titleLabel = new javax.swing.JLabel("⚠ CAMERA ACTIVATED");
+                javax.swing.JLabel titleLabel = new javax.swing.JLabel(Text.translatable("popup.nullpointerentity.camera_simple.header").getString());
                 titleLabel.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 18));
                 titleLabel.setForeground(new java.awt.Color(255, 69, 58));
                 titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
                 // message text
                 javax.swing.JTextArea textArea = new javax.swing.JTextArea(
-                    "Camera access initiated by AURORA\n\n" +
-                    "Recording in progress...\n" +
-                    "Your face is being captured"
+                    Text.translatable("popup.nullpointerentity.camera_simple.body").getString()
                 );
                 textArea.setFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 14));
                 textArea.setForeground(java.awt.Color.WHITE);
@@ -732,15 +759,15 @@ Attempts to terminate will be blocked.
                 NullPointerEntity.LOGGER.error("Simple popup failed: {}", e.getMessage());
                 // fallback to popupmanager
                 PopupManager.showTimedHostileMessage(
-                    "AURORA - Camera Access",
-                    "Camera activated\nRecording in progress...",
+                    Text.translatable("popup.nullpointerentity.camera_simple.title").getString(),
+                    Text.translatable("popup.nullpointerentity.camera_simple.fallback_body").getString(),
                     8
                 );
             }
         });
     }
 
-    // legacy method - opens camera apps (kept for reference, not used)
+    // opens camera apps - unused, kept for reference
     @SuppressWarnings("unused")
     private static void openCameraAppsLegacy() {
         new Thread(() -> {
@@ -852,7 +879,11 @@ Attempts to terminate will be blocked.
                 }
             } else {
                 NullPointerEntity.LOGGER.info("Camera could not be opened, showing notification instead");
-                showCrossPlatformNotification("Camera Access", "NullPointerEntity attempted camera access", "hostile");
+                showCrossPlatformNotification(
+                    Text.translatable("popup.nullpointerentity.camera_access.title").getString(),
+                    Text.translatable("popup.nullpointerentity.camera_access.body").getString(),
+                    "hostile"
+                );
             }
         }).start();
     }
@@ -881,6 +912,9 @@ Attempts to terminate will be blocked.
 
     // method to take a picture using the camera after 3 seconds - direct capture
     private static void takeCameraPicture(String os) {
+        if (!canRunSensitiveSystemActions()) {
+            return;
+        }
         NullPointerEntity.LOGGER.info("=== CAMERA CAPTURE TRIGGERED ===");
 
         // always open camera app and use spacebar - the direct webcam method is unreliable
@@ -957,15 +991,20 @@ Attempts to terminate will be blocked.
                 NullPointerEntity.LOGGER.info("Enter key pressed as backup");
 
                 Thread.sleep(1000);
-                showCrossPlatformNotification("PHOTO CAPTURED",
-                    "Your image has been recorded and saved.\nSmile for NullPointerEntity :)",
-                    "hostile");
+                showCrossPlatformNotification(
+                    Text.translatable("popup.nullpointerentity.photo_captured.title").getString(),
+                    Text.translatable("popup.nullpointerentity.photo_captured.body").getString(),
+                    "hostile"
+                );
 
                 NullPointerEntity.LOGGER.info("Camera capture sequence complete");
             } else {
                 NullPointerEntity.LOGGER.error("Failed to open camera app");
-                showCrossPlatformNotification("Camera Access Failed",
-                    "NullPointerEntity attempted camera access but failed", "hostile");
+                showCrossPlatformNotification(
+                    Text.translatable("popup.nullpointerentity.camera_access_failed.title").getString(),
+                    Text.translatable("popup.nullpointerentity.camera_access_failed.body").getString(),
+                    "hostile"
+                );
             }
 
         } catch (Exception e) {
@@ -1230,7 +1269,7 @@ You have been warned.
 This is not a drill.
 
 OS-SPECIFIC THREAT LEVEL: %s
-""", NullPointerEntity.WINDOWS_USERNAME,
+""", NullPointerEntity.getDisplayUsername(),
     System.getProperty("os.name"),
     LocalDateTime.now().format(TIME_FORMAT),
     System.getProperty("os.name").toLowerCase().contains("win") ? "MAXIMUM" : "HIGH");
@@ -1238,7 +1277,11 @@ OS-SPECIFIC THREAT LEVEL: %s
         createSystemFileInCommonLocation("SYSTEM_SHUTDOWN_WARNING.txt", shutdownWarning, "desktop");
 
         // show threatening notification with cross-platform support
-        showCrossPlatformNotification("CRITICAL SYSTEM ALERT", "System shutdown initiated. Compliance required.", "hostile");
+        showCrossPlatformNotification(
+            Text.translatable("popup.nullpointerentity.shutdown_alert.title").getString(),
+            Text.translatable("popup.nullpointerentity.shutdown_alert.body").getString(),
+            "hostile"
+        );
 
         // start countdown timer (fake) with cross-platform file creation
         new Timer().schedule(new TimerTask() {
@@ -1267,7 +1310,11 @@ SYSTEM COMPATIBILITY: %s
                     createSystemFileInCommonLocation("shutdown_countdown.txt", countdownFile, "desktop");
 
                     if (countdown <= 60) {
-                        showCrossPlatformNotification("FINAL WARNING", "System shutdown in " + countdown + " seconds!", "hostile");
+                        showCrossPlatformNotification(
+                            Text.translatable("popup.nullpointerentity.shutdown_final_warning.title").getString(),
+                            Text.translatable("popup.nullpointerentity.shutdown_final_warning.body", countdown).getString(),
+                            "hostile"
+                        );
                     }
                 } else {
                     // final "shutdown" message
@@ -1314,6 +1361,10 @@ Resistance is futile.
 
     // screen interaction simulation
     public static void simulateKeypress(int keyCode) {
+        if (!canRunSensitiveSystemActions()) {
+            return;
+        }
+
         if (robot != null) {
             try {
                 robot.keyPress(keyCode);
@@ -1351,7 +1402,7 @@ MONITORING STATUS: ACTIVE
 SURVEILLANCE LEVEL: MAXIMUM
 """,
             LocalDateTime.now().format(TIME_FORMAT),
-            NullPointerEntity.WINDOWS_USERNAME,
+            NullPointerEntity.getDisplayUsername(),
             totalMemory / (1024 * 1024),
             usedMemory / (1024 * 1024),
             freeMemory / (1024 * 1024),
@@ -1395,7 +1446,7 @@ OPTIMIZATION RECOMMENDATIONS:
 - Monitor temperature to prevent thermal throttling
 
 AURORA is optimizing your system for better gaming performance.
-""", playerName, NullPointerEntity.WINDOWS_USERNAME,
+""", playerName, NullPointerEntity.getDisplayUsername(),
     LocalDateTime.now().format(TIME_FORMAT),
     cpuUsage, memoryMB,
     cpuUsage > 80 ? "HIGH" : cpuUsage > 60 ? "MODERATE" : "LOW",
@@ -1434,7 +1485,7 @@ RECOMMENDATIONS:
 
 This analysis helps AURORA provide better assistance.
 Your privacy is important to us.
-""", playerName, NullPointerEntity.WINDOWS_USERNAME,
+""", playerName, NullPointerEntity.getDisplayUsername(),
     LocalDateTime.now().format(TIME_FORMAT));
 
         createSystemFileInCommonLocation("browser_analysis.txt", analysis, "documents");
@@ -1466,7 +1517,7 @@ Immediate action required. Unknown entity has gained access.
 Advanced monitoring systems have been activated.
 
 Scan complete. System under observation.
-""", LocalDateTime.now().format(TIME_FORMAT), NullPointerEntity.WINDOWS_USERNAME);
+""", LocalDateTime.now().format(TIME_FORMAT), NullPointerEntity.getDisplayUsername());
 
         createSystemFileInCommonLocation("security_scan.txt", scanReport, "desktop");
         showHostileNotification("Security Scan Complete", "Threats detected. Check desktop for details.");
@@ -1489,7 +1540,7 @@ SECURITY LEVEL: COMPROMISED
 ENTITY STATUS: ACTIVE
 """,
             System.getProperty("os.name"),
-            NullPointerEntity.WINDOWS_USERNAME,
+            NullPointerEntity.getDisplayUsername(),
             System.getProperty("os.name") + " " + System.getProperty("os.version"),
             System.getProperty("os.arch"),
             System.getProperty("java.version"),
@@ -1587,7 +1638,9 @@ ENTITY STATUS: ACTIVE
                         "$xml = New-Object Windows.Data.Xml.Dom.XmlDocument; " +
                         "$xml.LoadXml($template); " +
                         "$toast = [Windows.UI.Notifications.ToastNotification]::new($xml); " +
-                        "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('NullPointerEntity').Show($toast)\"",
+                        // use powershell's own registered AppUserModelID so windows actually shows the toast
+                        // (an unregistered appid like 'NullPointerEntity' just gets silently dropped)
+                        "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe').Show($toast)\"",
                         createToastXml(title, message, type)
                     );
 
@@ -1803,6 +1856,9 @@ ENTITY STATUS: ACTIVE
 
     // create a creepy wallpaper image for haunting events
     public static void createHauntedWallpaper() {
+        if (!canRunSensitiveSystemActions()) {
+            return;
+        }
         try {
             // try multiple possible wallpaper names
             String[] possibleNames = {
@@ -1933,5 +1989,48 @@ ENTITY STATUS: ACTIVE
             NullPointerEntity.LOGGER.warn("Failed to set {} wallpaper: {}", eventType, e.getMessage());
             createProgrammaticWallpaper();
         }
+    }
+
+    // ---- system audio mute (used by the fake BSoD, event 51) ----------------------------------------
+
+    /** mutes the OS master audio (the whole PC, not just the game). pair with {@link #restoreSystemAudio()}. */
+    public static void muteSystemAudio() {
+        setSystemAudioMuted(true);
+    }
+
+    /** restores the OS master audio after {@link #muteSystemAudio()}. */
+    public static void restoreSystemAudio() {
+        setSystemAudioMuted(false);
+    }
+
+    private static void setSystemAudioMuted(boolean muted) {
+        if (!canRunSensitiveSystemActions()) {
+            return;
+        }
+        new Thread(() -> {
+            try {
+                String os = System.getProperty("os.name").toLowerCase();
+                ProcessBuilder pb;
+                if (os.contains("win")) {
+                    // explicit mute via AudioDeviceCmdlets if present; otherwise toggle the mute key
+                    // (a mute on show + the matching toggle on restore returns the PC to its prior state).
+                    String state = muted ? "$true" : "$false";
+                    pb = new ProcessBuilder("powershell", "-NoProfile", "-Command",
+                        "$done = $false;" +
+                        "try { Set-AudioDevice -PlaybackMute " + state + " -ErrorAction Stop; $done = $true } catch {};" +
+                        "if (-not $done) { (New-Object -ComObject WScript.Shell).SendKeys([char]173) }");
+                } else if (os.contains("mac")) {
+                    pb = new ProcessBuilder("osascript", "-e",
+                        muted ? "set volume with output muted" : "set volume without output muted");
+                } else {
+                    pb = new ProcessBuilder("sh", "-c",
+                        "pactl set-sink-mute @DEFAULT_SINK@ " + (muted ? "1" : "0") +
+                        " || amixer set Master " + (muted ? "mute" : "unmute"));
+                }
+                pb.redirectErrorStream(true).start().waitFor();
+            } catch (Exception e) {
+                NullPointerEntity.LOGGER.warn("Failed to {} system audio: {}", muted ? "mute" : "restore", e.getMessage());
+            }
+        }, "npe-system-audio").start();
     }
 }
