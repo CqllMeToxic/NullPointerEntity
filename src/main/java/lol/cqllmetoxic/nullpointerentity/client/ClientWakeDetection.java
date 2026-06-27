@@ -103,8 +103,8 @@ public class ClientWakeDetection {
         }
 
         // phase 1: immediate wake detection message
-        Text wakeMessage = Text.literal("<NullPointerEntity> ").formatted(Formatting.DARK_RED)
-                .append(Text.literal("well, well, well... look who decided to unpause their nightmare.")
+        Text wakeMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+                .append(Text.translatable("message.nullpointerentity.wake.unpause.intro")
                 .formatted(Formatting.WHITE));
         client.player.sendMessage(wakeMessage, false);
 
@@ -113,8 +113,8 @@ public class ClientWakeDetection {
             @Override
             public void run() {
                 if (client.player != null) {
-                    Text durationMessage = Text.literal("<NullPointerEntity> ").formatted(Formatting.DARK_RED)
-                            .append(Text.literal("your computer was unconscious for " + durationText + ", " + NullPointerEntity.WINDOWS_USERNAME + ".")
+                    Text durationMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+                            .append(Text.translatable("message.nullpointerentity.wake.unpause.duration", durationText, NullPointerEntity.getDisplayUsername())
                             .formatted(Formatting.WHITE));
                     client.player.sendMessage(durationMessage, false);
                 }
@@ -126,8 +126,8 @@ public class ClientWakeDetection {
             @Override
             public void run() {
                 if (client.player != null) {
-                    Text controlMessage = Text.literal("<NullPointerEntity> ").formatted(Formatting.DARK_RED)
-                            .append(Text.literal("did you think pausing would protect you while your machine slept?")
+                    Text controlMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+                            .append(Text.translatable("message.nullpointerentity.wake.unpause.control")
                             .formatted(Formatting.WHITE));
                     client.player.sendMessage(controlMessage, false);
                 }
@@ -141,8 +141,8 @@ public class ClientWakeDetection {
                 createClientWakeUpLogFile(sleepDuration, durationText);
 
                 if (client.player != null) {
-                    Text logMessage = Text.literal("<NullPointerEntity> ").formatted(Formatting.DARK_RED)
-                            .append(Text.literal("i monitored every second of your system's unconsciousness. check your folders :)")
+                    Text logMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+                            .append(Text.translatable("message.nullpointerentity.wake.unpause.log_written")
                             .formatted(Formatting.WHITE));
                     client.player.sendMessage(logMessage, false);
                 }
@@ -154,8 +154,8 @@ public class ClientWakeDetection {
             @Override
             public void run() {
                 if (client.player != null) {
-                    Text finalMessage = Text.literal("<NullPointerEntity> ").formatted(Formatting.DARK_RED)
-                            .append(Text.literal("even when your computer sleeps, i remain awake. watching. waiting.")
+                    Text finalMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
+                            .append(Text.translatable("message.nullpointerentity.wake.unpause.final_warning")
                             .formatted(Formatting.WHITE));
                     client.player.sendMessage(finalMessage, false);
                 }
@@ -210,11 +210,11 @@ Next time, I might not let you turn your computer back on.
 
 - NullPointerEntity
 """,
-                NullPointerEntity.WINDOWS_USERNAME,
+                NullPointerEntity.getDisplayUsername(),
                 durationText,
                 sleepDuration,
                 LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                NullPointerEntity.WINDOWS_USERNAME
+                NullPointerEntity.getDisplayUsername()
         );
 
         // create the wake-up log file on desktop
