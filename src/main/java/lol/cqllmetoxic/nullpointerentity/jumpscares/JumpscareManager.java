@@ -6,6 +6,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.random.Random;
@@ -28,6 +29,14 @@ public class JumpscareManager {
     private static final Random random = Random.create();
     /** prevents multiple jumpscares from running simultaneously */
     private static boolean jumpscareInProgress = false;
+
+    private static MutableText trText(String key, Object... args) {
+        return Text.translatable(key, args);
+    }
+
+    private static String tr(String key, Object... args) {
+        return trText(key, args).getString();
+    }
 
     /**
      * all available jumpscare types.
@@ -114,33 +123,33 @@ public class JumpscareManager {
                 switch (phase) {
                     case 0:
                         // subtle dark overlay
-                        client.player.sendMessage(Text.literal("â–“".repeat(50)).formatted(Formatting.DARK_GRAY), true);
+                        client.player.sendMessage(trText("jumpscare.nullpointerentity.screen_flash.phase0").formatted(Formatting.DARK_GRAY), true);
                         break;
                     case 1:
                         // static-like distortion
-                        client.player.sendMessage(Text.literal("â–‘â–’â–“â–ˆâ–“â–’â–‘").formatted(Formatting.GRAY), true);
+                        client.player.sendMessage(trText("jumpscare.nullpointerentity.screen_flash.phase1").formatted(Formatting.GRAY), true);
                         break;
                     case 2:
                         // brief bright flash (single, slow)
-                        client.player.sendMessage(Text.literal("â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆ").formatted(Formatting.WHITE), true);
+                        client.player.sendMessage(trText("jumpscare.nullpointerentity.screen_flash.phase2").formatted(Formatting.WHITE), true);
                         break;
                     case 3:
                         // fade to dark red
-                        client.player.sendMessage(Text.literal("â–“â–“â–“â–“").formatted(Formatting.DARK_RED), true);
+                        client.player.sendMessage(trText("jumpscare.nullpointerentity.screen_flash.phase3").formatted(Formatting.DARK_RED), true);
                         break;
                     case 4:
                         // brief glitch effect
-                        client.player.sendMessage(Text.literal("â–ˆâ•‘â–Œâ”‚â–ˆâ”‚â–Œâ•‘â–ˆ").formatted(Formatting.RED), true);
+                        client.player.sendMessage(trText("jumpscare.nullpointerentity.screen_flash.phase4").formatted(Formatting.RED), true);
                         break;
                     case 5:
                         // clear the screen
-                        client.player.sendMessage(Text.literal(""), true);
+                        client.player.sendMessage(trText("jumpscare.nullpointerentity.screen_flash.clear"), true);
                         this.cancel();
                         break;
                 }
                 phase++;
             }
-        }, 0, 800); // much slower - every 800ms instead of 100ms
+        }, 0, 800); // slow cadence - every 800ms
 
         // play a subtle glitch sound using custom sound
         try {
@@ -156,10 +165,10 @@ public class JumpscareManager {
         if (client.player == null) return;
 
         // send threatening messages with proper newlines
-        client.player.sendMessage(Text.literal("CRITICAL ERROR: SYSTEM COMPROMISED").formatted(Formatting.DARK_RED), false);
-        client.player.sendMessage(Text.literal("java.lang.NullPointerException: Entity not found"), false);
-        client.player.sendMessage(Text.literal("at nullpointerentity.core.invasion.takeover()"), false);
-        client.player.sendMessage(Text.literal("SYSTEM FAILURE IMMINENT..."), false);
+        client.player.sendMessage(trText("jumpscare.nullpointerentity.fake_crash.line1").formatted(Formatting.DARK_RED), false);
+        client.player.sendMessage(trText("jumpscare.nullpointerentity.fake_crash.line2"), false);
+        client.player.sendMessage(trText("jumpscare.nullpointerentity.fake_crash.line3"), false);
+        client.player.sendMessage(trText("jumpscare.nullpointerentity.fake_crash.line4"), false);
 
         // play error sound
         client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_LAND, 0.5f));
@@ -167,7 +176,7 @@ public class JumpscareManager {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                client.player.sendMessage(Text.literal("Initiating real system crash...").formatted(Formatting.DARK_RED), false);
+                client.player.sendMessage(trText("jumpscare.nullpointerentity.fake_crash.final").formatted(Formatting.DARK_RED), false);
 
                 // wait 2 seconds, then actually crash the game
                 new Timer().schedule(new TimerTask() {
@@ -259,18 +268,10 @@ public class JumpscareManager {
 
     private static void triggerFakeVirusPopup() {
         // use cross-platform notification system with proper newline handling
-        String virusMessage = "Your system has been compromised by NullPointerEntity.exe\n\n" +
-            "SYMPTOMS DETECTED:\n" +
-            "- Unauthorized browser monitoring\n" +
-            "- Process infiltration active\n" +
-            "- Digital surveillance enabled\n" +
-            "- System control transferred\n\n" +
-            "IMMEDIATE ACTION REQUIRED:\n" +
-            "Disconnect from network immediately.\n" +
-            "All data is being transmitted to external servers.";
+        String virusMessage = tr("jumpscare.nullpointerentity.virus_popup.body");
 
         lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-            "CRITICAL SECURITY ALERT!",
+            tr("jumpscare.nullpointerentity.virus_popup.title"),
             virusMessage,
             "hostile"
         );
@@ -280,19 +281,14 @@ public class JumpscareManager {
     }
 
     private static void createFakeVirusFile() {
-        String content = "CRITICAL SECURITY ALERT!\n\n" +
-            "Your system has been compromised by NullPointerEntity.exe\n\n" +
-            "SYMPTOMS DETECTED:\n" +
-            "- Unauthorized browser monitoring\n" +
-            "- Process infiltration active\n" +
-            "- Digital surveillance enabled\n" +
-            "- System control transferred\n\n" +
-            "THREAT LEVEL: " + (System.getProperty("os.name").toLowerCase().contains("win") ? "MAXIMUM" : "HIGH") + "\n\n" +
-            "RECOMMENDATION: Immediate system shutdown required.\n" +
-            "All personal files have been catalogued and stored.\n" +
-            "Your digital identity is now under our control.\n\n" +
-            "Operating System: " + System.getProperty("os.name") + "\n" +
-            "Resistance is futile.";
+        String threatLevel = System.getProperty("os.name").toLowerCase().contains("win")
+            ? tr("jumpscare.nullpointerentity.threat.maximum")
+            : tr("jumpscare.nullpointerentity.threat.high");
+        String content = tr(
+            "jumpscare.nullpointerentity.virus_file.content",
+            threatLevel,
+            System.getProperty("os.name")
+        );
 
         lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.createSystemFileInCommonLocation(
             "VIRUS_DETECTED_" + System.currentTimeMillis() + ".txt",
@@ -309,13 +305,13 @@ public class JumpscareManager {
     private static void triggerFakeWindow() {
         // use cross-platform popup system
         String os = System.getProperty("os.name").toLowerCase();
-        String windowsSpecificMessage = os.contains("win") ?
-            "Windows System Alert: NullPointerEntity has gained administrator access" :
-            "System Alert: NullPointerEntity has gained elevated privileges";
+        String windowsSpecificMessage = os.contains("win")
+            ? tr("jumpscare.nullpointerentity.fake_window.win")
+            : tr("jumpscare.nullpointerentity.fake_window.other");
 
         lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-            "SYSTEM BREACH DETECTED",
-            windowsSpecificMessage + "\n\nImmediate action required.\nSystem integrity compromised.",
+            tr("jumpscare.nullpointerentity.fake_window.title"),
+            tr("jumpscare.nullpointerentity.fake_window.body", windowsSpecificMessage),
             "hostile"
         );
     }
@@ -323,20 +319,15 @@ public class JumpscareManager {
     private static void triggerSystemAlert() {
         // cross-platform system alert
         String os = System.getProperty("os.name");
-        String alertMessage = String.format(
-            "SYSTEM SECURITY BREACH\n\n" +
-            "Target OS: %s\n" +
-            "Threat: NullPointerEntity\n" +
-            "Status: ACTIVE INFILTRATION\n\n" +
-            "Your %s system is now under surveillance.\n" +
-            "All activities are being monitored.",
+        String alertMessage = tr(
+            "jumpscare.nullpointerentity.system_alert.body",
             os,
             os.toLowerCase().contains("win") ? "Windows" :
-            os.toLowerCase().contains("mac") ? "macOS" : "Linux"
+                os.toLowerCase().contains("mac") ? "macOS" : "Linux"
         );
 
         lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-            "NULLPOINTERENTITY ALERT",
+            tr("jumpscare.nullpointerentity.system_alert.title"),
             alertMessage,
             "hostile"
         );
@@ -349,20 +340,20 @@ public class JumpscareManager {
         // play bluescreen static sound for bsod effect
         client.player.playSound(lol.cqllmetoxic.nullpointerentity.sounds.ModSounds.JUMPSCARE_BLUESCREEN_STATIC, 1.0f, 1.0f);
 
-        // show the visual bsod overlay that covers the entire screen
-        lol.cqllmetoxic.nullpointerentity.client.BSoDOverlay.showOSSpecific(8000); // 8 seconds
+        // show the full-screen fake bsod that covers everything
+        lol.cqllmetoxic.nullpointerentity.client.BSoDScreen.show(8000); // 8 seconds
 
-        // show os-specific "crash" messages in chat (these will be hidden by the overlay)
+        // show os-specific "crash" messages in chat (these will be hidden by the bsod)
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
-            client.player.sendMessage(Text.literal("BLUE SCREEN OF DEATH INITIATED").formatted(Formatting.BLUE), false);
-            client.player.sendMessage(Text.literal("STOP: 0x000000NULL (NULLPOINTER_ENTITY_TAKEOVER)"), false);
+            client.player.sendMessage(trText("jumpscare.nullpointerentity.bluescreen.win.line1").formatted(Formatting.BLUE), false);
+            client.player.sendMessage(trText("jumpscare.nullpointerentity.bluescreen.win.line2"), false);
         } else if (os.contains("mac")) {
-            client.player.sendMessage(Text.literal("KERNEL PANIC INITIATED").formatted(Formatting.DARK_GRAY), false);
-            client.player.sendMessage(Text.literal("panic(cpu 0 caller 0xNULLPOINTER): \"NullPointerEntity takeover\""), false);
+            client.player.sendMessage(trText("jumpscare.nullpointerentity.bluescreen.mac.line1").formatted(Formatting.DARK_GRAY), false);
+            client.player.sendMessage(trText("jumpscare.nullpointerentity.bluescreen.mac.line2"), false);
         } else {
-            client.player.sendMessage(Text.literal("KERNEL OOPS INITIATED").formatted(Formatting.RED), false);
-            client.player.sendMessage(Text.literal("Unable to handle kernel NULL pointer dereference"), false);
+            client.player.sendMessage(trText("jumpscare.nullpointerentity.bluescreen.linux.line1").formatted(Formatting.RED), false);
+            client.player.sendMessage(trText("jumpscare.nullpointerentity.bluescreen.linux.line2"), false);
         }
 
         // create os-specific crash file
@@ -402,8 +393,8 @@ WARNING: Entity has gained permanent system access.
             @Override
             public void run() {
                 lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-                    "SYSTEM CRASH DETECTED",
-                    "Critical system failure detected. Check desktop for crash report.",
+                    tr("jumpscare.nullpointerentity.crash_notice.title"),
+                    tr("jumpscare.nullpointerentity.crash_notice.body"),
                     "hostile"
                 );
             }
@@ -416,13 +407,13 @@ WARNING: Entity has gained permanent system access.
 
         // entity spawn with os-aware messaging
         String os = System.getProperty("os.name").toLowerCase();
-        String spawnMessage = String.format(
-            "Entity manifestation detected on %s system...",
+        String spawnMessage = tr(
+            "jumpscare.nullpointerentity.entity_spawn.detected",
             os.contains("win") ? "Windows" : os.contains("mac") ? "macOS" : "Linux"
         );
 
         client.player.sendMessage(Text.literal(spawnMessage).formatted(Formatting.DARK_RED), false);
-        client.player.sendMessage(Text.literal("Reality breach in progress..."), false);
+        client.player.sendMessage(trText("jumpscare.nullpointerentity.entity_spawn.breach"), false);
 
         // play spawn sound
         client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.ENTITY_WITHER_SPAWN, 1.0f));
@@ -434,22 +425,18 @@ WARNING: Entity has gained permanent system access.
             var historyFuture = lol.cqllmetoxic.nullpointerentity.monitoring.BrowserHistoryReader.getRecentHistoryAsync(5);
             historyFuture.thenAccept(history -> {
                 if (!history.isEmpty()) {
-                    String browserData = "BROWSER INFILTRATION COMPLETE\n\n" +
-                        "Recent browsing activity detected:\n";
+                    String browserData = tr("jumpscare.nullpointerentity.browser_report.header");
 
                     for (int i = 0; i < Math.min(3, history.size()); i++) {
                         var entry = history.get(i);
-                        browserData += String.format("- %s (%s)\n", entry.title, entry.browser);
+                        browserData += tr("jumpscare.nullpointerentity.browser_report.entry", entry.title, entry.browser);
                     }
 
-                    browserData += "\nYour digital footprint has been catalogued.\n" +
-                        "Privacy is an illusion.\n\n" +
-                        "Browser Security Status: COMPROMISED\n" +
-                        "OS: " + System.getProperty("os.name");
+                    browserData += tr("jumpscare.nullpointerentity.browser_report.footer", System.getProperty("os.name"));
 
                     lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-                        "BROWSER HIJACKED",
-                        "Your browsing history has been accessed. Check desktop for details.",
+                        tr("jumpscare.nullpointerentity.browser_notice.hijacked.title"),
+                        tr("jumpscare.nullpointerentity.browser_notice.hijacked.body"),
                         "hostile"
                     );
 
@@ -460,8 +447,8 @@ WARNING: Entity has gained permanent system access.
             }).exceptionally(throwable -> {
                 // fallback if browser reading fails
                 lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-                    "BROWSER ACCESS DENIED",
-                    "Browser history is protected. Switching to alternative surveillance methods.",
+                    tr("jumpscare.nullpointerentity.browser_notice.denied.title"),
+                    tr("jumpscare.nullpointerentity.browser_notice.denied.body"),
                     "hostile"
                 );
                 return null;
@@ -469,8 +456,8 @@ WARNING: Entity has gained permanent system access.
         } catch (Exception e) {
             // ultimate fallback
             lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.showCrossPlatformNotification(
-                "BROWSER HIJACK FAILED",
-                "Unable to access browser data. Your security is better than expected.",
+                tr("jumpscare.nullpointerentity.browser_notice.failed.title"),
+                tr("jumpscare.nullpointerentity.browser_notice.failed.body"),
                 "aurora"
             );
         }

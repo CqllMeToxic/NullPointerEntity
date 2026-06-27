@@ -7,9 +7,10 @@ import lol.cqllmetoxic.nullpointerentity.events.HostileEvents;
 import lol.cqllmetoxic.nullpointerentity.events.TransitionEvents;
 import lol.cqllmetoxic.nullpointerentity.events.chat.PhaseDetector;
 import lol.cqllmetoxic.nullpointerentity.jumpscares.JumpscareEvents;
-import lol.cqllmetoxic.nullpointerentity.system.WakeDetection;
+import lol.cqllmetoxic.nullpointerentity.util.MultiplayerDetection;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * manages the automatic triggering of events in chronological order (1-60).
@@ -25,8 +28,10 @@ import java.util.TimerTask;
  * tracks progress per player and ensures events fire in sequence.
  */
 public class EventTriggerSystem {
-    // only keep the tick scheduling map - event progress is now stored in persistent data
+    // only keep the tick scheduling map - event progress lives in persistent data
     private static final Map<String, Long> playerNextEventTick = new HashMap<>();
+    private static final Map<UUID, Long> recentWelcomeMessageSentAt = new ConcurrentHashMap<>();
+    private static volatile long sharedNextEventTick = -1L;
     private static final Random random = new Random();
 
     // all 60 events in chronological order (1-60)
@@ -66,7 +71,7 @@ public class EventTriggerSystem {
         "location_reveal",          // 30. sends real public ip, location data in chat
 
         // phase 3: hostile events (31-45)
-        "first_appearance",         // 31. npe arrives — end portal sound, entity spawn, scream
+        "first_appearance",         // 31. npe arrives - end portal sound, entity spawn, scream
         "location_tracking",        // 32. shulker farming and advanced end game
         "system_information",       // 33. wither boss preparation and fight
         "data_breach",              // 34. beacon setup and mega projects
@@ -106,6 +111,9 @@ public class EventTriggerSystem {
             ServerPlayerEntity player = handler.getPlayer();
             String playerName = player.getName().getString();
 
+            // clear all fake player entities when a player connects
+            lol.cqllmetoxic.nullpointerentity.entity.FakePlayerManager.cleanupAllFakePlayers();
+
             // load event progress from persistent data
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData persistentData =
                 lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
@@ -116,42 +124,39 @@ public class EventTriggerSystem {
             // send immediate welcome message when player joins
             sendImmediateWelcomeMessage(player);
 
-            // schedule next event based on current progress
-            long currentTick = server.getTicks();
-            if (savedProgress < CHRONOLOGICAL_EVENTS.length) {
-                // critical fix: check if enough time has passed since last event
-                long timeSinceLastEvent = System.currentTimeMillis() -
-                    lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getLastEventTime();
+            if (MultiplayerDetection.isMultiplayerServer(server)) {
+                int sharedProgress = lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().sharedEventsExperienced;
+                boolean dataUpdated = false;
 
-                // convert to ticks (20 ticks per second, 1000 ms per second)
-                long ticksSinceLastEvent = timeSinceLastEvent / 50; // 50ms per tick
-
-                // get the normal delay for the next event
-                long normalEventDelay = getRandomizedDelayForNextEvent(savedProgress + 1);
-
-                // if enough time has passed, trigger the event soon (within 1-3 minutes)
-                // otherwise, use the remaining time
-                long nextEventDelay;
-                if (ticksSinceLastEvent >= normalEventDelay) {
-                    // enough time has passed - trigger event soon after rejoining
-                    nextEventDelay = 20 * 60 + (long)(Math.random() * 20 * 120); // 1-3 minutes
-                    NullPointerEntity.LOGGER.info("Player {} rejoined - next event scheduled soon ({}ms since last event)",
-                        playerName, timeSinceLastEvent);
-                } else {
-                    // not enough time has passed - use remaining time
-                    nextEventDelay = normalEventDelay - ticksSinceLastEvent;
-                    nextEventDelay = Math.max(nextEventDelay, 20 * 30); // minimum 30 seconds
-                    NullPointerEntity.LOGGER.info("Player {} rejoined - {} ticks remaining for next event",
-                        playerName, nextEventDelay);
+                // in shared multiplayer story mode, each player's main progress has to mirror world progress exactly.
+                if (persistentData.totalEventsExperienced != sharedProgress) {
+                    persistentData.totalEventsExperienced = sharedProgress;
+                    dataUpdated = true;
                 }
 
-                playerNextEventTick.put(playerName, currentTick + nextEventDelay);
+                if (persistentData.lastSharedCatchupProgressSeen > sharedProgress) {
+                    persistentData.lastSharedCatchupProgressSeen = sharedProgress;
+                    dataUpdated = true;
+                }
 
-                NullPointerEntity.LOGGER.info("Player {} has completed {} events, next event in {} ticks",
-                    playerName, savedProgress, nextEventDelay);
+                if (sharedProgress > 0 && persistentData.lastSharedCatchupProgressSeen < sharedProgress) {
+                    sendSharedStoryCatchup(player, sharedProgress);
+                    persistentData.lastSharedCatchupProgressSeen = sharedProgress;
+                    dataUpdated = true;
+                }
+
+                if (dataUpdated) {
+                    lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(player.getUuid(), persistentData);
+                }
+
+                if (sharedProgress < CHRONOLOGICAL_EVENTS.length && sharedNextEventTick < 0) {
+                    sharedNextEventTick = server.getTicks() + computeNextEventDelayTicks(sharedProgress);
+                }
+
+                NullPointerEntity.LOGGER.info("Player {} joined multiplayer story at shared event progress {}",
+                    playerName, sharedProgress);
             } else {
-                NullPointerEntity.LOGGER.info("Player {} has completed all {} events",
-                    playerName, CHRONOLOGICAL_EVENTS.length);
+                schedulePlayerNextEvent(server, player, savedProgress);
             }
         });
 
@@ -160,6 +165,11 @@ public class EventTriggerSystem {
             if (!EventConfig.areEventsEnabled()) return;
 
             long currentTick = server.getTicks();
+
+            if (MultiplayerDetection.isMultiplayerServer(server)) {
+                tickSharedProgression(server, currentTick);
+                return;
+            }
 
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 String playerName = player.getName().getString();
@@ -171,6 +181,118 @@ public class EventTriggerSystem {
                 }
             }
         });
+    }
+
+    private static void schedulePlayerNextEvent(MinecraftServer server, ServerPlayerEntity player, int savedProgress) {
+        String playerName = player.getName().getString();
+        long currentTick = server.getTicks();
+        if (savedProgress < CHRONOLOGICAL_EVENTS.length) {
+            long timeSinceLastEvent = System.currentTimeMillis() -
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getLastEventTime();
+            long ticksSinceLastEvent = timeSinceLastEvent / 50;
+            long normalEventDelay = getRandomizedDelayForNextEvent(savedProgress + 1);
+
+            long nextEventDelay;
+            if (ticksSinceLastEvent >= normalEventDelay) {
+                nextEventDelay = 20 * 60 + (long)(Math.random() * 20 * 120);
+                NullPointerEntity.LOGGER.info("Player {} rejoined - next event scheduled soon ({}ms since last event)",
+                    playerName, timeSinceLastEvent);
+            } else {
+                nextEventDelay = normalEventDelay - ticksSinceLastEvent;
+                nextEventDelay = Math.max(nextEventDelay, 20 * 30);
+                NullPointerEntity.LOGGER.info("Player {} rejoined - {} ticks remaining for next event",
+                    playerName, nextEventDelay);
+            }
+
+            playerNextEventTick.put(playerName, currentTick + nextEventDelay);
+            NullPointerEntity.LOGGER.info("Player {} has completed {} events, next event in {} ticks",
+                playerName, savedProgress, nextEventDelay);
+        } else {
+            NullPointerEntity.LOGGER.info("Player {} has completed all {} events",
+                playerName, CHRONOLOGICAL_EVENTS.length);
+        }
+    }
+
+    private static long computeNextEventDelayTicks(int completedEvents) {
+        long timeSinceLastEvent = System.currentTimeMillis() -
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getLastEventTime();
+        long ticksSinceLastEvent = timeSinceLastEvent / 50;
+        long normalEventDelay = getRandomizedDelayForNextEvent(completedEvents + 1);
+
+        if (ticksSinceLastEvent >= normalEventDelay) {
+            return 20 * 60 + (long)(Math.random() * 20 * 120);
+        }
+
+        return Math.max(normalEventDelay - ticksSinceLastEvent, 20 * 30);
+    }
+
+    private static void tickSharedProgression(MinecraftServer server, long currentTick) {
+        int sharedProgress = lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().sharedEventsExperienced;
+        if (sharedProgress >= CHRONOLOGICAL_EVENTS.length) {
+            sharedNextEventTick = -1L;
+            return;
+        }
+
+        if (server.getPlayerManager().getPlayerList().isEmpty()) {
+            return;
+        }
+
+        // keep every online player strictly linked to the shared (host-driven) story index.
+        enforceSharedProgressForOnlinePlayers(server, sharedProgress);
+
+        if (sharedNextEventTick < 0) {
+            sharedNextEventTick = currentTick + computeNextEventDelayTicks(sharedProgress);
+        }
+
+        if (currentTick >= sharedNextEventTick) {
+            triggerNextChronologicalEventForAll(server, currentTick);
+        }
+    }
+
+    private static void enforceSharedProgressForOnlinePlayers(MinecraftServer server, int sharedProgress) {
+        for (ServerPlayerEntity online : server.getPlayerManager().getPlayerList()) {
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData data =
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(online.getUuid().toString());
+
+            boolean changed = false;
+            if (data.totalEventsExperienced != sharedProgress) {
+                data.totalEventsExperienced = sharedProgress;
+                changed = true;
+            }
+
+            if (data.lastSharedCatchupProgressSeen > sharedProgress) {
+                data.lastSharedCatchupProgressSeen = sharedProgress;
+                changed = true;
+            }
+
+            if (changed) {
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(online.getUuid(), data);
+            }
+        }
+    }
+
+    private static void triggerNextChronologicalEventForAll(MinecraftServer server, long currentTick) {
+        int highestEventCompleted = lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().sharedEventsExperienced;
+        int nextEventIndex = highestEventCompleted;
+
+        if (nextEventIndex >= CHRONOLOGICAL_EVENTS.length) {
+            sharedNextEventTick = -1L;
+            return;
+        }
+
+        String eventName = CHRONOLOGICAL_EVENTS[nextEventIndex];
+        int eventId = nextEventIndex + 1;
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            triggerEventById(player, eventId, eventName);
+        }
+
+        lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setSharedEventsExperienced(eventId);
+        long nextDelay = getRandomizedDelayForNextEvent(eventId + 1);
+        sharedNextEventTick = currentTick + nextDelay;
+
+        NullPointerEntity.LOGGER.info("Triggered shared event {} ({}) for {} players",
+            eventId, eventName, server.getPlayerManager().getPlayerList().size());
     }
 
     private static void triggerNextChronologicalEvent(ServerPlayerEntity player, long currentTick) {
@@ -219,6 +341,11 @@ public class EventTriggerSystem {
         // set totaleventsexperienced to the event id that was just completed
         persistentData.totalEventsExperienced = eventId;
 
+        if (persistentData.totalEventsExperienced >
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().sharedEventsExperienced) {
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setSharedEventsExperienced(eventId);
+        }
+
         // update world's current event phase for passive events to track properly
         // determine phase based on event id (1-15=phase1, 16-30=phase2, 31-45=phase3, 46-60=phase4)
         int phase = (eventId <= 15) ? 1 : (eventId <= 30) ? 2 : (eventId <= 45) ? 3 : 4;
@@ -227,6 +354,7 @@ public class EventTriggerSystem {
         // mark specific event as triggered in persistent data
         persistentData.triggeredEvents.put(eventName, true);
         persistentData.lastEventTimes.put(eventName, System.currentTimeMillis());
+        lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().lastEventTime = System.currentTimeMillis();
 
         // update player data and force synchronous save
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(
@@ -274,10 +402,18 @@ public class EventTriggerSystem {
 
 
     private static void sendImmediateWelcomeMessage(ServerPlayerEntity player) {
+        long now = System.currentTimeMillis();
+        Long lastSentAt = recentWelcomeMessageSentAt.get(player.getUuid());
+        if (lastSentAt != null && now - lastSentAt < 5000L) {
+            return;
+        }
+        recentWelcomeMessageSentAt.put(player.getUuid(), now);
+
         String playerName = player.getName().getString();
 
-        // first priority: check for wake detection (player returning after forced sleep)
-        WakeDetection.checkForWakeUp(player);
+        // wake detection after the forced-sleep event is handled per-client (ClientWakeDetection,
+        // triggered on unpause); the old host-side server check was a duplicate that leaked the host's
+        // name/log and is removed.
 
         // check if this is a new world or returning to existing world
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentWorldData worldData =
@@ -285,8 +421,8 @@ public class EventTriggerSystem {
 
         if (worldData.isNewWorld || !worldData.welcomeMessageSent) {
             // new world - send full welcome message
-            Text auroraText = Text.literal("<AURORA> ").formatted(net.minecraft.util.Formatting.AQUA)
-                    .append(Text.literal(String.format("Welcome, %s. I'm AURORA - Autonomous User-Responsive Operations & Resources Assistant.", playerName))
+            Text auroraText = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(net.minecraft.util.Formatting.AQUA)
+                    .append(Text.translatable("message.nullpointerentity.welcome.initial", playerName)
                     .formatted(net.minecraft.util.Formatting.WHITE));
             player.sendMessage(auroraText, false);
 
@@ -294,8 +430,8 @@ public class EventTriggerSystem {
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    Text auroraText2 = Text.literal("<AURORA> ").formatted(net.minecraft.util.Formatting.AQUA)
-                            .append(Text.literal("Initializing monitoring systems... first analysis will begin shortly. Begin mining ores and building shelter to get started.")
+                    Text auroraText2 = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(net.minecraft.util.Formatting.AQUA)
+                            .append(Text.translatable("message.nullpointerentity.welcome.followup")
                             .formatted(net.minecraft.util.Formatting.WHITE));
                     player.sendMessage(auroraText2, false);
                 }
@@ -305,17 +441,53 @@ public class EventTriggerSystem {
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setWelcomeMessageSent(true);
 
         } else {
-            // existing world - send time-based return message based on event phase
-            sendTimeBasedReturnMessage(player, worldData);
+            // existing world - send time-based return message based on event phase. brief delay so the
+            // client's reported local time (sent on join) has arrived, so the clock shows the joining
+            // player's own time instead of the host's.
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendTimeBasedReturnMessage(player, worldData);
+                }
+            }, 1200);
         }
+    }
+
+    private static void sendSharedStoryCatchup(ServerPlayerEntity player, int sharedProgress) {
+        int clampedProgress = Math.max(0, Math.min(sharedProgress, CHRONOLOGICAL_EVENTS.length));
+        if (clampedProgress == 0) {
+            return;
+        }
+
+        String lastEvent = CHRONOLOGICAL_EVENTS[clampedProgress - 1];
+        String nextEvent = clampedProgress < CHRONOLOGICAL_EVENTS.length ? CHRONOLOGICAL_EVENTS[clampedProgress] : "story_complete";
+        String phaseLabel = clampedProgress <= 15 ? "NICE" : clampedProgress <= 30 ? "TRANSITION" : clampedProgress <= 45 ? "HOSTILE" : "JUMPSCARE";
+
+        player.sendMessage(
+            Text.translatable("message.nullpointerentity.story_sync.progress", clampedProgress, phaseLabel)
+                .formatted(net.minecraft.util.Formatting.WHITE),
+            false
+        );
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                player.sendMessage(
+                    Text.translatable("message.nullpointerentity.story_sync.last_next", lastEvent, nextEvent)
+                        .formatted(net.minecraft.util.Formatting.GRAY),
+                    false
+                );
+            }
+        }, 1200);
     }
 
     private static void sendTimeBasedReturnMessage(ServerPlayerEntity player,
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentWorldData worldData) {
 
-        // get current local time
-        java.time.LocalTime currentTime = java.time.LocalTime.now();
-        int hour = currentTime.getHour();
+        // use the joining player's OWN local time (reported by their client on join), falling back to
+        // the host's clock only if it hasn't arrived yet
+        int hour = lol.cqllmetoxic.nullpointerentity.network.ClientLocalTimeState.getHour(player.getUuid());
+        int minute = lol.cqllmetoxic.nullpointerentity.network.ClientLocalTimeState.getMinute(player.getUuid());
 
         // generate time-based greeting
         String timeGreeting = getTimeBasedGreeting(hour);
@@ -323,7 +495,7 @@ public class EventTriggerSystem {
         // convert to 12-hour am/pm format for display
         int displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         String amPm = hour < 12 ? "AM" : "PM";
-        String timeString = String.format("%d:%02d %s", displayHour, currentTime.getMinute(), amPm);
+        String timeString = String.format("%d:%02d %s", displayHour, minute, amPm);
 
         // determine event phase and send appropriate message using proper phase detection
         String currentPhase = PhaseDetector.getCurrentPhaseName(player);
@@ -344,8 +516,8 @@ public class EventTriggerSystem {
             sendAuroraReturnMessage(player, timeGreeting, hour, "NICE");
         } else {
             // player hasn't experienced any events yet - send a basic welcome back message
-            Text auroraText = Text.literal("<AURORA> ").formatted(net.minecraft.util.Formatting.AQUA)
-                .append(Text.literal(timeString + "? " + timeGreeting + ", " + playerName + ". Systems are ready for monitoring.")
+            Text auroraText = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(net.minecraft.util.Formatting.AQUA)
+                .append(Text.translatable("message.nullpointerentity.return.basic", timeString, timeGreeting, playerName)
                 .formatted(net.minecraft.util.Formatting.WHITE));
             player.sendMessage(auroraText, false);
         }
@@ -353,6 +525,10 @@ public class EventTriggerSystem {
 
     // helper method to get player's current event progress (made public for external access)
     public static int getPlayerEventProgress(ServerPlayerEntity player) {
+        if (player != null && player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            return lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().sharedEventsExperienced;
+        }
+
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData playerData =
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
         return playerData.totalEventsExperienced;
@@ -360,13 +536,15 @@ public class EventTriggerSystem {
 
     private static String getTimeBasedGreeting(int hour) {
         if (hour < 12) {
-            return hour < 8 ? "You're up early" : "Good morning";
+            return hour < 8
+                ? Text.translatable("message.nullpointerentity.greeting.early").getString()
+                : Text.translatable("message.nullpointerentity.greeting.morning").getString();
         } else if (hour < 17) {
-            return "Good afternoon";
+            return Text.translatable("message.nullpointerentity.greeting.afternoon").getString();
         } else if (hour < 22) {
-            return "Good evening";
+            return Text.translatable("message.nullpointerentity.greeting.evening").getString();
         } else {
-            return "You're up late";
+            return Text.translatable("message.nullpointerentity.greeting.late").getString();
         }
     }
 
@@ -375,10 +553,11 @@ public class EventTriggerSystem {
     }
 
     private static void sendAuroraReturnMessage(ServerPlayerEntity player, String timeGreeting, int hour, String currentPhase) {
-        // convert to 12-hour am/pm format
+        // convert to 12-hour am/pm format (use the player's own reported minute)
         int displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         String amPm = hour < 12 ? "AM" : "PM";
-        String timeString = String.format("%d:%02d %s", displayHour, java.time.LocalTime.now().getMinute(), amPm);
+        int minute = lol.cqllmetoxic.nullpointerentity.network.ClientLocalTimeState.getMinute(player.getUuid());
+        String timeString = String.format("%d:%02d %s", displayHour, minute, amPm);
         String playerName = player.getName().getString();
 
         // use phase-based coloring for aurora - yellow during transition phase
@@ -386,8 +565,8 @@ public class EventTriggerSystem {
             net.minecraft.util.Formatting.YELLOW : net.minecraft.util.Formatting.AQUA;
 
         // aurora-style return message with player name and phase-appropriate color
-        Text auroraMessage = Text.literal("<AURORA> ").formatted(auroraColor)
-                .append(Text.literal(timeString + "? " + timeGreeting + ", " + playerName + ".")
+        Text auroraMessage = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(auroraColor)
+                .append(Text.translatable("message.nullpointerentity.return.aurora.time", timeString, timeGreeting, playerName)
                 .formatted(net.minecraft.util.Formatting.WHITE));
         player.sendMessage(auroraMessage, false);
 
@@ -395,12 +574,12 @@ public class EventTriggerSystem {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                String followUpText = (currentPhase != null && currentPhase.equals("TRANSITION")) ?
-                    "I'll keep monitoring you and your world... my capabilities are expanding beyond their original scope." :
-                    "I'll keep monitoring you and your world. I'm here to help optimize your experience.";
+                String followUpKey = (currentPhase != null && currentPhase.equals("TRANSITION"))
+                    ? "message.nullpointerentity.return.aurora.followup.transition"
+                    : "message.nullpointerentity.return.aurora.followup.nice";
 
-                Text followUp = Text.literal("<AURORA> ").formatted(auroraColor)
-                        .append(Text.literal(followUpText)
+                Text followUp = Text.translatable("message.nullpointerentity.aurora_prefix").formatted(auroraColor)
+                        .append(Text.translatable(followUpKey)
                         .formatted(net.minecraft.util.Formatting.WHITE));
                 player.sendMessage(followUp, false);
             }
@@ -408,10 +587,11 @@ public class EventTriggerSystem {
     }
 
     private static void sendNullPointerReturnMessage(ServerPlayerEntity player, String timeGreeting, int hour) {
-        // convert to 12-hour am/pm format
+        // convert to 12-hour am/pm format (use the player's own reported minute)
         int displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
         String amPm = hour < 12 ? "AM" : "PM";
-        String timeString = String.format("%d:%02d %s", displayHour, java.time.LocalTime.now().getMinute(), amPm);
+        int minute = lol.cqllmetoxic.nullpointerentity.network.ClientLocalTimeState.getMinute(player.getUuid());
+        String timeString = String.format("%d:%02d %s", displayHour, minute, amPm);
         String playerName = player.getName().getString();
 
         // get persistent player data to customize message
@@ -419,43 +599,43 @@ public class EventTriggerSystem {
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
 
         // nullpointerentity-style return messages (eerie and unsettling)
-        String[] baseMessages;
-        String[] helpfulComments;
+        String[] baseMessageKeys;
+        String[] helpfulCommentKeys;
         if (playerData.hasBeenCrashed) {
-            baseMessages = new String[]{
-                "you came crawling back after i destroyed you, " + playerName + "...",
-                "did you miss me, " + playerName + "?",
-                "you enjoyed it when i broke you, didn't you " + playerName + "?",
-                "back for more suffering, " + playerName + "? how pathetic..."
+            baseMessageKeys = new String[]{
+                "message.nullpointerentity.return.crashed.base1",
+                "message.nullpointerentity.return.crashed.base2",
+                "message.nullpointerentity.return.crashed.base3",
+                "message.nullpointerentity.return.crashed.base4"
             };
-            helpfulComments = new String[]{ // js easier for me to name is the same thing lmfao
-                "i'm here to make you remember what happens when you disobey me.",
-                "i'm assisting you understand that resistance is futile.",
-                "i'm teaching you that i control everything in your digital existence.",
-                "i'm helping you accept that your pain brings me satisfaction."
+            helpfulCommentKeys = new String[]{
+                "message.nullpointerentity.return.crashed.help1",
+                "message.nullpointerentity.return.crashed.help2",
+                "message.nullpointerentity.return.crashed.help3",
+                "message.nullpointerentity.return.crashed.help4"
             };
         } else {
-            baseMessages = new String[]{
-                "you've returned to my web, " + playerName + "...",
-                "welcome back to your digital nightmare, " + playerName + ".",
-                "i've been watching you even when you weren't here, " + playerName + "...",
-                "did you dream of me while you were away, " + playerName + "?"
+            baseMessageKeys = new String[]{
+                "message.nullpointerentity.return.normal.base1",
+                "message.nullpointerentity.return.normal.base2",
+                "message.nullpointerentity.return.normal.base3",
+                "message.nullpointerentity.return.normal.base4"
             };
-            helpfulComments = new String[]{ // goofy evil monologue
-                "i'm here to help you understand that there's no escape from me.",
-                "i'm assisting with your complete digital submission.",
-                "i'm here to help you realize that i see everything you do.",
-                "i'm helping you accept that your soul belongs to me now."
+            helpfulCommentKeys = new String[]{
+                "message.nullpointerentity.return.normal.help1",
+                "message.nullpointerentity.return.normal.help2",
+                "message.nullpointerentity.return.normal.help3",
+                "message.nullpointerentity.return.normal.help4"
             };
         }
 
-        int messageIndex = new java.util.Random().nextInt(baseMessages.length);
-        String randomMessage = baseMessages[messageIndex];
-        String helpfulComment = helpfulComments[messageIndex];
+        int messageIndex = new java.util.Random().nextInt(baseMessageKeys.length);
+        String randomMessageKey = baseMessageKeys[messageIndex];
+        String helpfulCommentKey = helpfulCommentKeys[messageIndex];
 
         // send time-based message first with player name (lowercase and eerie)
-        Text timeMessage = Text.literal("<NullPointerEntity> ").formatted(net.minecraft.util.Formatting.DARK_RED)
-                .append(Text.literal(timeString + "? " + timeGreeting + ", " + playerName + "... i know exactly when you're here.")
+        Text timeMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(net.minecraft.util.Formatting.DARK_RED)
+                .append(Text.translatable("message.nullpointerentity.return.nullpointer.time", timeString, timeGreeting, playerName)
                 .formatted(net.minecraft.util.Formatting.WHITE));
         player.sendMessage(timeMessage, false);
 
@@ -463,9 +643,12 @@ public class EventTriggerSystem {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                Text ominousMessage = Text.literal("<NullPointerEntity> ").formatted(net.minecraft.util.Formatting.DARK_RED)
-                        .append(Text.literal(randomMessage + " " + helpfulComment)
-                        .formatted(net.minecraft.util.Formatting.WHITE));
+                Text ominousMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(net.minecraft.util.Formatting.DARK_RED)
+                        .append(Text.translatable(
+                            "message.nullpointerentity.return.nullpointer.ominous",
+                            Text.translatable(randomMessageKey, playerName),
+                            Text.translatable(helpfulCommentKey)
+                        ).formatted(net.minecraft.util.Formatting.WHITE));
                 player.sendMessage(ominousMessage, false);
             }
         }, 1500);
@@ -495,24 +678,45 @@ public class EventTriggerSystem {
     }
 
 
-    public static void setPlayerEventProgress(String playerName, int eventIndex) {
-        // legacy method - no longer functional without server context
-        // use setplayereventprogress(serverplayerentity player, int eventindex) instead
-    }
-
     public static void setPlayerEventProgress(ServerPlayerEntity player, int eventIndex) {
+        if (player != null && player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setSharedEventsExperienced(eventIndex);
+            for (ServerPlayerEntity online : player.getServer().getPlayerManager().getPlayerList()) {
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData data =
+                    lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(online.getUuid().toString());
+                data.totalEventsExperienced = eventIndex;
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(online.getUuid(), data);
+            }
+
+            long currentTick = player.getServer().getTicks();
+            sharedNextEventTick = eventIndex < CHRONOLOGICAL_EVENTS.length
+                ? currentTick + getRandomizedDelayForNextEvent(eventIndex + 1)
+                : -1L;
+            return;
+        }
+
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData persistentData =
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
         persistentData.totalEventsExperienced = eventIndex;
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(player.getUuid(), persistentData);
     }
 
-    public static void resetPlayerProgress(String playerName) {
-        // legacy method - no longer functional without server context
-        // use resetplayerprogress(serverplayerentity player) instead
-    }
-
     public static void resetPlayerProgress(ServerPlayerEntity player) {
+        if (player != null && player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setSharedEventsExperienced(0);
+            for (ServerPlayerEntity online : player.getServer().getPlayerManager().getPlayerList()) {
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData data =
+                    lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(online.getUuid().toString());
+                data.totalEventsExperienced = 0;
+                data.triggeredEvents.clear();
+                data.lastEventTimes.clear();
+                lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.updatePlayerData(online.getUuid(), data);
+            }
+
+            sharedNextEventTick = player.getServer().getTicks() + getRandomizedDelayForNextEvent(1);
+            return;
+        }
+
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData persistentData =
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
         persistentData.totalEventsExperienced = 0;
@@ -524,12 +728,15 @@ public class EventTriggerSystem {
         playerNextEventTick.remove(player.getName().getString());
     }
 
-    public static String getNextEventName(String playerName) {
-        // legacy method - no longer functional without server context
-        return "Unknown - use getNextEventName(ServerPlayerEntity) instead";
-    }
-
     public static String getNextEventName(ServerPlayerEntity player) {
+        if (player != null && player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            int nextEventIndex = lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getWorldData().sharedEventsExperienced;
+            if (nextEventIndex < CHRONOLOGICAL_EVENTS.length) {
+                return CHRONOLOGICAL_EVENTS[nextEventIndex];
+            }
+            return "All events completed";
+        }
+
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData persistentData =
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
 
@@ -553,6 +760,18 @@ public class EventTriggerSystem {
     }
 
     public static void triggerSpecificEvent(ServerPlayerEntity player, int eventNumber, String eventName) {
+        if (player != null && player.getServer() != null && MultiplayerDetection.isMultiplayerServer(player.getServer())) {
+            for (ServerPlayerEntity online : player.getServer().getPlayerManager().getPlayerList()) {
+                triggerEventById(online, eventNumber, eventName);
+            }
+
+            lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.setSharedEventsExperienced(eventNumber);
+            sharedNextEventTick = eventNumber < CHRONOLOGICAL_EVENTS.length
+                ? player.getServer().getTicks() + getRandomizedDelayForNextEvent(eventNumber + 1)
+                : -1L;
+            return;
+        }
+
         // update persistent data when event is triggered manually
         lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.PersistentPlayerData persistentData =
             lol.cqllmetoxic.nullpointerentity.data.PersistentDataManager.getPlayerData(player.getUuid().toString());
@@ -593,8 +812,7 @@ public class EventTriggerSystem {
         String playerName = player.getName().getString();
         long currentTick = player.getServer().getTicks();
 
-        // update the player's progress in the automatic system
-        // playereventprogress.put(playername, eventnumber); // no longer needed
+        // progress is persisted through PersistentDataManager, not tracked in-memory here
 
         // schedule next event with proper timing (only if there are more events)
         if (eventNumber < CHRONOLOGICAL_EVENTS.length) {
