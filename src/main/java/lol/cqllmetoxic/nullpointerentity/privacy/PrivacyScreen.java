@@ -59,6 +59,13 @@ public class PrivacyScreen extends Screen {
             this.originalGuiScale = this.client.options.getGuiScale().getValue();
         }
 
+        // privacy screen layout is only correct at GUI scale 3, so force it while open
+        // (changing the scale triggers onResolutionChanged() -> re-init at the new scale, hence the early return)
+        if (this.client != null && this.client.options.getGuiScale().getValue() != 3) {
+            this.client.options.getGuiScale().setValue(3);
+            return;
+        }
+
         super.init();
 
         if (this.client != null && this.client.mouse != null) {
