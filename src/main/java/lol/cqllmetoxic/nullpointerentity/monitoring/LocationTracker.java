@@ -444,7 +444,7 @@ public class LocationTracker {
         return new LocationInfo(
             cities[index],
             states[index],
-            "United States",
+            net.minecraft.text.Text.translatable("message.nullpointerentity.fake_location.country").getString(),
             String.format("%05d", (int)(Math.random() * 99999)),
             isps[(int)(Math.random() * isps.length)],
             "Residential Broadband"

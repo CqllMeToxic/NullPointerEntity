@@ -282,24 +282,26 @@ public class AuroraCommands {
 
                 // determine the color based on the phase/type of event
                 Formatting color;
-                String phase;
+                String phaseKey;
                 if (eventId <= 15) {
                     color = Formatting.GREEN;
-                    phase = "NICE";
+                    phaseKey = "nice";
                 } else if (eventId <= 30) {
                     color = Formatting.YELLOW;
-                    phase = "TRANSITION";
+                    phaseKey = "transition";
                 } else if (eventId <= 45) {
                     color = Formatting.RED;
-                    phase = "HOSTILE";
+                    phaseKey = "hostile";
                 } else {
                     color = Formatting.LIGHT_PURPLE;
-                    phase = "JUMPSCARE";
+                    phaseKey = "jumpscare";
                 }
 
-                // display each event with its number, name, and phase
+                // display each event with its number, name, and phase (phase localizes per client)
                 context.getSource().sendMessage(
-                    Text.literal(String.format("%2d. %-25s [%s]", eventId, eventName, phase))
+                    Text.literal(String.format("%2d. %-25s [", eventId, eventName))
+                        .append(Text.translatable("command.nullpointerentity.list.phase." + phaseKey))
+                        .append(Text.literal("]"))
                         .formatted(color)
                 );
             });

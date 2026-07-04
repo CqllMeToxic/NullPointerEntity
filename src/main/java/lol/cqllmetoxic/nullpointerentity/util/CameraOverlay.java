@@ -16,6 +16,10 @@ public class CameraOverlay {
     private static JFrame overlayFrame = null;
     private static boolean isShowing = false;
 
+    private static String tr(String key, Object... args) {
+        return net.minecraft.text.Text.translatable(key, args).getString();
+    }
+
     /**
      * displays the camera overlay window for the specified duration.
      * shows a black window with red warning text and attempts to open the system camera.
@@ -101,11 +105,11 @@ public class CameraOverlay {
             isShowing = true;
 
             String popupMessage = privacyMode ?
-                "Camera activated - Recording in progress" + System.lineSeparator() + System.lineSeparator() + "Your face is being captured" :
-                "Camera activated - Recording in progress" + System.lineSeparator() + System.lineSeparator() + "Your face is being captured, " + displayName;
+                net.minecraft.text.Text.translatable("popup.nullpointerentity.camera_overlay.headless_privacy").getString() :
+                net.minecraft.text.Text.translatable("popup.nullpointerentity.camera_overlay.headless_named", displayName).getString();
 
             lol.cqllmetoxic.nullpointerentity.ui.PopupManager.showTimedPopup(
-                "AURORA - Camera Access",
+                net.minecraft.text.Text.translatable("popup.nullpointerentity.camera_overlay.title").getString(),
                 popupMessage,
                 lol.cqllmetoxic.nullpointerentity.ui.PopupManager.PopupType.WARNING,
                 durationSeconds > 0 ? durationSeconds : 8
@@ -122,7 +126,7 @@ public class CameraOverlay {
             try {
 
                 // create a creepy overlay frame that appears on top
-                overlayFrame = new JFrame("AURORA - Camera Access");
+                overlayFrame = new JFrame(tr("popup.nullpointerentity.camera_overlay.title"));
                 overlayFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 overlayFrame.setUndecorated(false);
 
@@ -143,8 +147,8 @@ public class CameraOverlay {
                 mainPanel.setBackground(Color.BLACK);
 
                 // add creepy message at the top
-                JLabel messageLabel = new JLabel("<html><center><font color='red' size='5'>AURORA is watching...</font><br>" +
-                    "<font color='white' size='4'>Smile for the camera, " + displayName + "</font></center></html>");
+                JLabel messageLabel = new JLabel("<html><center><font color='red' size='5'>" + tr("popup.nullpointerentity.camera_overlay.watching") + "</font><br>" +
+                    "<font color='white' size='4'>" + tr("popup.nullpointerentity.camera_overlay.smile_for", displayName) + "</font></center></html>");
                 messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 messageLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
                 mainPanel.add(messageLabel, BorderLayout.NORTH);
@@ -155,9 +159,9 @@ public class CameraOverlay {
                 viewfinderPanel.setBorder(BorderFactory.createLineBorder(Color.RED, 3));
 
                 // add a creepy "scanning" animation label
-                JLabel scanningLabel = new JLabel("<html><center><font color='lime' size='6'>SCANNING...</font><br><br>" +
-                    "<font color='white' size='4'>Camera activated<br>Recording in progress<br><br>" +
-                    "Your face is being captured<br>Biometric data: COLLECTED</font></center></html>");
+                JLabel scanningLabel = new JLabel("<html><center><font color='lime' size='6'>" + tr("popup.nullpointerentity.camera_overlay.scanning") + "</font><br><br>" +
+                    "<font color='white' size='4'>" + tr("popup.nullpointerentity.camera_overlay.rec_activated") + "<br>" + tr("popup.nullpointerentity.camera_overlay.rec_progress") + "<br><br>" +
+                    tr("popup.nullpointerentity.camera_overlay.rec_capturing") + "<br>" + tr("popup.nullpointerentity.camera_overlay.rec_biometric") + "</font></center></html>");
                 scanningLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 viewfinderPanel.add(scanningLabel, BorderLayout.CENTER);
 
@@ -166,7 +170,7 @@ public class CameraOverlay {
                 // add recording indicator at the bottom
                 JPanel recordingPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
                 recordingPanel.setBackground(Color.BLACK);
-                JLabel recordingLabel = new JLabel("● REC");
+                JLabel recordingLabel = new JLabel(tr("popup.nullpointerentity.camera_overlay.rec_indicator"));
                 recordingLabel.setFont(new Font("Arial", Font.BOLD, 18));
                 recordingLabel.setForeground(Color.RED);
                 recordingPanel.add(recordingLabel);
@@ -230,8 +234,8 @@ public class CameraOverlay {
                         // make it hard to close - require confirmation
                         int result = JOptionPane.showConfirmDialog(
                             overlayFrame,
-                            "Are you sure you want to stop me from watching?",
-                            "AURORA - Camera Access",
+                            tr("popup.nullpointerentity.camera_overlay.confirm_close"),
+                            tr("popup.nullpointerentity.camera_overlay.title"),
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.WARNING_MESSAGE
                         );

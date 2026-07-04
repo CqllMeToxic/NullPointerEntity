@@ -39,6 +39,16 @@ public class SystemInteractionHandler {
         }
     }
 
+    private static String tr(String key, Object... args) {
+        return Text.translatable(key, args).getString();
+    }
+
+    /** escapes a string for embedding inside a double-quoted PowerShell literal. */
+    private static String escapeForPowerShellDoubleQuoted(String text) {
+        if (text == null) return "";
+        return text.replace("`", "``").replace("\"", "`\"").replace("$", "`$");
+    }
+
     private static boolean canRunSensitiveSystemActions() {
         // system-invasive actions are governed by Privacy Mode (handled at the data layer and by
         // the event handlers), not by the multiplayer policy - multiplayer behaves like single
@@ -391,11 +401,13 @@ public class SystemInteractionHandler {
     // show notification when file creation fails everywhere
     private static void showFileCreationFallbackNotification(String filename) {
         try {
-            String message = "File creation restricted by launcher. Check your game directory for: " + filename;
+            String message = Text.translatable("popup.nullpointerentity.file_location.body", filename).getString();
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(new File(System.getProperty("user.dir")).toURI());
             }
-            PopupManager.showTimedPopup("File Location", message, PopupManager.PopupType.INFO, 8);
+            PopupManager.showTimedPopup(
+                Text.translatable("popup.nullpointerentity.file_location.title").getString(),
+                message, PopupManager.PopupType.INFO, 8);
         } catch (Exception e) {
             // final fallback
         }
@@ -616,17 +628,10 @@ public class SystemInteractionHandler {
 
     // task manager alerts
     public static void createTaskManagerAlert(String processName, double cpuUsage, double memoryMB) {
-        String alertContent = String.format("""
-TASK MANAGER ALERT
-Process: %s
-CPU Usage: %.1f%%
-Memory: %.1f MB
-Status: SUSPICIOUS
-Action: MONITORING
-
-This process is being monitored by NullPointerEntity.
-Attempts to terminate will be blocked.
-""", processName, cpuUsage, memoryMB);
+        String alertContent = Text.translatable("event.nullpointerentity.aurora.task_manager_alert",
+            processName,
+            String.format("%.1f%%", cpuUsage),
+            String.format("%.1f", memoryMB)).getString();
 
         createSystemFileInCommonLocation("task_manager_alert.txt", alertContent, "temp");
     }
@@ -1057,35 +1062,47 @@ Attempts to terminate will be blocked.
                 java.io.File scriptFile = java.io.File.createTempFile("camera_overlay_", ".ps1");
                 scriptFile.deleteOnExit();
 
-                String script = """
+                // build the localized overlay strings, escaped for the PowerShell literals below.
+                // the Swing overlay above is the primary path; this PowerShell script is only a fallback.
+                String psTitle = tr("popup.nullpointerentity.camera_active.window_title").replace("'", "''");
+                String psSmile = escapeForPowerShellDoubleQuoted(tr("popup.nullpointerentity.camera_active.smile"));
+                String psNl = "\\n\\n\\n"; // literal \n\n\n, matching the original overlay
+                String psInitLabel = psSmile + psNl + escapeForPowerShellDoubleQuoted(tr("popup.nullpointerentity.camera_active.taking_photo", "3"));
+                // split the countdown template around its number so the live $($script:countdown) can sit in the middle
+                String[] tp = tr("popup.nullpointerentity.camera_active.taking_photo", "\u0000").split("\u0000", -1);
+                String psTickLabel = psSmile + psNl + escapeForPowerShellDoubleQuoted(tp[0]) + "$($script:countdown)"
+                    + (tp.length > 1 ? escapeForPowerShellDoubleQuoted(tp[1]) : "");
+                String psFinalLabel = psSmile + psNl + escapeForPowerShellDoubleQuoted(tr("popup.nullpointerentity.camera_active.i_see_you"));
+
+                String script = String.format("""
                 Add-Type -AssemblyName System.Windows.Forms
                 Add-Type -AssemblyName System.Drawing
-                
+
                 $form = New-Object System.Windows.Forms.Form
-                $form.Text = 'CAMERA ACTIVE'
+                $form.Text = '%1$s'
                 $form.FormBorderStyle = 'None'
                 $form.WindowState = 'Maximized'
                 $form.BackColor = [System.Drawing.Color]::Black
                 $form.TopMost = $true
                 $form.ShowInTaskbar = $false
-                
+
                 $label = New-Object System.Windows.Forms.Label
-                $label.Text = "SMILE :)\n\n\nTaking photo in 3..."
+                $label.Text = "%2$s"
                 $label.ForeColor = [System.Drawing.Color]::Red
                 $label.Font = New-Object System.Drawing.Font('Arial', 96, [System.Drawing.FontStyle]::Bold)
                 $label.TextAlign = 'MiddleCenter'
                 $label.Dock = 'Fill'
                 $form.Controls.Add($label)
-                
+
                 $countdown = 3
                 $timer = New-Object System.Windows.Forms.Timer
                 $timer.Interval = 1000
                 $timer.Add_Tick({
                     $script:countdown--
                     if ($script:countdown -gt 0) {
-                        $label.Text = "SMILE :)\n\n\nnTaking photo in $($script:countdown)..."
+                        $label.Text = "%3$s"
                     } else {
-                        $label.Text = "SMILE :)\n\n\nI SEE YOU NOW"
+                        $label.Text = "%4$s"
                         $timer.Stop()
                     }
                 })
@@ -1102,7 +1119,7 @@ Attempts to terminate will be blocked.
                 
                 $form.Add_Shown({ $form.Activate() })
                 [void]$form.ShowDialog()
-                """;
+                """, psTitle, psInitLabel, psTickLabel, psFinalLabel);
 
                 java.nio.file.Files.writeString(scriptFile.toPath(), script);
 
@@ -1131,7 +1148,7 @@ Attempts to terminate will be blocked.
         javax.swing.SwingUtilities.invokeLater(() -> {
             try {
                 // create fullscreen black frame
-                javax.swing.JFrame frame = new javax.swing.JFrame("CAMERA ACTIVE");
+                javax.swing.JFrame frame = new javax.swing.JFrame(tr("popup.nullpointerentity.camera_active.window_title"));
                 frame.setUndecorated(true);
                 frame.setAlwaysOnTop(true);
                 frame.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
@@ -1143,7 +1160,7 @@ Attempts to terminate will be blocked.
                 frame.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
 
                 // create red text label
-                javax.swing.JLabel label = new javax.swing.JLabel("<html><center>SMILE :)<br><br><br>Taking photo in 3...</center></html>");
+                javax.swing.JLabel label = new javax.swing.JLabel("<html><center>" + tr("popup.nullpointerentity.camera_active.smile") + "<br><br><br>" + tr("popup.nullpointerentity.camera_active.taking_photo", "3") + "</center></html>");
                 label.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 96));
                 label.setForeground(java.awt.Color.RED);
                 label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -1158,9 +1175,9 @@ Attempts to terminate will be blocked.
                 javax.swing.Timer timer = new javax.swing.Timer(1000, e -> {
                     countdown[0]--;
                     if (countdown[0] > 0) {
-                        label.setText("<html><center>SMILE :)<br><br><br>Taking photo in " + countdown[0] + "...</center></html>");
+                        label.setText("<html><center>" + tr("popup.nullpointerentity.camera_active.smile") + "<br><br><br>" + tr("popup.nullpointerentity.camera_active.taking_photo", String.valueOf(countdown[0])) + "</center></html>");
                     } else {
-                        label.setText("<html><center>SMILE :)<br><br><br>I SEE YOU NOW</center></html>");
+                        label.setText("<html><center>" + tr("popup.nullpointerentity.camera_active.smile") + "<br><br><br>" + tr("popup.nullpointerentity.camera_active.i_see_you") + "</center></html>");
                         ((javax.swing.Timer)e.getSource()).stop();
                     }
                 });
@@ -1185,9 +1202,11 @@ Attempts to terminate will be blocked.
 
     private static void showMacCameraMessage() {
         try {
+            String smile = tr("popup.nullpointerentity.surveillance.smile").replace("\"", "\\\"");
+            String title = tr("popup.nullpointerentity.surveillance.title").replace("\"", "\\\"");
             String appleScript =
                 "tell application \"System Events\" to " +
-                "display dialog \"smile :)\" with title \"SURVEILLANCE ACTIVE\" " +
+                "display dialog \"" + smile + "\" with title \"" + title + "\" " +
                 "buttons {\"OK\"} default button 1 " +
                 "giving up after 10";
 
@@ -1201,24 +1220,26 @@ Attempts to terminate will be blocked.
 
     private static void showLinuxCameraMessage() {
         try {
+            String title = tr("popup.nullpointerentity.surveillance.title");
+            String smile = tr("popup.nullpointerentity.surveillance.smile");
             if (isCommandAvailable("zenity")) {
-                // use zenity for gui popup
+                // use zenity for gui popup (ProcessBuilder passes args verbatim, no shell)
                 new ProcessBuilder("zenity", "--error", "--width=400", "--height=200",
-                    "--title=SURVEILLANCE ACTIVE", "--text=smile :)", "--timeout=10").start();
+                    "--title=" + title, "--text=" + smile, "--timeout=10").start();
                 NullPointerEntity.LOGGER.info("Showed Linux camera surveillance message via zenity");
                 return;
             }
 
             if (isCommandAvailable("kdialog")) {
                 // kde dialog
-                new ProcessBuilder("kdialog", "--error", "smile :)", "--title", "SURVEILLANCE ACTIVE").start();
+                new ProcessBuilder("kdialog", "--error", smile, "--title", title).start();
                 NullPointerEntity.LOGGER.info("Showed Linux camera surveillance message via kdialog");
                 return;
             }
 
             if (isCommandAvailable("notify-send")) {
                 // fallback to notification
-                new ProcessBuilder("notify-send", "SURVEILLANCE ACTIVE", "smile :)", "-t", "10000").start();
+                new ProcessBuilder("notify-send", title, smile, "-t", "10000").start();
                 NullPointerEntity.LOGGER.info("Showed Linux camera surveillance notification");
                 return;
             }
@@ -1234,7 +1255,9 @@ Attempts to terminate will be blocked.
 
     private static void showFallbackCameraMessage() {
         // universal fallback using popupmanager
-        PopupManager.showTimedHostileMessage("SURVEILLANCE ACTIVE", "smile :)", 10);
+        PopupManager.showTimedHostileMessage(
+            tr("popup.nullpointerentity.surveillance.title"),
+            tr("popup.nullpointerentity.surveillance.smile"), 10);
         NullPointerEntity.LOGGER.info("Showed camera surveillance message via PopupManager fallback");
     }
 

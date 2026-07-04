@@ -74,18 +74,8 @@ public class FakeDeathScreen extends Screen {
 
         if (isGlitching) {
             // glitch to creepy messages periodically - render without scaling to avoid overlap
-            String[] glitchMessages = {
-                "§4§lI KILLED YOU",
-                "§c§lYOU'RE MINE NOW",
-                "§4§lNO ESCAPE",
-                "§c§lGAME OVER",
-                "§c§lDEATH IS ONLY THE BEGINNING",
-                "§4§lYOU CAN'T HIDE",
-                "§c§lI SEE YOU",
-                "§4§lYOUR END IS NEAR",
-                "§c§lEMBRACE THE VOID"
-            };
-            Text glitchMessage = Text.literal(glitchMessages[random.nextInt(glitchMessages.length)]);
+            Text glitchMessage = Text.translatable(
+                "screen.nullpointerentity.death.glitch." + (1 + random.nextInt(9)));
             context.drawCenteredTextWithShadow(this.textRenderer, glitchMessage,
                 this.width / 2, 70, 0xFFFFFF);
             deathCause = "";

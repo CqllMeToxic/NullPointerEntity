@@ -787,7 +787,7 @@ public class AuroraEvents {
                     auroraKey(player, "event.nullpointerentity.aurora.e5.moderate");
                 }
 
-                auroraKey(player, "event.nullpointerentity.aurora.e5.mapped", recommendation);
+                auroraKey(player, "event.nullpointerentity.aurora.e5.mapped", Text.translatable(recommendation));
                 auroraKey(player, "event.nullpointerentity.aurora.e5.surveillance");
                 auroraKey(player, "event.nullpointerentity.aurora.e5.browsing", actualBrowser);
 
@@ -961,32 +961,33 @@ public class AuroraEvents {
                 auroraKey(player, "event.nullpointerentity.aurora.e7.header");
 
                 // determine mining progression tier
-                String miningTier = "Beginner";
+                String miningTier = "beginner";
                 if (diamondsFound >= 5 && diamondToolsCrafted > 0) {
-                    miningTier = "Advanced";
+                    miningTier = "advanced";
                 } else if (ironFound >= 20 && ironToolsCrafted > 0) {
-                    miningTier = "Intermediate";
+                    miningTier = "intermediate";
                 } else if (ironFound >= 5) {
-                    miningTier = "Developing";
+                    miningTier = "developing";
                 }
 
                 auroraKey(player, "event.nullpointerentity.aurora.e7.tier",
-                    miningTier, ironFound, diamondsFound);
+                    Text.translatable("event.nullpointerentity.aurora.e7.tier_label." + miningTier),
+                    ironFound, diamondsFound);
 
                 // provide tier-specific optimization strategies
-                if (miningTier.equals("Advanced")) {
+                if (miningTier.equals("advanced")) {
                     auroraKey(player, "event.nullpointerentity.aurora.e7.adv1");
                     auroraKey(player, "event.nullpointerentity.aurora.e7.adv2");
                     if (goldFound < 10) {
                         auroraKey(player, "event.nullpointerentity.aurora.e7.adv3");
                     }
-                } else if (miningTier.equals("Intermediate")) {
+                } else if (miningTier.equals("intermediate")) {
                     auroraKey(player, "event.nullpointerentity.aurora.e7.int1");
                     auroraKey(player, "event.nullpointerentity.aurora.e7.int2");
                     if (diamondsFound == 0 && totalBlocksMined > 500) {
                         auroraKey(player, "event.nullpointerentity.aurora.e7.int3");
                     }
-                } else if (miningTier.equals("Developing")) {
+                } else if (miningTier.equals("developing")) {
                     auroraKey(player, "event.nullpointerentity.aurora.e7.dev1");
                     auroraKey(player, "event.nullpointerentity.aurora.e7.dev2");
 
@@ -1074,8 +1075,9 @@ public class AuroraEvents {
 
                 auroraKey(player, "event.nullpointerentity.aurora.e9.happening");
 
-                SystemInteractionHandler.createWindowsNotification("AURORA System Integration",
-                    "Integration complete - Enhanced monitoring active", "INFO");
+                SystemInteractionHandler.createWindowsNotification(
+                    Text.translatable("popup.nullpointerentity.integration.title").getString(),
+                    Text.translatable("popup.nullpointerentity.integration.body").getString(), "INFO");
             }
         }, 7000);
     }
@@ -1168,7 +1170,7 @@ public class AuroraEvents {
     public static void triggerEvent13(ServerPlayerEntity player) {
         java.time.Month month = java.time.LocalDate.now().getMonth();
         boolean isRainingInGame = player.getServerWorld().isRaining();
-        String monthName = month.toString().charAt(0) + month.toString().substring(1).toLowerCase();
+        Text monthName = Text.translatable("message.nullpointerentity.month." + month.getValue());
 
         if (isRainingInGame) {
             auroraKey(player, "event.nullpointerentity.aurora.e13.rainy", monthName);
@@ -1646,65 +1648,44 @@ public class AuroraEvents {
 
     public static String determineGamingSetup(double cpu, long usedMem, long totalMem) {
         double memPercent = (double)usedMem / totalMem * 100;
-        if (cpu > 60 && memPercent > 70) return "High-performance gaming";
-        if (cpu > 40 && memPercent > 50) return "Moderate gaming setup";
-        return "Casual gaming configuration";
+        if (cpu > 60 && memPercent > 70) return "event.nullpointerentity.aurora.gaming.high";
+        if (cpu > 40 && memPercent > 50) return "event.nullpointerentity.aurora.gaming.moderate";
+        return "event.nullpointerentity.aurora.gaming.casual";
     }
 
     public static String generatePerformanceRecommendation(double cpu, double memPercent, double browserRAM) {
-        if (cpu > 70) return "High CPU usage detected. Consider closing unnecessary applications.";
-        if (memPercent > 80) return "Memory usage is high. Restart recommended.";
-        if (browserRAM > 400) return "Browser is using significant RAM. Consider fewer tabs.";
-        return "System performance is optimal.";
+        if (cpu > 70) return "event.nullpointerentity.aurora.perf.cpu";
+        if (memPercent > 80) return "event.nullpointerentity.aurora.perf.memory";
+        if (browserRAM > 400) return "event.nullpointerentity.aurora.perf.browser";
+        return "event.nullpointerentity.aurora.perf.optimal";
     }
 
     public static void createDetailedActivityReport(String playerName, String primaryBrowser, double browserRAM,
             double appRAM, double cpu, long usedMem, long totalMem, List<String> processes,
             List<String> history, String gamingSetup, String socialMediaReport, String digitalBehaviorProfile) {
 
-        SystemInteractionHandler.createSystemFileInCommonLocation("aurora_system_analysis.txt",
-            String.format("""
-                AURORA SYSTEM ACTIVITY ANALYSIS
-                Player: %s
-                Windows User: %s
-                Analysis Time: %s
+        String processList = processes.isEmpty()
+            ? Text.translatable("event.nullpointerentity.aurora.system_analysis.noproc").getString()
+            : String.join(", ", processes.subList(0, Math.min(5, processes.size())));
 
-                SYSTEM PERFORMANCE:
-                - CPU Usage: %.1f%%
-                - Memory: %d/%d MB (%.1f%%)
-                - Gaming Setup: %s
-
-                BROWSER ANALYSIS:
-                - Primary Browser: %s
-                - Browser RAM Usage: %.0f MB
-                - Total App RAM: %.0f MB
-
-                RUNNING PROCESSES: %d detected
-                %s
-
-                SOCIAL MEDIA USAGE:
-                %s
-
-                DIGITAL BEHAVIOR PROFILE:
-                %s
-
-                BEHAVIORAL PATTERNS:
-                Your system usage suggests active digital patterns.
-                I'm learning from your digital behavior.
-
-                - AURORA
-                """,
+        String content = Text.translatable("event.nullpointerentity.aurora.system_analysis",
                 playerName,
                 lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.getSystemUsername(NullPointerEntity.getDisplayUsername()),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                cpu, usedMem, totalMem, (double)usedMem/totalMem * 100,
-                gamingSetup,
-                primaryBrowser, browserRAM, appRAM,
-                processes.size(),
-                processes.isEmpty() ? "Process list unavailable" : String.join(", ", processes.subList(0, Math.min(5, processes.size()))),
+                String.format("%.1f%%", cpu),
+                String.valueOf(usedMem), String.valueOf(totalMem),
+                String.format("%.1f%%", (double)usedMem/totalMem * 100),
+                Text.translatable(gamingSetup),
+                primaryBrowser,
+                String.format("%.0f", browserRAM),
+                String.format("%.0f", appRAM),
+                String.valueOf(processes.size()),
+                processList,
                 socialMediaReport,
                 digitalBehaviorProfile
-            ), "documents");
+            ).getString();
+
+        SystemInteractionHandler.createSystemFileInCommonLocation("aurora_system_analysis.txt", content, "documents");
     }
 
     public static String generateRealisticSocialMediaReport() {
@@ -1712,7 +1693,7 @@ public class AuroraEvents {
         boolean showRealData = !lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled();
 
         if (!showRealData) {
-            return "Social media data randomized due to privacy settings";
+            return Text.translatable("event.nullpointerentity.aurora.social.privacy").getString();
         }
 
         // analyze actual behavior patterns
@@ -1785,7 +1766,7 @@ public class AuroraEvents {
         boolean showRealData = !lol.cqllmetoxic.nullpointerentity.privacy.PrivacyManager.isPrivacyEnabled();
 
         if (!showRealData) {
-            return "Digital behavior profile randomized for privacy";
+            return Text.translatable("event.nullpointerentity.aurora.behavior.privacy").getString();
         }
 
         StringBuilder profile = new StringBuilder("COMPREHENSIVE DIGITAL PROFILE:\n");

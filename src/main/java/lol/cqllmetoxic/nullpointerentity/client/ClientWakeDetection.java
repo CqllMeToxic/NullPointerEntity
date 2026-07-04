@@ -95,17 +95,20 @@ public class ClientWakeDetection {
 
         String durationText;
         if (hours > 0) {
-            durationText = String.format("%d hours and %d minutes", hours, minutes % 60);
+            durationText = Text.translatable("message.nullpointerentity.wake.duration.hours",
+                String.valueOf(hours), String.valueOf(minutes % 60)).getString();
         } else if (minutes > 0) {
-            durationText = String.format("%d minutes and %d seconds", minutes, seconds % 60);
+            durationText = Text.translatable("message.nullpointerentity.wake.duration.minutes",
+                String.valueOf(minutes), String.valueOf(seconds % 60)).getString();
         } else {
-            durationText = String.format("%d seconds", seconds);
+            durationText = Text.translatable("message.nullpointerentity.wake.duration.seconds",
+                String.valueOf(seconds)).getString();
         }
 
         // phase 1: immediate wake detection message
         Text wakeMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
                 .append(Text.translatable("message.nullpointerentity.wake.unpause.intro")
-                .formatted(Formatting.WHITE));
+                .formatted(Formatting.RED));
         client.player.sendMessage(wakeMessage, false);
 
         // phase 2: sleep duration taunt
@@ -115,7 +118,7 @@ public class ClientWakeDetection {
                 if (client.player != null) {
                     Text durationMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
                             .append(Text.translatable("message.nullpointerentity.wake.unpause.duration", durationText, NullPointerEntity.getDisplayUsername())
-                            .formatted(Formatting.WHITE));
+                            .formatted(Formatting.RED));
                     client.player.sendMessage(durationMessage, false);
                 }
             }
@@ -128,7 +131,7 @@ public class ClientWakeDetection {
                 if (client.player != null) {
                     Text controlMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
                             .append(Text.translatable("message.nullpointerentity.wake.unpause.control")
-                            .formatted(Formatting.WHITE));
+                            .formatted(Formatting.RED));
                     client.player.sendMessage(controlMessage, false);
                 }
             }
@@ -143,7 +146,7 @@ public class ClientWakeDetection {
                 if (client.player != null) {
                     Text logMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
                             .append(Text.translatable("message.nullpointerentity.wake.unpause.log_written")
-                            .formatted(Formatting.WHITE));
+                            .formatted(Formatting.RED));
                     client.player.sendMessage(logMessage, false);
                 }
             }
@@ -156,7 +159,7 @@ public class ClientWakeDetection {
                 if (client.player != null) {
                     Text finalMessage = Text.translatable("message.nullpointerentity.chat_prefix").formatted(Formatting.DARK_RED)
                             .append(Text.translatable("message.nullpointerentity.wake.unpause.final_warning")
-                            .formatted(Formatting.WHITE));
+                            .formatted(Formatting.RED));
                     client.player.sendMessage(finalMessage, false);
                 }
             }

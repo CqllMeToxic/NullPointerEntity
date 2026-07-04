@@ -357,32 +357,13 @@ public class JumpscareManager {
         }
 
         // create os-specific crash file
-        String crashContent = String.format("""
-%s CRITICAL SYSTEM FAILURE
-Generated: %s
-OS: %s
-
-CRASH DETAILS:
-Error: Unauthorized entity infiltration
-Cause: NullPointerEntity.exe takeover
-Status: SYSTEM COMPROMISED
-
-%s
-
-Memory integrity violated. Core processes hijacked.
-System recovery impossible without complete reinstall.
-All personal data has been archived and transmitted.
-
-WARNING: Entity has gained permanent system access.
-""",
-            os.contains("win") ? "WINDOWS BLUE SCREEN" :
-            os.contains("mac") ? "MACOS KERNEL PANIC" : "LINUX KERNEL OOPS",
+        String crashOs = os.contains("win") ? "win" : os.contains("mac") ? "mac" : "linux";
+        String crashContent = trText("jumpscare.nullpointerentity.system_crash_log",
+            trText("jumpscare.nullpointerentity.system_crash_log.header." + crashOs),
             java.time.LocalDateTime.now(),
             System.getProperty("os.name"),
-            os.contains("win") ? "Stop Code: 0x000000NULL" :
-            os.contains("mac") ? "Kernel Extensions in backtrace: NullPointerEntity.kext" :
-            "Call Trace: nullpointer_entity_invasion+0x0/0x0"
-        );
+            trText("jumpscare.nullpointerentity.system_crash_log.stop." + crashOs)
+        ).getString();
 
         lol.cqllmetoxic.nullpointerentity.aurora.SystemInteractionHandler.createSystemFileInCommonLocation(
             "system_crash_log.txt", crashContent, "desktop"

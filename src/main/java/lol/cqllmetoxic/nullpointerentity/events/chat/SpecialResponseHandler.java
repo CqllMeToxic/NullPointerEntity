@@ -62,7 +62,7 @@ public class SpecialResponseHandler {
      */
     public static void handleTimeRequest(ServerPlayerEntity player, String phase) {
         LocalDateTime now = LocalDateTime.now();
-        String timeString = now.format(DateTimeFormatter.ofPattern("h:mm a"));
+        String timeString = now.format(DateTimeFormatter.ofPattern("HH:mm"));
         ChatPart greeting = getTimeGreetingPart(now);
         String t = "message.nullpointerentity.chat.special.time.";
 

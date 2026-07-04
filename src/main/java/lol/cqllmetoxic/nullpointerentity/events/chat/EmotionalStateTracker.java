@@ -144,9 +144,9 @@ public class EmotionalStateTracker {
         Emotion emotion = playerEntityEmotions.get(playerName);
 
         return switch (emotion) {
-            case OBSESSED -> "i keep thinking about our conversation, " + playerName + "...";
-            case PREDATORY -> "you interest me more and more, " + playerName + ".";
-            case SATISFIED -> "your reactions are exactly what i wanted to see.";
+            case OBSESSED -> net.minecraft.text.Text.translatable("message.nullpointerentity.followup.obsessed", playerName).getString();
+            case PREDATORY -> net.minecraft.text.Text.translatable("message.nullpointerentity.followup.predatory", playerName).getString();
+            case SATISFIED -> net.minecraft.text.Text.translatable("message.nullpointerentity.followup.satisfied").getString();
             default -> "";
         };
     }

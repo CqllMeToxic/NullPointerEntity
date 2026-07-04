@@ -1,6 +1,7 @@
 package lol.cqllmetoxic.nullpointerentity.ui;
 
 import lol.cqllmetoxic.nullpointerentity.NullPointerEntity;
+import net.minecraft.text.Text;
 
 /**
  * creates native OS popups outside of minecraft.
@@ -13,22 +14,23 @@ public class PopupManager {
      * defines different types of popups with associated styling and sounds.
      */
     public enum PopupType {
-        INFO("Information", "Asterisk"),
-        WARNING("Warning", "Exclamation"),
-        ERROR("Error", "Hand"),
-        AURORA("AURORA", "Asterisk"),
-        NULLPOINTER("NullPointerEntity", "Hand"),
-        HOSTILE("System Alert", "Critical");
+        INFO("popup.nullpointerentity.type.info", "Asterisk"),
+        WARNING("popup.nullpointerentity.type.warning", "Exclamation"),
+        ERROR("popup.nullpointerentity.type.error", "Hand"),
+        AURORA("popup.nullpointerentity.type.aurora", "Asterisk"),
+        NULLPOINTER("popup.nullpointerentity.type.nullpointer", "Hand"),
+        HOSTILE("popup.nullpointerentity.type.hostile", "Critical");
 
-        private final String defaultTitle;
+        private final String defaultTitleKey;
         private final String soundType;
 
-        PopupType(String defaultTitle, String soundType) {
-            this.defaultTitle = defaultTitle;
+        PopupType(String defaultTitleKey, String soundType) {
+            this.defaultTitleKey = defaultTitleKey;
             this.soundType = soundType;
         }
 
-        public String getDefaultTitle() { return defaultTitle; }
+        // resolved lazily (at popup time) so the active language file is loaded.
+        public String getDefaultTitle() { return Text.translatable(defaultTitleKey).getString(); }
         public String getSoundType() { return soundType; }
     }
 
@@ -201,11 +203,11 @@ public class PopupManager {
 
     // convenience methods for specific mod entities
     public static void showAuroraMessage(String message) {
-        showMessage("AURORA - System Assistant", message, PopupType.AURORA);
+        showMessage(Text.translatable("popup.nullpointerentity.aurora_assistant.title").getString(), message, PopupType.AURORA);
     }
 
     public static void showNullPointerMessage(String message) {
-        showMessage("NullPointerEntity", message, PopupType.NULLPOINTER);
+        showMessage(Text.translatable("popup.nullpointerentity.type.nullpointer").getString(), message, PopupType.NULLPOINTER);
     }
 
     public static void showHostileMessage(String title, String message) {
@@ -213,11 +215,11 @@ public class PopupManager {
     }
 
     public static void showTimedAuroraMessage(String message, int seconds) {
-        showTimedPopup("AURORA - System Assistant", message, PopupType.AURORA, seconds);
+        showTimedPopup(Text.translatable("popup.nullpointerentity.aurora_assistant.title").getString(), message, PopupType.AURORA, seconds);
     }
 
     public static void showTimedNullPointerMessage(String message, int seconds) {
-        showTimedPopup("NullPointerEntity", message, PopupType.NULLPOINTER, seconds);
+        showTimedPopup(Text.translatable("popup.nullpointerentity.type.nullpointer").getString(), message, PopupType.NULLPOINTER, seconds);
     }
 
     public static void showTimedHostileMessage(String title, String message, int seconds) {
@@ -228,19 +230,24 @@ public class PopupManager {
     public static void showSurveillancePopup() {
         new Thread(() -> {
             try {
+                // resolved to the active language, then single-quote-escaped for the PowerShell literals below
+                String surveillanceTitle = escapeForSingleQuotedPowerShell(
+                    Text.translatable("popup.nullpointerentity.surveillance.title").getString());
+                String smileText = escapeForSingleQuotedPowerShell(
+                    Text.translatable("popup.nullpointerentity.surveillance.smile_upper").getString());
                 String command =
                     "powershell -Command \"" +
                     "Add-Type -AssemblyName System.Windows.Forms; " +
                     "Add-Type -AssemblyName System.Drawing; " +
                     "$form = New-Object System.Windows.Forms.Form; " +
-                    "$form.Text = 'SURVEILLANCE ACTIVE'; " +
+                    "$form.Text = '" + surveillanceTitle + "'; " +
                     "$form.Size = New-Object System.Drawing.Size(400,300); " +
                     "$form.StartPosition = 'CenterScreen'; " +
                     "$form.TopMost = $true; " +
                     "$form.FormBorderStyle = 'None'; " +
                     "$form.BackColor = 'Black'; " +
                     "$label = New-Object System.Windows.Forms.Label; " +
-                    "$label.Text = 'SMILE :)'; " +
+                    "$label.Text = '" + smileText + "'; " +
                     "$label.ForeColor = 'Red'; " +
                     "$label.Font = New-Object System.Drawing.Font('Consolas',24,[System.Drawing.FontStyle]::Bold); " +
                     "$label.TextAlign = 'MiddleCenter'; " +
@@ -257,9 +264,16 @@ public class PopupManager {
             } catch (Exception e) {
                 NullPointerEntity.LOGGER.warn("Failed to show surveillance popup: " + e.getMessage());
                 // fallback to simple message
-                showHostileMessage("SURVEILLANCE ACTIVE", "smile :)");
+                showHostileMessage(
+                    Text.translatable("popup.nullpointerentity.surveillance.title").getString(),
+                    Text.translatable("popup.nullpointerentity.surveillance.smile").getString());
             }
         }).start();
+    }
+
+    /** escapes a string for embedding inside a single-quoted PowerShell literal (doubles single quotes). */
+    private static String escapeForSingleQuotedPowerShell(String text) {
+        return text == null ? "" : text.replace("'", "''");
     }
 
     // fallback method to create txt files when powershell fails

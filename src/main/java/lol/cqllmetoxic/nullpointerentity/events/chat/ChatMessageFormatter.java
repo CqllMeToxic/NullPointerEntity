@@ -238,13 +238,10 @@ public class ChatMessageFormatter {
      * send a glitched aurora message (for transition effects)
      */
     public static void sendGlitchedAuroraMessage(ServerPlayerEntity player, String message) {
-        // create glitched text effect for aurora name
-        Text glitchedMessage = Text.literal("<AU").formatted(Formatting.AQUA)
-            .append(Text.literal("R").formatted(Formatting.RED))
-            .append(Text.literal("OR").formatted(Formatting.AQUA))
-            .append(Text.literal("A").formatted(Formatting.DARK_RED))
-            .append(Text.literal("> ").formatted(Formatting.AQUA))
-            .append(Text.literal(message).formatted(Formatting.WHITE));
+        // glitched aurora prefix: the §-codes in the value carry the per-letter colour effect
+        // (two red characters), so translators can localize the name and keep the glitch look.
+        Text glitchedMessage = Text.translatable("message.nullpointerentity.glitch_prefix")
+            .append(Text.literal(" ").append(Text.literal(message).formatted(Formatting.WHITE)));
         sendToRecipients(resolveRecipients(player), glitchedMessage, false);
     }
 

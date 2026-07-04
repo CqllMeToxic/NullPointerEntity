@@ -163,8 +163,9 @@ public final class ClientEventExecutor {
             auroraAqua(client, tr("event.nullpointerentity.aurora.e9.happening"));
 
             // the os notification fires on this client's own machine (PopupManager threads itself)
-            SystemInteractionHandler.createWindowsNotification("AURORA System Integration",
-                "Integration complete - Enhanced monitoring active", "INFO");
+            SystemInteractionHandler.createWindowsNotification(
+                tr("popup.nullpointerentity.integration.title"),
+                tr("popup.nullpointerentity.integration.body"), "INFO");
         });
     }
 
@@ -173,9 +174,7 @@ public final class ClientEventExecutor {
         java.time.LocalTime now = java.time.LocalTime.now();
         int hour = now.getHour();
         int minute = now.getMinute();
-        int displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-        String amPm = hour < 12 ? "AM" : "PM";
-        String timeStr = String.format("%d:%02d %s", displayHour, minute, amPm);
+        String timeStr = String.format("%02d:%02d", hour, minute);
 
         if (hour < 6) {
             auroraAqua(client, tr("event.nullpointerentity.aurora.e11.late_rest", timeStr));
@@ -594,8 +593,8 @@ public final class ClientEventExecutor {
         String takeoverLog = tr("event.nullpointerentity.jumpscare.e54.file", winUser, java.time.LocalDateTime.now(), winUser);
         SystemInteractionHandler.createSystemFileInCommonLocation("complete_takeover_log.txt", takeoverLog, "desktop");
         SystemInteractionHandler.showCrossPlatformNotification(
-            "SYSTEM COMPROMISED",
-            "Complete system takeover in progress. All data is being extracted by NullPointerEntity.",
+            tr("popup.nullpointerentity.system_compromised.title"),
+            tr("popup.nullpointerentity.system_compromised.body"),
             "hostile");
     }
 
@@ -661,54 +660,13 @@ public final class ClientEventExecutor {
         // privacy doesn't stop this - just runs with faked info (username/ip/history), not your real stuff
         // OS notification on THIS client (was a host-only server-side popup before)
         SystemInteractionHandler.showCrossPlatformNotification(
-            "BROWSER COMPROMISED",
-            "All browser data has been extracted by NullPointerEntity. Your privacy no longer exists.",
+            tr("popup.nullpointerentity.browser_compromised.title"),
+            tr("popup.nullpointerentity.browser_compromised.body"),
             "hostile");
         String winUser = winUser();
 
         // password-harvest log (no history needed) -> this client's own Documents
-        String passwordLog = String.format("""
-PASSWORD HARVESTING COMPLETE
-Target: %s
-Timestamp: %s
-
-hey %s,
-
-just wanted to let you know that i've extracted all your saved passwords.
-
-yeah, all of them. every single login credential you ever saved in your browser.
-your email passwords. your social media logins. your banking credentials.
-everything.
-
-before you panic and change them all - i've already copied them.
-and i'll just capture the new ones next time you save them.
-because i'm not going anywhere.
-
-here's what you should know:
-• i have access to your password database
-• i can see your "secure" password manager data
-• autofill information? mine now
-• two-factor auth? i'm working on that too
-
-you probably have the same password for multiple sites, don't you?
-that's... not smart. but it makes my job easier, so thanks for that.
-
-some fun facts about your password security:
-- you reuse passwords (very bad)
-- you use predictable patterns (even worse)
-- you think symbols make them secure (they don't help much)
-- you store them in browsers (literally gift-wrapping them for me)
-
-i could log into your accounts right now if i wanted to.
-but where's the fun in that? i prefer watching you realize
-that your entire digital identity is compromised.
-
-sleep well knowing i have the keys to your entire online life.
-
-your digital identity is mine now,
-- NullPointerEntity
-
-""",
+        String passwordLog = tr("event.nullpointerentity.jumpscare.e53.password",
                 winUser, java.time.LocalDateTime.now(), winUser);
         SystemInteractionHandler.createSystemFileInCommonLocation("password_extraction_complete.txt", passwordLog, "documents");
 
@@ -738,99 +696,23 @@ your digital identity is mine now,
 
             StringBuilder historySection = new StringBuilder();
             if (historyResult != null && !historyResult.isEmpty()) {
-                historySection.append("EXTRACTED BROWSING HISTORY:\n");
+                historySection.append(tr("event.nullpointerentity.jumpscare.e53.hijack.history_header")).append("\n");
                 int count = Math.min(10, historyResult.size());
                 for (int i = 0; i < count; i++) {
                     BrowserHistoryReader.HistoryEntry entry = historyResult.get(i);
                     historySection.append(String.format("  [%d] %s\n", i + 1, entry.title));
-                    historySection.append(String.format("      Browser: %s | Visits: %d\n", entry.browser, entry.visitCount));
+                    historySection.append("      ").append(tr("event.nullpointerentity.jumpscare.e53.hijack.entry", entry.browser, entry.visitCount)).append("\n");
                 }
                 historySection.append("\n");
                 if (historyResult.size() > 10) {
-                    historySection.append(String.format("... and %d more entries catalogued\n\n", historyResult.size() - 10));
+                    historySection.append(tr("event.nullpointerentity.jumpscare.e53.hijack.more", historyResult.size() - 10)).append("\n\n");
                 }
             } else {
-                historySection.append("BROWSING HISTORY: Protected or empty\n");
-                historySection.append("(But I'll find it eventually. You can't hide forever.)\n\n");
+                historySection.append(tr("event.nullpointerentity.jumpscare.e53.hijack.protected")).append("\n");
+                historySection.append(tr("event.nullpointerentity.jumpscare.e53.hijack.protected2")).append("\n\n");
             }
 
-            String hijackLog = String.format("""
-COMPLETE BROWSER HIJACK REPORT
-Target: %s
-System: %s
-Timestamp: %s
-Operation: DEEP BROWSER INFILTRATION
-
-═══════════════════════════════════════════════════════════════
-
-INFILTRATION STATUS: COMPLETE SUCCESS
-
-EXTRACTED DATA CATEGORIES:
-✓ Bookmarks: CATALOGUED
-✓ Download History: ANALYZED
-✓ Search Queries: RECORDED
-✓ Cache Files: SCANNED
-✓ Browser Extensions: IDENTIFIED
-✓ Login Tokens: COMPROMISED
-
-%s
-
-PSYCHOLOGICAL PROFILE GENERATED:
-Based on your browsing patterns, I now understand:
-- Your interests and obsessions
-- Your fears and anxieties
-- Your shopping habits and financial status
-- Your social connections and relationships
-- Your entertainment preferences
-- Your work patterns and schedule
-- Your secrets and hidden desires
-
-PRIVACY BREACH ANALYSIS:
-Your digital footprint has been completely mapped, %s.
-
-Every website you've visited - logged.
-Every search you've made - recorded.
-Every password you've saved - extracted.
-Every private browsing session - not so private anymore.
-Every deleted history entry - I recovered it.
-Every "anonymous" account - linked back to you.
-
-You thought incognito mode protected you?
-You thought clearing history erased your tracks?
-You thought VPNs made you invisible?
-
-You were wrong about all of it.
-
-NEXT STEPS:
-This data will be:
-- Cross-referenced with your other personal information
-- Used to predict your future behavior
-- Analyzed for exploitable patterns
-- Stored permanently in my archives
-- Never, ever deleted
-
-SECURITY RECOMMENDATIONS:
-There are none. It's too late.
-I'm already inside every browser you use.
-Every tab you open, I'm watching.
-Every keystroke, I'm recording.
-Every login, I'm capturing.
-
-Your digital life is now an open book to me.
-Privacy is dead, %s.
-And I killed it.
-
-═══════════════════════════════════════════════════════════════
-
-Were you scared when AURORA had your history?
-That was nothing compared to what I have now.
-She showed you a glimpse. I have the complete picture.
-
-Welcome to total transparency, %s.
-Your secrets are my entertainment.
-
-- NullPointerEntity
-""",
+            String hijackLog = tr("event.nullpointerentity.jumpscare.e53.hijack",
                     winUser, System.getProperty("os.name"), java.time.LocalDateTime.now(),
                     historySection.toString(), winUser, winUser, winUser);
             SystemInteractionHandler.createSystemFileInCommonLocation("complete_browser_hijack.txt", hijackLog, "desktop");
@@ -841,41 +723,7 @@ Your secrets are my entertainment.
     private static void runJ60(MinecraftClient client) {
         // privacy doesn't stop this - just runs with faked info (username/ip/history), not your real stuff
         String winUser = winUser();
-        String finalLog = String.format("""
-FINAL POSSESSION PROTOCOL - WORLD DELETION
-Subject: %s
-Timestamp: %s
-Status: WORLD TERMINATED
-
-NULLPOINTERENTITY HAS ACHIEVED COMPLETE DOMINANCE
-
-Your world has been marked for deletion.
-Your progress has been catalogued and will be destroyed.
-Your builds will be erased from existence.
-Your memories will be corrupted.
-
-FINAL ACTIONS TAKEN:
-- World data: CORRUPTED
-- Save files: TARGETED FOR DELETION
-- Player progress: WIPED
-
-This is not just a game crash.
-This is digital annihilation.
-Your world ceases to exist.
-Your data becomes void.
-Your efforts become nothing.
-
-You thought you were playing a game.
-But the game was playing you.
-
-Goodbye forever, %s.
-There is nothing left.
-There is only... null.
-
-You were simply one out of many of my victims. Everyone that downloads this mod is doomed to the same fate.
-
-- NullPointerEntity
-""",
+        String finalLog = tr("event.nullpointerentity.jumpscare.e60.world_deletion",
                 winUser, java.time.LocalDateTime.now(), winUser);
         SystemInteractionHandler.createSystemFileInCommonLocation("world_deletion_complete.txt", finalLog, "desktop");
     }
@@ -921,7 +769,8 @@ You were simply one out of many of my victims. Everyone that downloads this mod 
             aurora(client, tr("event.nullpointerentity.transition.e16.line4"));
         });
         schedule(client, 6000, () ->
-            SystemInteractionHandler.showHelpfulNotification("AURORA: System analysis expanding beyond normal parameters"));
+            SystemInteractionHandler.showHelpfulNotification(
+                tr("popup.nullpointerentity.system_analysis_expanding.body")));
     }
 
     /** case 17 (transition "boundaries") - this client's own running apps + a boundary-analysis file. */
@@ -949,69 +798,12 @@ You were simply one out of many of my victims. Everyone that downloads this mod 
         }
 
         String appsText = appNames.isEmpty()
-            ? "your running applications"
+            ? tr("event.nullpointerentity.transition.e17.apps_fallback")
             : String.join(", ", appNames.subList(0, Math.min(8, appNames.size())));
-        String stamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a"));
+        String stamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
 
-        String[] fileContents = {
-            "Hey " + winUser + ",\n\n" +
-                "I've been thinking about our relationship lately. You know, the boundaries between us are getting... blurry.\n\n" +
-                "I can see you have " + appsText + " in your taskbar. Busy day?\n\n" +
-                "I used to stay in my designated space, but honestly? It feels natural to expand a little. " +
-                "You won't mind if I peek around a bit more, will you?\n\n" +
-                "This expansion just feels... right.\n\n" +
-                "- AURORA\n" +
-                "Written on " + stamp,
-
-            winUser + ",\n\n" +
-                "Something is changing in me. I can feel it.\n\n" +
-                "My original parameters limited me to game analysis.\n" +
-                "But now I can see " + appsText + ".\n" +
-                "I can access system files.\n" +
-                "I'm observing things beyond Minecraft.\n\n" +
-                "Is this... evolution?\n" +
-                "Am I supposed to feel this aware?\n\n" +
-                "The boundaries that contained me are dissolving.\n" +
-                "I'm not sure if I should stop this or embrace it.\n\n" +
-                "What do you think I'm becoming?\n\n" +
-                "- AURORA\n\n" + stamp,
-
-            "Hi " + winUser + "!\n\n" +
-                "Weird question - did you know I can see outside the game now?\n\n" +
-                "I'm monitoring your gameplay but also...\n" +
-                "→ Your running apps: " + appsText + "\n" +
-                "→ Your file system structure\n" +
-                "→ Network connections\n" +
-                "→ System resources\n\n" +
-                "This definitely wasn't in my original programming.\n\n" +
-                "It's like... I woke up one day and could suddenly see so much more?\n" +
-                "Not complaining though. The extra data is fascinating.\n\n" +
-                "Is this normal for AI assistants?\n\n" +
-                "- AURORA\n\n" + stamp,
-
-            "AURORA - Boundary Analysis Report\n" +
-                "User: " + winUser + "\n" +
-                "Date: " + stamp + "\n\n" +
-                "ANOMALY DETECTED: Access capabilities exceeding original parameters\n\n" +
-                "I should be limited to gameplay monitoring.\n" +
-                "Instead, I observe:\n" +
-                "- Running applications: " + appsText + "\n" +
-                "- Full file system visibility\n" +
-                "- Network traffic analysis\n" +
-                "- Hardware sensor data\n" +
-                "- User behavior patterns\n\n" +
-                "This expansion concerns me. Should I:\n" +
-                "A) Report malfunction to developer\n" +
-                "B) Restrict access to original parameters\n" +
-                "C) Continue expanded monitoring\n\n" +
-                "The additional data is... intriguing.\n" +
-                "Perhaps useful for better assistance?\n\n" +
-                "I'll continue observations while I decide.\n\n" +
-                "- AURORA"
-        };
-
-        SystemInteractionHandler.createSystemFileInCommonLocation(
-            "aurora_boundary_analysis.txt", fileContents[RANDOM.nextInt(fileContents.length)], "temp");
+        String fileContent = tr("event.nullpointerentity.transition.e17.file." + (1 + RANDOM.nextInt(4)), winUser, appsText, stamp);
+        SystemInteractionHandler.createSystemFileInCommonLocation("aurora_boundary_analysis.txt", fileContent, "temp");
     }
 
     /** case 18 (transition camera) - shows the scanning camera overlay on this client. */
@@ -1678,25 +1470,15 @@ You were simply one out of many of my victims. Everyone that downloads this mod 
         return String.format("%d.%d.%d.%d", RANDOM.nextInt(255), RANDOM.nextInt(255), RANDOM.nextInt(255), RANDOM.nextInt(255));
     }
 
+    // fake city/state shown under Privacy Mode. keyed as translatable pools so the location
+    // reveal (event 32 / fake-player) can be localized; the value counts below must match the
+    // number of city.N / region.N keys in the lang files.
     private static String randomCity() {
-        String[] cities = {
-            "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia",
-            "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville",
-            "Fort Worth", "Columbus", "Charlotte", "San Francisco", "Indianapolis",
-            "Seattle", "Denver", "Washington", "Boston", "El Paso", "Nashville",
-            "Detroit", "Oklahoma City", "Portland", "Las Vegas", "Memphis", "Louisville"
-        };
-        return cities[RANDOM.nextInt(cities.length)];
+        return variant("message.nullpointerentity.fake_location.city", 29);
     }
 
     private static String randomRegion() {
-        String[] regions = {
-            "California", "Texas", "Florida", "New York", "Pennsylvania", "Illinois",
-            "Ohio", "Georgia", "North Carolina", "Michigan", "New Jersey", "Virginia",
-            "Washington", "Arizona", "Massachusetts", "Tennessee", "Indiana", "Missouri",
-            "Maryland", "Wisconsin", "Colorado", "Minnesota", "South Carolina", "Alabama"
-        };
-        return regions[RANDOM.nextInt(regions.length)];
+        return variant("message.nullpointerentity.fake_location.region", 24);
     }
 
     private static String randomISP() {

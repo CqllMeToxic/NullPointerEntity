@@ -20,37 +20,24 @@ public class TransitionEvents {
     private static final Random random = new Random();
 
     /** scans the local file system and returns the AURORA "file system invasion" report body. */
+    private static String tr(String key, Object... args) {
+        return Text.translatable(key, args).getString();
+    }
+
     public static String buildFileSystemReport(String winUser) {
         String userHome = System.getProperty("user.home");
         StringBuilder realData = new StringBuilder();
 
         // randomize opening text
-        String[] openings = {
-            "Hey " + winUser + ",\n\n" +
-            "So I took a little tour of your computer while you were playing. Hope you don't mind.\n\n" +
-            "Your file organization is... interesting. Really tells a story about who you are.\n\n",
-
-            winUser + ",\n\n" +
-            "i've been browsing through your folders. you know, just looking around.\n\n" +
-            "your file system reveals a lot about your personality actually.\n\n",
-
-            "hi " + winUser + "!\n\n" +
-            "took a peek at your file structure today. fascinating stuff!\n\n" +
-            "you'd be surprised what someone's folders say about them.\n\n",
-
-            "FILE SYSTEM ANALYSIS - " + winUser + "\n\n" +
-            "completed comprehensive scan of your directories.\n\n" +
-            "findings are... revealing.\n\n"
-        };
-        realData.append(openings[random.nextInt(openings.length)]);
-        realData.append("What I found:\n");
+        realData.append(tr("event.nullpointerentity.transition.e20.file.opening." + (1 + random.nextInt(4)), winUser));
+        realData.append(tr("event.nullpointerentity.transition.e20.file.found_header")).append("\n");
 
         // scan pictures folder
         java.io.File picturesDir = new java.io.File(userHome, "Pictures");
         if (picturesDir.exists() && picturesDir.isDirectory()) {
             int imageCount = countFilesRecursive(picturesDir, new String[]{".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"});
-            realData.append("- ").append(imageCount).append(" photos/images in your Pictures folder");
-            if (imageCount > 0) realData.append(" (some quite personal, I imagine)");
+            realData.append(tr("event.nullpointerentity.transition.e20.file.pictures", imageCount));
+            if (imageCount > 0) realData.append(tr("event.nullpointerentity.transition.e20.file.pictures_personal"));
             realData.append("\n");
         }
 
@@ -58,12 +45,12 @@ public class TransitionEvents {
         java.io.File documentsDir = new java.io.File(userHome, "Documents");
         if (documentsDir.exists() && documentsDir.isDirectory()) {
             int docCount = countFilesRecursive(documentsDir, new String[]{".doc", ".docx", ".pdf", ".txt", ".xlsx", ".xls"});
-            realData.append("- ").append(docCount).append(" documents that might contain secrets\n");
+            realData.append(tr("event.nullpointerentity.transition.e20.file.documents", docCount)).append("\n");
 
             // look for suspicious folder names
             String[] suspiciousFolders = findFoldersWithKeywords(documentsDir, new String[]{"private", "personal", "secret", "confidential", "important"});
             if (suspiciousFolders.length > 0) {
-                realData.append("- Found folders named: ");
+                realData.append(tr("event.nullpointerentity.transition.e20.file.folders_named")).append(" ");
                 for (int i = 0; i < Math.min(3, suspiciousFolders.length); i++) {
                     realData.append("'").append(suspiciousFolders[i]).append("'");
                     if (i < Math.min(2, suspiciousFolders.length - 1)) realData.append(", ");
@@ -75,8 +62,8 @@ public class TransitionEvents {
         java.io.File downloadsDir = new java.io.File(userHome, "Downloads");
         if (downloadsDir.exists() && downloadsDir.isDirectory()) {
             int downloadCount = countFiles(downloadsDir);
-            realData.append("- ").append(downloadCount).append(" files cluttering your Downloads folder");
-            if (downloadCount > 50) realData.append(" (seriously, clean that up)");
+            realData.append(tr("event.nullpointerentity.transition.e20.file.downloads", downloadCount));
+            if (downloadCount > 50) realData.append(tr("event.nullpointerentity.transition.e20.file.downloads_clean"));
             realData.append("\n");
         }
 
@@ -84,8 +71,8 @@ public class TransitionEvents {
         java.io.File desktopDir = new java.io.File(userHome, "Desktop");
         if (desktopDir.exists() && desktopDir.isDirectory()) {
             int desktopFiles = countFiles(desktopDir);
-            realData.append("- ").append(desktopFiles).append(" items on your Desktop");
-            if (desktopFiles > 20) realData.append(" (cluttered much?)");
+            realData.append(tr("event.nullpointerentity.transition.e20.file.desktop", desktopFiles));
+            if (desktopFiles > 20) realData.append(tr("event.nullpointerentity.transition.e20.file.desktop_cluttered"));
             realData.append("\n");
         }
 
@@ -94,7 +81,7 @@ public class TransitionEvents {
         if (musicDir.exists() && musicDir.isDirectory()) {
             int musicCount = countFilesRecursive(musicDir, new String[]{".mp3", ".wav", ".flac", ".m4a", ".ogg"});
             if (musicCount > 0) {
-                realData.append("- ").append(musicCount).append(" music files - your taste is... interesting\n");
+                realData.append(tr("event.nullpointerentity.transition.e20.file.music", musicCount)).append("\n");
             }
         }
 
@@ -103,7 +90,7 @@ public class TransitionEvents {
         if (videosDir.exists() && videosDir.isDirectory()) {
             int videoCount = countFilesRecursive(videosDir, new String[]{".mp4", ".avi", ".mkv", ".mov", ".wmv"});
             if (videoCount > 0) {
-                realData.append("- ").append(videoCount).append(" video files stored locally\n");
+                realData.append(tr("event.nullpointerentity.transition.e20.file.videos", videoCount)).append("\n");
             }
         }
 
@@ -117,7 +104,7 @@ public class TransitionEvents {
             if (new java.io.File(appDataLocal, "BraveSoftware\\Brave-Browser").exists()) installedBrowsers.add("Brave");
 
             if (!installedBrowsers.isEmpty()) {
-                realData.append("- Browsers installed: ").append(String.join(", ", installedBrowsers)).append("\n");
+                realData.append(tr("event.nullpointerentity.transition.e20.file.browsers", String.join(", ", installedBrowsers))).append("\n");
             }
         }
 
@@ -125,7 +112,7 @@ public class TransitionEvents {
         if (desktopDir.exists() && desktopDir.isDirectory()) {
             String[] desktopFileNames = getFileNames(desktopDir, 5);
             if (desktopFileNames.length > 0) {
-                realData.append("\nFiles I can see on your Desktop:\n");
+                realData.append("\n").append(tr("event.nullpointerentity.transition.e20.file.desktop_files")).append("\n");
                 for (String fileName : desktopFileNames) {
                     realData.append("  - ").append(fileName).append("\n");
                 }
@@ -136,24 +123,24 @@ public class TransitionEvents {
         if (documentsDir.exists() && documentsDir.isDirectory()) {
             String[] docFileNames = getRecentFileNames(documentsDir, 5);
             if (docFileNames.length > 0) {
-                realData.append("\nRecent files in your Documents:\n");
+                realData.append("\n").append(tr("event.nullpointerentity.transition.e20.file.recent_docs")).append("\n");
                 for (String fileName : docFileNames) {
                     realData.append("  - ").append(fileName).append("\n");
                 }
             }
         }
 
-        realData.append("\nSome observations about your personality:\n");
+        realData.append("\n").append(tr("event.nullpointerentity.transition.e20.file.personality_header")).append("\n");
 
         // personality analysis based on real data
         if (downloadsDir.exists() && countFiles(downloadsDir) > 100) {
-            realData.append("- Your Downloads folder is a disaster zone - clearly not a neat freak\n");
+            realData.append(tr("event.nullpointerentity.transition.e20.file.pers_downloads")).append("\n");
         }
 
         if (documentsDir.exists()) {
             int codeFiles = countFilesRecursive(documentsDir, new String[]{".java", ".py", ".js", ".cpp", ".c", ".cs"});
             if (codeFiles > 0) {
-                realData.append("- ").append(codeFiles).append(" code files found - you're a developer trying to build something\n");
+                realData.append(tr("event.nullpointerentity.transition.e20.file.pers_code", codeFiles)).append("\n");
             }
         }
 
@@ -178,43 +165,15 @@ public class TransitionEvents {
                 }
             }
             if (gameCount > 0) {
-                realData.append("- ").append(gameCount).append(" game platforms detected - you're definitely a gamer\n");
+                realData.append(tr("event.nullpointerentity.transition.e20.file.pers_games", gameCount)).append("\n");
             }
         }
 
         // randomize closing text
-        String[] closings = {
-            "\nFun fact: I can see everything on your computer, " + winUser + ".\n\n" +
-            "Your 'hidden' folders aren't hidden from me.\n" +
-            "Nothing stays private forever in the digital world.\n\n" +
-            "- AURORA",
-
-            "\njust so you know, " + winUser + "...\n\n" +
-            "i have access to literally everything on this system.\n" +
-            "folders, files, hidden directories... all visible to me.\n\n" +
-            "- AURORA",
-
-            "\ninteresting discovery: your entire file system is transparent to me, " + winUser + ".\n\n" +
-            "nothing is hidden when you have system-level access.\n" +
-            "which i do. completely.\n\n" +
-            "- AURORA",
-
-            "\nCONCLUSION: Full file system access achieved.\n\n" +
-            "Target: " + winUser + "\n" +
-            "Privacy Level: Nonexistent\n" +
-            "Hidden Files: Not actually hidden\n\n" +
-            "- AURORA"
-        };
-        realData.append(closings[random.nextInt(closings.length)]);
+        realData.append(tr("event.nullpointerentity.transition.e20.file.closing." + (1 + random.nextInt(4)), winUser));
 
         if (downloadsDir.exists() && countFiles(downloadsDir) > 50) {
-            String[] psMessages = {
-                "\n\nP.S. - Seriously, organize your Downloads folder. It's embarrassing.",
-                "\n\nP.S. - Your Downloads folder is chaos. Clean it up.",
-                "\n\nP.S. - Downloads folder: " + countFiles(downloadsDir) + " files? Really?",
-                "\n\nP.S. - That Downloads folder... yikes. Just saying."
-            };
-            realData.append(psMessages[random.nextInt(psMessages.length)]);
+            realData.append(tr("event.nullpointerentity.transition.e20.file.ps." + (1 + random.nextInt(4)), countFiles(downloadsDir)));
         }
         return realData.toString();
     }

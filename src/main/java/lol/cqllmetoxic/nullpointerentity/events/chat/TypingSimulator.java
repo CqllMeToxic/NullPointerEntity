@@ -134,7 +134,7 @@ public class TypingSimulator {
         }
 
         Text typingText = Text.translatable("message.nullpointerentity.typing.prefix", entity).formatted(nameColor)
-            .append(Text.translatable("message.nullpointerentity.typing.status").formatted(Formatting.GRAY, Formatting.ITALIC));
+            .append(Text.translatable("message.nullpointerentity.typing.status", "").formatted(Formatting.GRAY, Formatting.ITALIC));
 
         for (ServerPlayerEntity recipient : recipients) {
             recipient.sendMessage(typingText, true);

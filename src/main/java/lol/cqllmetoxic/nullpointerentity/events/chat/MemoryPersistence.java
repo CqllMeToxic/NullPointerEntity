@@ -16,7 +16,8 @@ public class MemoryPersistence {
     private static final String MEMORY_DIR = "run/data/aurora_memories/";
     private static final Map<String, PlayerMemory> loadedMemories = new HashMap<>();
 
-    public static class PlayerMemory {
+    public static class PlayerMemory implements Serializable {
+        private static final long serialVersionUID = 1L;
         public List<String> significantMoments = new ArrayList<>();
         public Map<String, Integer> emotionalIntensityHistory = new HashMap<>();
         public String lastEncounter = "";

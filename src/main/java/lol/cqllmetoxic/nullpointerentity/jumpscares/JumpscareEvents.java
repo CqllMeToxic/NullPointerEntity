@@ -478,31 +478,20 @@ public class JumpscareEvents {
                         }
 
                         // create final status log
-                        String statusLog = String.format("""
-WORLD DESTRUCTION STATUS REPORT
-Subject: %s
-Timestamp: %s
-Target: %s
-
-FINAL STATUS: %s
-
-%s
-
-%s
-
-- NullPointerEntity
-""",
+                        String statusLog = Text.translatable("jumpscare.nullpointerentity.world_destruction_report",
                                 NullPointerEntity.getDisplayUsername(),
                                 java.time.LocalDateTime.now(),
                                 worldPath.toString(),
-                                deletionSuccess ? "WORLD DESTROYED" : "WORLD PROTECTED",
-                                deletionSuccess ?
-                                    "DELETION SUCCESSFUL:\n- All world files removed\n- Save data eliminated\n- Progress erased\n- Everything you built is gone" :
-                                    "DELETION BLOCKED:\n- System protection prevented deletion\n- World files remain intact\n- Your progress survives\n- But the experience is complete",
-                                deletionSuccess ?
-                                    "Try to find your world now. I dare you." :
-                                    "Your world lives on, but you've learned what I'm capable of."
-                        );
+                                Text.translatable(deletionSuccess
+                                    ? "jumpscare.nullpointerentity.world_destruction_report.status.destroyed"
+                                    : "jumpscare.nullpointerentity.world_destruction_report.status.protected"),
+                                Text.translatable(deletionSuccess
+                                    ? "jumpscare.nullpointerentity.world_destruction_report.detail.success"
+                                    : "jumpscare.nullpointerentity.world_destruction_report.detail.blocked"),
+                                Text.translatable(deletionSuccess
+                                    ? "jumpscare.nullpointerentity.world_destruction_report.taunt.success"
+                                    : "jumpscare.nullpointerentity.world_destruction_report.taunt.blocked")
+                        ).getString();
 
                         try {
                             SystemInteractionHandler.createSystemFileInCommonLocation(

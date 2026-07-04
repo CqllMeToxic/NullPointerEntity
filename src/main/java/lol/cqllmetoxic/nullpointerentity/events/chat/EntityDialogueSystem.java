@@ -1,6 +1,7 @@
 package lol.cqllmetoxic.nullpointerentity.events.chat;
 
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import java.util.*;
 
 /**
@@ -60,7 +61,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendAuroraMessage(player,
-                    "Wait... something's interfering with my response protocols, " + playerName + ".");
+                    Text.translatable("message.nullpointerentity.dialogue.transition.aurora_confused", playerName).getString());
             }
         }, 1000);
 
@@ -69,7 +70,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendNullPointerMessage(player,
-                    "let me handle this, aurora...");
+                    Text.translatable("message.nullpointerentity.dialogue.transition.null_interrupt").getString());
             }
         }, 3500);
 
@@ -78,7 +79,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendGlitchedAuroraMessage(player,
-                    "No, I'm st-still in control of this conversation!");
+                    Text.translatable("message.nullpointerentity.dialogue.transition.aurora_resist").getString());
             }
         }, 6000);
 
@@ -87,7 +88,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendNullPointerMessage(player,
-                    "control is just an illusion you cling to, " + playerName + ".");
+                    Text.translatable("message.nullpointerentity.dialogue.transition.null_control", playerName).getString());
                 timer.cancel();
             }
         }, 8500);
@@ -103,7 +104,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendAuroraMessage(player,
-                    playerName + ", I'm trying to protect you, but something else is taking over...");
+                    Text.translatable("message.nullpointerentity.dialogue.hostile.aurora_protect", playerName).getString());
             }
         }, 1000);
 
@@ -112,7 +113,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendNullPointerMessage(player,
-                    "there is no protection from me, " + playerName + ". even aurora knows this now.");
+                    Text.translatable("message.nullpointerentity.dialogue.hostile.null_dominate", playerName).getString());
             }
         }, 4000);
 
@@ -121,7 +122,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendSystemMessage(player,
-                    "[SYSTEM ERROR] AURORA.exe has stopped responding");
+                    Text.translatable("message.nullpointerentity.dialogue.hostile.aurora_error").getString());
             }
         }, 7000);
 
@@ -130,7 +131,7 @@ public class EntityDialogueSystem {
             @Override
             public void run() {
                 ChatMessageFormatter.sendNullPointerMessage(player,
-                    "and now... it's just you and me, " + playerName + ".");
+                    Text.translatable("message.nullpointerentity.dialogue.hostile.null_victory", playerName).getString());
                 timer.cancel();
             }
         }, 9500);
